@@ -7,12 +7,12 @@
 - Leonel Giacobbe (lg1221)
 
 ## Role Division
-- Backend: Leonel Giacobbe
-- Frontend:
-- Cloud Deployments:
+- Backend: Leonel Giacobbe, Matias Bustillo 
+- Frontend: Cade Besaw, Cara Belew 
+- Cloud Deployments: All 4 Members Combined
 
 ## Major Project Features
-- Cade Besaw
+- Cade Besaw 
 - Matias Bustillo
 - Cara Belew
 - Leonel Giacobbe
