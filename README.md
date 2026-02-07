@@ -15,4 +15,4 @@
 - Cade Besaw 
 - Matias Bustillo
 - Cara Belew
-- Leonel Giacobbe
+- Leonel Giacobbe: User management (signup, login, credential changes), database schemas 
