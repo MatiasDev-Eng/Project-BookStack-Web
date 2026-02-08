@@ -14,5 +14,5 @@
 ## Major Project Features
 - Cade Besaw 
 - Matias Bustillo
-- Cara Belew
+- Cara Belew: Search capabilities (search, filter, sort, compare)
 - Leonel Giacobbe: User management (signup, login, credential changes), database schemas 
