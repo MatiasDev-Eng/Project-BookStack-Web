@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publish a Book for sale | Bookstore</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-content">
+            <div class="logo">BookStore</div>
+            
+            <div class="search-container">
+                <input type="text" placeholder="Search for books, authors, or ISBN...">
+                <button class="search-btn">&#128269;</button> </div>
+
+            <div class="profile-container">
+                <div class="profile-circle"></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Seller Dashboard</h1>
+        <p>List a new book for sale below.</p>
+        
+        <button id="showFormBtn" onclick="toggleForm()">+ Create a Listing</button>
+
+        <div id="listingFormContainer" class="hidden">
+            <h2>Book Details</h2>
+            <form id="publishForm">
+                <div class="form-group">
+                    <label for="title">Book Title</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g. The Great Gatsby">
+                </div>
+
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" name="author" required placeholder="e.g. F. Scott Fitzgerald">
+                </div>
+
+                <div class="form-group">
+                    <label for="author">ISBN Number</label>
+                    <input type="text" id="author" name="author" required placeholder="e.g. 978247291759">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="year">Year</label>
+                        <input type="number" id="year" name="year" min="1000" max="2026" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price ($)</label>
+                        <input type="number" id="price" name="price" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="condition">Condition</label>
+                    <select id="condition" name="condition" required>
+                        <option value="">Select Condition</option>
+                        <option value="NEW">New</option>
+                        <option value="LIKE_NEW">Like New</option>
+                        <option value="VERY_GOOD">Very Good</option>
+                        <option value="GOOD">Good</option>
+                        <option value="ACCEPTABLE">Acceptable</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="4" placeholder="Tell buyers about the book..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Post Listing</button>
+                <button type="button" class="cancel-btn" onclick="toggleForm()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm() {
+            const form = document.getElementById('listingFormContainer');
+            const btn = document.getElementById('showFormBtn');
+            form.classList.toggle('hidden');
+            btn.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
