@@ -1,7 +1,7 @@
 package com.example.bookstack_backend.models;
 
 import jakarta.persistence.*;
-
+import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Entity
@@ -29,10 +29,6 @@ public class OrderItem {
         this.book = book;
         this.priceAtPurchase = priceAtPurchase;
         this.quantity = quantity;
-    }
-
-    public OrderItem() {
-
     }
 
     public Long getOrderItemId() { return orderItemId; }

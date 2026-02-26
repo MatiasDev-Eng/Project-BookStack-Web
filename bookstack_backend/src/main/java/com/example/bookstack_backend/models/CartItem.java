@@ -28,10 +28,6 @@ public class CartItem {
         this.quantity = quantity;
     }
 
-    public CartItem() {
-
-    }
-
     public Long getCartItemId() { return cartItemId; }
     public void setCartItemId(Long cartItemId) { this.cartItemId = cartItemId; }
 

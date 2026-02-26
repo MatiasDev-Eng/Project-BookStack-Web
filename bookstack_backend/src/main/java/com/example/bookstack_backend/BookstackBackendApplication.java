@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class AngularCrudInventoryApplication {
+public class BookstackBackendApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(AngularCrudInventoryApplication.class, args);
+        SpringApplication.run(BookstackBackendApplication.class, args);
     }
 
 }
