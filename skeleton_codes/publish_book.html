@@ -13,7 +13,8 @@
             
             <div class="search-container">
                 <input type="text" placeholder="Search for books, authors, or ISBN...">
-                <button class="search-btn">&#128269;</button> </div>
+                <button class="search-btn">&#128269;</button> 
+            </div>
 
             <div class="profile-container">
                 <div class="profile-circle"></div>
@@ -41,8 +42,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="author">ISBN Number</label>
-                    <input type="text" id="author" name="author" required placeholder="e.g. 978247291759">
+                    <label for="isbn">ISBN Number</label>
+                    <input type="text" id="isbn" name="isbn" required placeholder="e.g. 978247291759">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="genre">Genre</label>
+                        <input type="text" id="genre" name="genre" required placeholder="e.g. Fiction">
+                    </div>
+                    <div class="form-group">
+                        <label for="edition">Edition</label>
+                        <input type="text" id="edition" name="edition" placeholder="e.g. 1st, 2nd, etc.">
+                    </div>
                 </div>
 
                 <div class="form-row">
@@ -80,12 +92,57 @@
     </div>
 
     <script>
+        // Toggles the form visibility
         function toggleForm() {
-            const form = document.getElementById('listingFormContainer');
+            const formContainer = document.getElementById('listingFormContainer');
             const btn = document.getElementById('showFormBtn');
-            form.classList.toggle('hidden');
+            formContainer.classList.toggle('hidden');
             btn.classList.toggle('hidden');
         }
+
+        // Listens for the form submission
+        document.getElementById('publishForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevents the page from refreshing
+
+            // 1. Gather all the data from the inputs
+            const bookData = {
+                ownerId: 1, // HARDCODED for now until you build out the Login system
+                stock: 1,   // Defaulting stock to 1
+                price: parseFloat(document.getElementById('price').value),
+                title: document.getElementById('title').value,
+                author: document.getElementById('author').value,
+                genre: document.getElementById('genre').value,
+                edition: document.getElementById('edition').value,
+                condition: document.getElementById('condition').value,
+                publishedYear: parseInt(document.getElementById('year').value),
+                description: document.getElementById('description').value,
+                isbn: document.getElementById('isbn').value,
+                coverImageUrl: "" // Blank until you set up Google Cloud Buckets
+            };
+
+            // 2. Send the data to your Spring Boot Backend
+            try {
+                const response = await fetch('http://localhost:8080/api/books', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bookData)
+                });
+
+                if (response.ok) {
+                    alert('Book listed successfully!');
+                    document.getElementById('publishForm').reset(); // Clear the form
+                    toggleForm(); // Hide the form
+                } else {
+                    alert('Failed to list the book. Check the console for errors.');
+                    console.error('Server error:', response.statusText);
+                }
+            } catch (error) {
+                alert('Network error. Is your Spring Boot server running?');
+                console.error('Error connecting to backend:', error);
+            }
+        });
     </script>
 </body>
 </html>
