@@ -3,7 +3,7 @@ package com.example.bookstack_backend.dto.request;
 import com.example.bookstack_backend.models.ECondition;
 import java.math.BigDecimal;
 
-public class BookCreateRequest {
+public class CreateBookRequest {
     private Long ownerId;
     private Integer stock;
     private BigDecimal price;

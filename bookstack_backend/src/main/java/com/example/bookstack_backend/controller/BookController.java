@@ -1,7 +1,9 @@
 package com.example.bookstack_backend.controller;
 
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
+import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.security.services.UserDetailsImpl;
 import com.example.bookstack_backend.services.BookService;
 import com.example.bookstack_backend.repository.BookRepository;
 import jakarta.validation.Valid;
@@ -9,10 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 
@@ -28,10 +33,33 @@ public class BookController {
         this.bookService = bookService;
     }
 
-    @PostMapping
-    public ResponseEntity<Book> addBookListing(@RequestBody BookCreateRequest request) {
+    @Operation(
+            summary = "Create book listing",
+            description = "(TAKES IN JWT) Creates an entry in the book table. Books won't be visible until admin approves",
+            tags = { "books", "post" })
+    @PostMapping("/")
+    public ResponseEntity<Book> addBookListing(@RequestBody CreateBookRequest request) {
         Book savedBook = bookService.createBookListing(request);
         return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
+    }
+
+    @Operation(
+            summary = "Lists all books",
+            description = "(TAKES IN JWT) Returns metadata + download link for all pcls owned by a user",
+            tags = { "pointclouds", "get" })
+    @GetMapping("/")
+    public ResponseEntity<List<BookResponse>> getAllPointclouds() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        List<Book> bookList = bookService.getAllBooks();
+
+        List<BookResponse> responseList = bookList.stream()
+                .map(book -> {
+                    return new BookResponse(book);
+                })
+                .toList();
+        return ResponseEntity.ok(responseList);
     }
 
 //    @Autowired

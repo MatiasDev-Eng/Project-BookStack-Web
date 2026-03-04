@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import com.example.bookstack_backend.dto.request.LoginRequest;
 import com.example.bookstack_backend.dto.request.SignUpRequest;
 import com.example.bookstack_backend.dto.response.MessageResponse;
+import com.example.bookstack_backend.dto.response.UserDetailsResponse;
 import com.example.bookstack_backend.dto.response.UserInfoResponse;
 import com.example.bookstack_backend.exceptions.TokenRefreshException;
 import com.example.bookstack_backend.models.RefreshToken;
@@ -108,6 +109,8 @@ public class AuthController {
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
+
+
 
     @Operation(
             summary = "Sign out",

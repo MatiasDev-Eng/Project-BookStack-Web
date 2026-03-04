@@ -1,11 +1,13 @@
 package com.example.bookstack_backend.services;
 
-import com.example.bookstack_backend.dto.BookCreateRequest;
+import com.example.bookstack_backend.dto.request.CreateBookRequest;
 import com.example.bookstack_backend.models.Book;
 import com.example.bookstack_backend.models.User;
-import com.example.bookstack_backend.repositories.BookRepository;
-import com.example.bookstack_backend.repositories.UserRepository;
+import com.example.bookstack_backend.repository.BookRepository;
+import com.example.bookstack_backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class BookService {
@@ -18,7 +20,7 @@ public class BookService {
         this.userRepository = userRepository;
     }
 
-    public Book createBookListing(BookCreateRequest request) {
+    public Book createBookListing(CreateBookRequest request) {
         User owner = userRepository.findById(request.getOwnerId())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getOwnerId()));
 
@@ -39,5 +41,9 @@ public class BookService {
         newBook.setCoverImageUrl(request.getCoverImageUrl());
 
         return bookRepository.save(newBook);
+    }
+
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
     }
 }
