@@ -1,9 +1,12 @@
 package com.example.bookstack_backend.controller;
 
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
+import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.services.BookService;
 import com.example.bookstack_backend.repository.BookRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +21,18 @@ import java.util.logging.Logger;
 @EnableAsync
 @RequestMapping("/api/books/")
 public class BookController {
+
+    private final BookService bookService;
+
+    public BookController(BookService bookService) {
+        this.bookService = bookService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Book> addBookListing(@RequestBody BookCreateRequest request) {
+        Book savedBook = bookService.createBookListing(request);
+        return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
+    }
 
 //    @Autowired
 //    private BookRepository bookRepository;
