@@ -78,7 +78,29 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
+    }
+
+    .nav-icon-btn {
+      width: 42px;
+      height: 42px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .nav-icon-btn:hover {
+      background: var(--white);
+      border-color: var(--accent);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
     }
 
     .user-profile-btn {
@@ -236,9 +258,13 @@
   </div>
 
   <div class="nav-right">
+    <div class="nav-icon-btn" onclick="window.location.href='/cart.html'" title="View Cart">
+      🛒
+    </div>
     <div class="user-profile-btn" onclick="window.location.href='/account.html'" title="My Account">
       👤
     </div>
+
   </div>
 </nav>
 
@@ -252,6 +278,34 @@
 </section>
 
 <script>
+  function updateQty(btn, delta) {
+    const qtySpan = btn.parentElement.querySelector('.qty-num');
+    let currentQty = parseInt(qtySpan.innerText);
+    currentQty = Math.max(1, currentQty + delta); // Prevent quantity < 1
+    qtySpan.innerText = currentQty;
+  }
+
+  // Function to call the backend
+  async function addToCart(bookId) {
+    const qty = parseInt(document.getElementById(`qty-${bookId}`).innerText);
+
+    try {
+      const response = await fetch('http://localhost:8080/api/cart/add/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookId: bookId, quantity: qty })
+      });
+
+      if (response.ok) {
+        alert("Added to cart!");
+      } else {
+        alert("Failed to add to cart. Are you logged in?");
+      }
+    } catch (error) {
+      console.error("Cart error:", error);
+    }
+  }
   async function fetchFeaturedBooks() {
     const bookGrid = document.getElementById('bookGrid');
 
@@ -273,22 +327,22 @@
         card.className = 'book-card';
 
         card.innerHTML = `
-            <div class="book-cover">📖</div>
-            <div class="book-info">
-              <div class="book-title" title="${book.title}">${book.title}</div>
-              <div class="book-author">by ${book.author}</div>
-              <div class="book-price">$${book.price.toFixed(2)}</div>
+          <div class="book-cover">📖</div>
+          <div class="book-info">
+            <div class="book-title">${book.title}</div>
+            <div class="book-author">by ${book.author}</div>
+            <div class="book-price">$${book.price.toFixed(2)}</div>
 
-              <div class="cart-controls">
-                <div class="quantity-selector">
-                  <button class="qty-btn" onclick="event.preventDefault()">−</button>
-                  <span class="qty-num">1</span>
-                  <button class="qty-btn" onclick="event.preventDefault()">+</button>
-                </div>
-                <button class="add-to-cart-btn">Add to Cart</button>
+            <div class="cart-controls">
+              <div class="quantity-selector">
+                <button class="qty-btn" onclick="updateQty(this, -1)">−</button>
+                <span class="qty-num" id="qty-${book.id}">1</span>
+                <button class="qty-btn" onclick="updateQty(this, 1)">+</button>
               </div>
+              <button class="add-to-cart-btn" onclick="addToCart(${book.id})">Add to Cart</button>
             </div>
-          `;
+          </div>
+        `;
         bookGrid.appendChild(card);
       });
 
