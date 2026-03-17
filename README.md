@@ -1,4 +1,4 @@
-[![Java CI with Maven](https://github.com/MatiasDev-Eng/Project-BookStack-Web/actions/workflows/maven.yml/badge.svg)](https://github.com/MatiasDev-Eng/Project-BookStack-Web/actions/workflows/maven.yml)
+[![Java CI with Maven](https://github.com/MatiasDev-Eng/Project-BookStack-Web/actions/workflows/maven.yml/badge.svg?branch=backend)](https://github.com/MatiasDev-Eng/Project-BookStack-Web/actions/workflows/maven.yml)
 
 # Project-BookStack-Web
 
