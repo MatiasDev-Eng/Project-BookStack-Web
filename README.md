@@ -3,7 +3,7 @@
 ## Group Members and netids
 - Cade Besaw (ccb565)
 - Matias Bustillo (mlb1289)
-- Cara Belew (cgb331)
+- Cara Belew (cgb331 )
 - Leonel Giacobbe (lg1221)
 
 ## Role Division
