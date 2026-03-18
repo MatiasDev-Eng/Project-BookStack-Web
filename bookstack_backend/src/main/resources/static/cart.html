@@ -107,7 +107,7 @@
 
   async function removeItem(itemId) {
     if(!confirm("Remove this item?")) return;
-    await fetch(`http://localhost:8080/api/cart/remove/${itemId}`, {
+    await fetch(`http://localhost:8080/api/cart/remove/${itemId}/`, {
       method: 'DELETE',
       credentials: 'include'
     });
