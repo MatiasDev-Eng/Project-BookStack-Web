@@ -98,7 +98,7 @@
   }
 
   async function updateQty(itemId, newQty) {
-    await fetch(`http://localhost:8080/api/cart/update-quantity/${itemId}?quantity=${newQty}`, {
+    await fetch(`http://localhost:8080/api/cart/update-quantity/${itemId}/?quantity=${newQty}`, {
       method: 'PUT',
       credentials: 'include'
     });

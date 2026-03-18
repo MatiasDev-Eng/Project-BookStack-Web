@@ -68,8 +68,15 @@
             });
 
             if (response.ok) {
+                const userData = await response.json();
+                localStorage.setItem('bookstack-user-id', userData.userId);
+
                 messageDiv.textContent = "Login Successful! Welcome back.";
                 messageDiv.className = "success";
+
+                setTimeout(() => {
+                    window.location.href = 'homepage.html';
+                }, 1000);
                 loginForm.reset();
             } else {
                 // Try to get error message from backend if available

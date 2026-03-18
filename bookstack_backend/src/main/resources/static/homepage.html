@@ -45,6 +45,29 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
+    .publish-btn {
+      background: var(--success);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .publish-btn:hover {
+      background: #047857;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+    }
+
     .nav-left .logo {
       font-size: 1.5rem;
       font-weight: 800;
@@ -78,7 +101,7 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
     }
 
     .nav-icon-btn {
@@ -258,13 +281,16 @@
   </div>
 
   <div class="nav-right">
+    <a href="publish_book.html" class="publish-btn">
+      <span>+</span> Publish Book
+    </a>
+
     <div class="nav-icon-btn" onclick="window.location.href='/cart.html'" title="View Cart">
       🛒
     </div>
     <div class="user-profile-btn" onclick="window.location.href='/account.html'" title="My Account">
       👤
     </div>
-
   </div>
 </nav>
 

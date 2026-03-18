@@ -40,13 +40,13 @@ public class CartController {
         return ResponseEntity.ok(items);
     }
 
-    @DeleteMapping("/remove/{itemId}")
+    @DeleteMapping("/remove/{itemId}/")
     public ResponseEntity<?> removeItem(@PathVariable Long itemId) {
         cartService.removeItem(itemId);
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/update-quantity/{itemId}")
+    @PutMapping("/update-quantity/{itemId}/")
     public ResponseEntity<?> updateQuantity(@PathVariable Long itemId, @RequestParam Integer quantity) {
         cartService.updateQuantity(itemId, quantity);
         return ResponseEntity.ok().build();
