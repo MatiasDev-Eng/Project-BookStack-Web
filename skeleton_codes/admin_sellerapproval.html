@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Dashboard</title>
+  <title>Seller Approval</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
@@ -31,33 +31,38 @@
 
     /* Sidebar */
     .sidebar {
-      width: 220px;
+      width: 240px;
       background: var(--white);
       border-right: 1px solid var(--border);
       padding: 24px 18px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 24px;
     }
 
     .sidebar-title {
-      font-size: 1.3rem;
-      font-weight: 600;
+      font-size: 1.4rem;
+      font-weight: 700;
       color: var(--primary);
     }
 
     .nav {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .nav-item {
       padding: 10px 12px;
       border-radius: 8px;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: var(--primary);
+      transition: 0.2s;
+    }
+
+    .nav-item:hover {
+      background: #f3f4f6;
     }
 
     .nav-item.active {
@@ -75,7 +80,7 @@
     }
 
     .header {
-      font-size: 1.6rem;
+      font-size: 1.7rem;
       font-weight: 600;
       color: var(--primary);
     }
@@ -92,16 +97,6 @@
       font-size: 1.1rem;
       font-weight: 600;
       margin-bottom: 12px;
-    }
-
-    .btn {
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background: #111827;
-      color: #f9fafb;
-      font-size: 0.9rem;
     }
 
     .table {
@@ -123,6 +118,23 @@
       text-transform: uppercase;
     }
 
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #fff;
+    }
+
+    .approve {
+      background: #16a34a;
+    }
+
+    .reject {
+      background: #dc2626;
+    }
+
     .status {
       padding: 4px 8px;
       border-radius: 6px;
@@ -140,49 +152,65 @@
     <div class="sidebar-title">Admin Panel</div>
 
     <div class="nav">
-      <div class="nav-item active">Dashboard</div>
-      <div class="nav-item">Books</div>
-      <div class="nav-item">Orders</div>
-      <div class="nav-item">Users</div>
-      <div class="nav-item">Settings</div>
+      <a href="admin_dashboard.html" class="nav-item">Dashboard</a>
+      <a href="user_management.html" class="nav-item">User Management</a>
+      <a href="seller_approval.html" class="nav-item active">Seller Approval</a>
+      <a href="product_approval.html" class="nav-item">Product Approval</a>
+      <a href="admin_profile.html" class="nav-item">Admin Profile</a>
     </div>
   </aside>
 
+
   <!-- Main content -->
   <main class="main">
-    <div class="header">Dashboard</div>
+    <div class="header">Seller Approval</div>
 
     <div class="card">
-      <div class="card-title">Books Overview</div>
-
-      <button class="btn">+ Add Book</button>
+      <div class="card-title">Pending Seller Requests</div>
 
       <table class="table">
         <thead>
           <tr>
-            <th>Title</th>
-            <th>Author</th>
+            <th>Seller Name</th>
+            <th>Email</th>
+            <th>Business Name</th>
             <th>Status</th>
+            <th>Action</th>
           </tr>
         </thead>
 
         <tbody>
           <tr>
-            <td>The Silent Library</td>
-            <td>Jane Doe</td>
-            <td><span class="status">Active</span></td>
+            <td>Emily Parker</td>
+            <td>emily@sellbooks.com</td>
+            <td>Parker Bookstore</td>
+            <td><span class="status">Pending</span></td>
+            <td>
+              <button class="btn-action approve">Approve</button>
+              <button class="btn-action reject">Reject</button>
+            </td>
           </tr>
 
           <tr>
-            <td>Designing Interfaces</td>
-            <td>Alan Smith</td>
-            <td><span class="status">Draft</span></td>
+            <td>David Kim</td>
+            <td>david@rarebooks.net</td>
+            <td>Kim Rare Books</td>
+            <td><span class="status">Pending</span></td>
+            <td>
+              <button class="btn-action approve">Approve</button>
+              <button class="btn-action reject">Reject</button>
+            </td>
           </tr>
 
           <tr>
-            <td>Out of Stock Example</td>
-            <td>Mary Johnson</td>
-            <td><span class="status">Out</span></td>
+            <td>Olivia Martinez</td>
+            <td>olivia@martinezbooks.com</td>
+            <td>Martinez Books</td>
+            <td><span class="status">Pending</span></td>
+            <td>
+              <button class="btn-action approve">Approve</button>
+              <button class="btn-action reject">Reject</button>
+            </td>
           </tr>
         </tbody>
       </table>
