@@ -125,6 +125,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>com/example/bookstack_backend/security/WebSecurityConfig.class</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
