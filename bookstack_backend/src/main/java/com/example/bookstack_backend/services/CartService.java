@@ -49,11 +49,9 @@ public class CartService {
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + quantity);
-            // No need for explicit save if @Transactional is working on the managed entity
         } else {
             CartItem newItem = new CartItem(cart, book, quantity);
             cart.getItems().add(newItem);
-            // cartRepository.save(cart) handles the items via CascadeType.ALL
         }
     }
 
@@ -72,7 +70,7 @@ public class CartService {
 
     @Transactional
     public void removeItem(Long itemId) {
-        // Check if it exists first to avoid silent failures
+        // Check if it exists first
         if (!cartItemRepository.existsById(itemId)) {
             throw new RuntimeException("Cart item not found with id: " + itemId);
         }

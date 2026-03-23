@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Order Details | BookStack</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #f8fafc; --white: #ffffff; --primary: #1e293b;
+            --border: #e2e8f0; --accent: #2563eb; --radius: 12px;
+            --danger: #ef4444;
+        }
+        body { background: var(--bg); font-family: system-ui, sans-serif; padding: 40px 5%; margin: 0; }
+        .container { max-width: 700px; margin: 40px auto; background: var(--white); padding: 40px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .nav-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 25px; }
+        .header { border-bottom: 2px solid var(--border); margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .header h2 { margin: 0; color: var(--primary); }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .item-main h4 { margin: 0; color: var(--primary); }
+        .item-main p { margin: 4px 0 0 0; color: #64748b; font-size: 0.9rem; }
+        .footer-summary { text-align: right; background: #f1f5f9; padding: 20px; border-radius: 8px; margin-top: 30px; }
+        .grand-total { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+
+        .status-section { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .address-box { margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); }
+
+        .return-btn {
+            background: white; color: var(--danger); border: 1px solid var(--danger);
+            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; margin-top: 10px;
+        }
+        .return-btn:hover { background: var(--danger); color: white; }
+        .return-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="orders.html" class="nav-link">← Back to My Orders</a>
+    <div id="orderContent"><p>Loading details...</p></div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id');
+
+    async function fetchDetails() {
+        const container = document.getElementById('orderContent');
+        if (!orderId) {
+            container.innerHTML = "<p>Error: No Order ID provided.</p>";
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/orders/${orderId}/`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error("Order not found or access denied.");
+            const order = await response.json();
+
+            const date = new Date(order.orderDate).toLocaleString();
+            const itemsHtml = order.items.map(item => `
+                <div class="item-row">
+                  <div class="item-main">
+                    <h4>${item.bookTitle}</h4>
+                    <p>Qty: ${item.quantity} × $${item.priceAtPurchase.toFixed(2)}</p>
+                  </div>
+                  <div style="font-weight:600;">$${(item.quantity * item.priceAtPurchase).toFixed(2)}</div>
+                </div>
+            `).join('');
+
+            // Logic to show/hide return button
+            const isReturned = order.status === 'RETURNED';
+            const returnButtonHtml = isReturned
+                ? `<p style="color: var(--danger); font-weight: 600;">This order has been returned.</p>`
+                : `<button class="return-btn" onclick="handleReturn()">Return Order</button>`;
+
+            container.innerHTML = `
+                <div class="header">
+                  <div><h2>Order Details</h2><p>ID: #${order.id}</p></div>
+                  <div style="text-align: right"><p>Date Ordered</p><strong>${date}</strong></div>
+                </div>
+
+                <div class="item-list">${itemsHtml}</div>
+
+                <div class="footer-summary">
+                  <p style="margin:0; font-size:0.9rem; color:#64748b;">Total Paid</p>
+                  <div class="grand-total">$${Number(order.totalPrice).toFixed(2)}</div>
+                </div>
+
+                <div class="status-section">
+                    <p>Current Status: <strong style="text-transform: uppercase; color: var(--accent);">${order.status}</strong></p>
+                </div>
+
+                <div class="address-box">
+                    <strong>Delivery Address:</strong>
+                    <p style="margin: 5px 0 0 0; color: #64748b;">${order.deliveryAddress || 'No address provided'}</p>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    ${returnButtonHtml}
+                </div>
+            `;
+        } catch (err) {
+            container.innerHTML = `<p style="color:red;">${err.message}</p>`;
+        }
+    }
+
+    async function handleReturn() {
+        if (!confirm("Are you sure you want to return this order?")) return;
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/orders/${orderId}/status/?status=RETURNED`, {
+                method: 'PUT',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                alert("Order returned successfully.");
+                fetchDetails();
+            } else {
+                const msg = await response.text();
+                alert("Failed to update order: " + msg);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("An error occurred.");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchDetails);
+</script>
+</body>
+</html>
