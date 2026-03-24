@@ -48,7 +48,9 @@ public class BookService {
     }
 
     public List<Book> getActiveBooksByOwner(Long ownerId) {
-        return bookRepository.findByOwner_UserIdAndIsActiveTrue(ownerId);
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + ownerId));
+        return bookRepository.findByOwnerAndIsActiveTrue(owner);
     }
 
     public Book getBookById(Long bookId) {

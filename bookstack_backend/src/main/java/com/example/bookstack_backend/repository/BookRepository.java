@@ -5,13 +5,14 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
 
-    List<Book> findByOwner_UserIdAndIsActiveTrue(Long id);
+    List<Book> findByOwnerAndIsActiveTrue(User owner);
 
 //    List<Book> findByPrice(Integer price);
 //    List<Book> findByTitleContaining(String title);
