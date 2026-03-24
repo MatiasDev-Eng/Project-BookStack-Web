@@ -5,9 +5,6 @@ import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
 import com.example.bookstack_backend.services.BookService;
-import com.example.bookstack_backend.repository.BookRepository;
-import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -18,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -70,20 +66,20 @@ public class BookController {
     }
 
     @GetMapping("/{bookId}")
-    public ResponseEntity<Book> getSingleBook(@PathVariable Long bookId) {
-        Book book = bookService.getBookById(bookId);
-        
-        return new ResponseEntity<>(book, HttpStatus.OK);
+    public ResponseEntity<BookResponse> getSingleBook(@PathVariable Long bookId) {
+        Book book = bookService.findBookById(bookId);
+        // Convert the Entity to a clean Response object
+        return ResponseEntity.ok(new BookResponse(book));
     }
 
     @PutMapping("/{bookId}")
-    public ResponseEntity<Book> updateBookListing(
-            @PathVariable Long bookId, 
+    public ResponseEntity<BookResponse> updateBookListing(
+            @PathVariable Long bookId,
             @RequestBody CreateBookRequest updateRequest) {
-        
+
         Book updatedBook = bookService.updateBookListing(bookId, updateRequest);
-    
-        return new ResponseEntity<>(updatedBook, HttpStatus.OK);
+
+        return ResponseEntity.ok(new BookResponse(updatedBook));
     }
 
     @DeleteMapping("/{bookId}")

@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_items")
-@NoArgsConstructor
 public class OrderItem {
 
     @Id
@@ -31,6 +30,9 @@ public class OrderItem {
         this.book = book;
         this.priceAtPurchase = priceAtPurchase;
         this.quantity = quantity;
+    }
+
+    public OrderItem() {
     }
 
     public Long getOrderItemId() { return orderItemId; }

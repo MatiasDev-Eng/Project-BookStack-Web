@@ -1,7 +1,6 @@
 package com.example.bookstack_backend.controller;
 
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
-import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
 import com.example.bookstack_backend.models.ECondition;
 import com.example.bookstack_backend.models.User;

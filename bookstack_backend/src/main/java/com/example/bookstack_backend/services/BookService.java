@@ -53,17 +53,13 @@ public class BookService {
         return bookRepository.findByOwnerAndIsActiveTrue(owner);
     }
 
-    public Book getBookById(Long bookId) {
-        if (bookId == null) {
-            throw new IllegalArgumentException("The provided Book ID cannot be null.");
-        }
-
-        return bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Book not found with ID: " + bookId));
+    public Book findBookById(Long id) {
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
     }
     
     public Book updateBookListing(Long bookId, CreateBookRequest updateRequest) {
-        Book existingBook = getBookById(bookId);
+        Book existingBook = findBookById(bookId);
 
         existingBook.setTitle(updateRequest.getTitle());
         existingBook.setAuthor(updateRequest.getAuthor());
@@ -84,7 +80,7 @@ public class BookService {
     }
 
     public void deleteBookListing(Long bookId) {
-        Book existingBook = getBookById(bookId);
+        Book existingBook = findBookById(bookId);
 
         bookRepository.delete(existingBook);
     }

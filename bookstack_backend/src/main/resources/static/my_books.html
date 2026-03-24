@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Listings | Bookstore</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="navbar">
+    <div class="nav-content">
+        <div class="logo">BookStore</div>
+        <div class="search-container">
+            <input type="text" placeholder="Search for books, authors, or ISBN...">
+            <button class="search-btn">&#128269;</button>
+        </div>
+        <div class="profile-container">
+            <div class="profile-circle"></div>
+        </div>
+    </div>
+</header>
+
+<div class="container wide">
+    <div class="dashboard-header">
+        <h1>Your Active Listings</h1>
+        <button class="add-new-btn" onclick="window.location.href='/list-book.html'">+ List New Book</button>
+    </div>
+
+    <table class="listings-table">
+        <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Year</th>
+            <th>ISBN</th>
+            <th>Price</th>
+            <th>Condition</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="listings-tbody">
+        <tr>
+            <td colspan="8" style="text-align: center; padding: 20px;">Loading your books...</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080/api/books/";
+    // This assumes your login process stores the JWT in localStorage
+    const token = localStorage.getItem('token');
+
+    async function fetchListings() {
+        const tbody = document.getElementById('listings-tbody');
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error("Could not fetch listings");
+
+            const books = await response.json();
+
+            if (books.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No books found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = books.map(book => `
+                    <tr>
+                        <td>${book.title}</td>
+                        <td>${book.author || 'N/A'}</td>
+                        <td>${book.year || 'N/A'}</td>
+                        <td>${book.isbn || 'N/A'}</td>
+                        <td>$${book.price ? book.price.toFixed(2) : '0.00'}</td>
+                        <td>${book.condition || 'N/A'}</td>
+                        <td>
+                            <span class="status ${book.approved ? 'visible' : 'pending'}">
+                                ${book.approved ? 'Visible' : 'Pending Approval'}
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editListing(${book.id})">Edit</button>
+                            <button class="delete-btn" onclick="deleteListing(${book.id})">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+        } catch (error) {
+            console.error("Error:", error);
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Failed to load data. Ensure you are logged in.</td></tr>';
+        }
+    }
+
+    async function deleteListing(id) {
+        if (!confirm("Are you sure you want to delete this listing?")) return;
+
+        try {
+            const response = await fetch(`${API_URL}${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                fetchListings(); // Refresh the list
+            } else {
+                alert("Delete failed.");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function editListing(id) {
+        // Logic to redirect to your edit form with the book ID
+        window.location.href = `edit-book.html?id=${id}`;
+    }
+
+    // Initialize table on load
+    document.addEventListener('DOMContentLoaded', fetchListings);
+</script>
+</body>
+</html>
