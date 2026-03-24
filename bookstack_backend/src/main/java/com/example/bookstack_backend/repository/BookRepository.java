@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findByOwnerAndIsActiveTrue(User owner);
+    List<Book> findByIsActiveTrue();
 
 //    List<Book> findByPrice(Integer price);
 //    List<Book> findByTitleContaining(String title);
