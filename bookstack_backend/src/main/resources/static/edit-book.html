@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="notification"></div>
 <header class="navbar">
     <div class="nav-content">
         <div class="logo" onclick="window.location.href='homepage.html'" style="cursor:pointer">BookStore</div>
@@ -75,6 +76,16 @@
 </div>
 
 <script>
+  // Notification function
+  function showNotification(message, type = "info") {
+    const note = document.getElementById("notification");
+    note.innerText = message;
+    note.className = `notification-${type}`;
+    note.style.display = "block";
+    setTimeout(() => {
+      note.style.display = "none";
+    }, 3000);
+  }
     const API_BASE = "http://localhost:8080/api/books/";
     const token = localStorage.getItem('token');
 
@@ -83,7 +94,7 @@
     const bookId = urlParams.get('id');
 
     if (!bookId) {
-        alert("No Book ID provided!");
+        showNotification("No Book ID provided!", "error");
         window.location.href = 'homepage.html';
     }
 
@@ -109,7 +120,7 @@
 
         } catch (error) {
             console.error(error);
-            alert("Error loading book details.");
+            showNotification("Error loading book details.", "error");
         }
     }
 
@@ -138,15 +149,15 @@
             });
 
             if (response.ok) {
-                alert("Listing updated successfully!");
+                showNotification("Listing updated successfully!", "success");
                 window.location.href = 'homepage.html'; // Redirect back to dashboard
             } else {
                 const err = await response.json();
-                alert("Update failed: " + (err.message || "Unknown error"));
+                showNotification("Update failed: " + (err.message || "Unknown error"), "error");
             }
         } catch (error) {
             console.error("Error:", error);
-            alert("An error occurred while saving.");
+            showNotification("An error occurred while saving.", "error");
         }
     });
 

@@ -136,9 +136,27 @@
         .submit-btn:hover { opacity: 0.9; }
 
         .hidden { display: none; }
+
+        /* Notification Styles */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .notification-success { background: #10b981; }
+        .notification-error { background: #ef4444; }
+        .notification-info { background: #3b82f6; }
     </style>
 </head>
 <body>
+<div id="notification"></div>
 
 <nav>
     <div class="nav-left">
@@ -224,6 +242,17 @@
 </div>
 
 <script>
+    // Notification function
+    function showNotification(message, type = 'info') {
+        const note = document.getElementById('notification');
+        note.innerText = message;
+        note.className = `notification-${type}`;
+        note.style.display = 'block';
+        setTimeout(() => {
+            note.style.display = 'none';
+        }, 3000);
+    }
+
     function getSavedUserId() {
         return localStorage.getItem('bookstack-user-id');
     }
@@ -234,8 +263,10 @@
         const currentUserId = getSavedUserId();
 
         if (!currentUserId) {
-            alert("Session expired. Please log in again.");
-            window.location.href = 'login.html';
+            showNotification("Session expired. Please log in again.", "error");
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1500);
             return;
         }
 
@@ -263,14 +294,16 @@
             });
 
             if (response.ok) {
-                alert('Book listed successfully!');
-                window.location.href = 'homepage.html';
+                showNotification('Book listed successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'homepage.html';
+                }, 1500);
             } else {
                 const errData = await response.json().catch(() => ({}));
-                alert(`Error: ${errData.message || 'Failed to list book'}`);
+                showNotification(`Error: ${errData.message || 'Failed to list book'}`, 'error');
             }
         } catch (error) {
-            alert('Connection error. Is the server running?');
+            showNotification('Connection error. Is the server running?', 'error');
             console.error(error);
         }
     });

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="notification"></div>
 <header class="navbar">
     <div class="nav-content">
         <div class="logo">BookStore</div>
@@ -48,6 +49,16 @@
 </div>
 
 <script>
+  // Notification function
+  function showNotification(message, type = "info") {
+    const note = document.getElementById("notification");
+    note.innerText = message;
+    note.className = `notification-${type}`;
+    note.style.display = "block";
+    setTimeout(() => {
+      note.style.display = "none";
+    }, 3000);
+  }
     const API_URL = "http://localhost:8080/api/books/";
     // This assumes your login process stores the JWT in localStorage
     const token = localStorage.getItem('token');
@@ -100,7 +111,18 @@
     }
 
     async function deleteListing(id) {
-        if (!confirm("Are you sure you want to delete this listing?")) return;
+        const btn = event.target;
+        if (btn.innerText === "Delete") {
+            btn.innerText = "Sure?";
+            btn.style.backgroundColor = "#ef4444";
+            btn.style.color = "white";
+            setTimeout(() => {
+                btn.innerText = "Delete";
+                btn.style.backgroundColor = "";
+                btn.style.color = "";
+            }, 3000);
+            return;
+        }
 
         try {
             const response = await fetch(`${API_URL}${id}`, {
@@ -111,7 +133,7 @@
             if (response.ok) {
                 fetchListings(); // Refresh the list
             } else {
-                alert("Delete failed.");
+                showNotification("Delete failed.", "error");
             }
         } catch (err) {
             console.error(err);

@@ -266,10 +266,27 @@
     }
 
     .add-to-cart-btn:hover { background: #1d4ed8; }
+    /* Notification Styles */
+    #notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      display: none;
+      z-index: 2000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .notification-success { background: #10b981; }
+    .notification-error { background: #ef4444; }
+    .notification-info { background: #3b82f6; }
   </style>
 </head>
 
 <body>
+<div id="notification"></div>
 
 <nav>
   <div class="nav-left">
@@ -304,6 +321,16 @@
 </section>
 
 <script>
+  // Notification function
+  function showNotification(message, type = "info") {
+    const note = document.getElementById("notification");
+    note.innerText = message;
+    note.className = `notification-${type}`;
+    note.style.display = "block";
+    setTimeout(() => {
+      note.style.display = "none";
+    }, 3000);
+  }
   function updateQty(btn, delta) {
     const qtySpan = btn.parentElement.querySelector('.qty-num');
     let currentQty = parseInt(qtySpan.innerText);
@@ -324,9 +351,9 @@
       });
 
       if (response.ok) {
-        alert("Added to cart!");
+        showNotification("Added to cart!", "success");
       } else {
-        alert("Failed to add to cart. Are you logged in?");
+        showNotification("Failed to add to cart. Are you logged in?", "error");
       }
     } catch (error) {
       console.error("Cart error:", error);
