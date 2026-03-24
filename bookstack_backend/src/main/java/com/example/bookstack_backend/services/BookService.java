@@ -46,4 +46,46 @@ public class BookService {
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
+
+    public List<Book> getActiveBooksByOwner(Long ownerId) {
+        return bookRepository.findByOwner_UserIdAndIsActiveTrue(ownerId);
+    }
+
+    public Book getBookById(Long bookId) {
+        if (bookId == null) {
+            throw new IllegalArgumentException("The provided Book ID cannot be null.");
+        }
+
+        return bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found with ID: " + bookId));
+    }
+    
+    public Book updateBookListing(Long bookId, CreateBookRequest updateRequest) {
+        Book existingBook = getBookById(bookId);
+
+        existingBook.setTitle(updateRequest.getTitle());
+        existingBook.setAuthor(updateRequest.getAuthor());
+        existingBook.setIsbn(updateRequest.getIsbn());
+        existingBook.setGenre(updateRequest.getGenre());
+        existingBook.setEdition(updateRequest.getEdition());
+        existingBook.setPublishedYear(updateRequest.getPublishedYear());
+        existingBook.setPrice(updateRequest.getPrice());
+        existingBook.setStock(updateRequest.getStock());
+        existingBook.setCondition(updateRequest.getCondition());
+        existingBook.setDescription(updateRequest.getDescription());
+        
+        if (updateRequest.getCoverImageUrl() != null && !updateRequest.getCoverImageUrl().isEmpty()) {
+            existingBook.setCoverImageUrl(updateRequest.getCoverImageUrl());
+        }
+
+        return bookRepository.save(existingBook);
+    }
+
+    public void deleteBookListing(Long bookId) {
+        Book existingBook = getBookById(bookId);
+
+        bookRepository.delete(existingBook);
+    }
+
+    
 }

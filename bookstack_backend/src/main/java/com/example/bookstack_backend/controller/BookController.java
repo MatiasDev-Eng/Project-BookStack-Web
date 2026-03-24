@@ -62,6 +62,38 @@ public class BookController {
         return ResponseEntity.ok(responseList);
     }
 
+    @GetMapping("/owner/{ownerId}")
+    public ResponseEntity<List<Book>> getSellerListings(@PathVariable Long ownerId) {
+        List<Book> listings = bookService.getActiveBooksByOwner(ownerId);
+        
+        return new ResponseEntity<>(listings, HttpStatus.OK);
+    }
+
+    @GetMapping("/{bookId}")
+    public ResponseEntity<Book> getSingleBook(@PathVariable Long bookId) {
+        Book book = bookService.getBookById(bookId);
+        
+        return new ResponseEntity<>(book, HttpStatus.OK);
+    }
+
+    @PutMapping("/{bookId}")
+    public ResponseEntity<Book> updateBookListing(
+            @PathVariable Long bookId, 
+            @RequestBody CreateBookRequest updateRequest) {
+        
+        Book updatedBook = bookService.updateBookListing(bookId, updateRequest);
+    
+        return new ResponseEntity<>(updatedBook, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{bookId}")
+    public ResponseEntity<Void> deleteBookListing(@PathVariable Long bookId) {
+        
+        bookService.deleteBookListing(bookId);
+        
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
 //    @Autowired
 //    private BookRepository bookRepository;
 //
