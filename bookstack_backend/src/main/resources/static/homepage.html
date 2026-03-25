@@ -343,7 +343,7 @@
     const qty = parseInt(document.getElementById(`qty-${bookId}`).innerText);
 
     try {
-      const response = await fetch('http://localhost:8080/api/cart/add/', {
+      const response = await fetch('http://localhost:9090/api/cart/add/', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -363,7 +363,7 @@
     const bookGrid = document.getElementById('bookGrid');
 
     try {
-      const response = await fetch('http://localhost:8080/api/books/', {
+      const response = await fetch('http://localhost:9090/api/books/', {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }

@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -28,8 +28,15 @@ services:
       # You can override other properties from application.properties here
       # BOOKSTACK_APP_JWTSECRET: ${JWT_SECRET:-Zy6teVRrvRrTxnXMwQy6awYO0VYs4U/cGruwYjAkr6Q7XPiFH6ysI8+/hRqLn4g4MwG3eemfN1/MoJuYGOHiSw==}
     ports:
-      - "8080:8080"
+      - "9090:9090"
     restart: always
+
+  localtunnel:
+    image: node:18-alpine
+    command: npx localtunnel --port 9090 --local-host app --subdomain bookstack-page
+    depends_on:
+      - app
 
 volumes:
   postgres_data:
+

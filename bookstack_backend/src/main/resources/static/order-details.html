@@ -79,7 +79,7 @@
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/orders/${orderId}/`, {
+            const response = await fetch(`http://localhost:9090/api/orders/${orderId}/`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -150,7 +150,7 @@
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/orders/${orderId}/status/?status=RETURNED`, {
+            const response = await fetch(`http://localhost:9090/api/orders/${orderId}/status/?status=RETURNED`, {
                 method: 'PUT',
                 credentials: 'include'
             });

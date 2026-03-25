@@ -138,7 +138,7 @@
 
   async function fetchCart() {
     try {
-      const response = await fetch('http://localhost:8080/api/cart/', {
+      const response = await fetch('http://localhost:9090/api/cart/', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error("Unauthorized or server error");
@@ -201,7 +201,7 @@
 
   async function updateQty(itemId, newQty) {
     if (newQty < 1) return;
-    await fetch(`http://localhost:8080/api/cart/update-quantity/${itemId}/?quantity=${newQty}`, {
+    await fetch(`http://localhost:9090/api/cart/update-quantity/${itemId}/?quantity=${newQty}`, {
       method: 'PUT',
       credentials: 'include'
     });
@@ -209,7 +209,7 @@
   }
 
   async function removeItem(itemId) {
-    await fetch(`http://localhost:8080/api/cart/remove/${itemId}/`, {
+    await fetch(`http://localhost:9090/api/cart/remove/${itemId}/`, {
       method: 'DELETE',
       credentials: 'include'
     });
@@ -241,7 +241,7 @@
     btn.innerText = "Processing...";
 
     try {
-      const response = await fetch(`http://localhost:8080/api/orders/?deliveryAddress=${encodeURIComponent(deliveryAddress)}`, {
+      const response = await fetch(`http://localhost:9090/api/orders/?deliveryAddress=${encodeURIComponent(deliveryAddress)}`, {
         method: 'POST',
         credentials: 'include'
       });
