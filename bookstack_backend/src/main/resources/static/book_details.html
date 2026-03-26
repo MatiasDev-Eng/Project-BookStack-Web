@@ -74,9 +74,9 @@
 
             document.getElementById("book-title").textContent = data.title;
             document.getElementById("book-author").textContent = data.author;
-            document.getElementById("book-condition").textContent = data.condition || "N/A";
+            document.getElementById("book-condition").textContent = data.condition;
             document.getElementById("book-price").textContent = "$" + data.price;
-            document.getElementById("book-description").textContent = data.description || "No description available";
+            document.getElementById("book-description").textContent = data.description;
         }
 
         async function loadSimilarBooks() {
@@ -97,7 +97,7 @@
                 `;
 
                 card.onclick = () => {
-                    window.location.href = `book-details.html?id=${book.id}`;
+                    window.location.href = `book_details.html?id=${book.id}`;
                 };
 
                 container.appendChild(card);
