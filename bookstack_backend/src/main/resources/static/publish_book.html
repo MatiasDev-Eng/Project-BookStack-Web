@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publish a Book | BookStack</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --primary: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --accent: #2563eb;
+            --success: #059669;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--primary);
+            line-height: 1.5;
+        }
+
+
+        nav {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-left .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-icon-btn {
+            width: 42px;
+            height: 42px;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .form-card {
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--muted);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .submit-btn {
+            background: var(--accent);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .submit-btn:hover { opacity: 0.9; }
+
+        .hidden { display: none; }
+
+        /* Notification Styles */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .notification-success { background: #10b981; }
+        .notification-error { background: #ef4444; }
+        .notification-info { background: #3b82f6; }
+    </style>
+</head>
+<body>
+<div id="notification"></div>
+
+<nav>
+    <div class="nav-left">
+        <a href="homepage.html" class="logo">BookStack</a>
+    </div>
+
+    <div class="nav-right">
+        <div class="nav-icon-btn" onclick="window.location.href='homepage.html'" title="Back Home">🏠</div>
+        <div class="nav-icon-btn" onclick="window.location.href='/cart.html'" title="View Cart">🛒</div>
+        <div class="nav-icon-btn" onclick="window.location.href='/account.html'" title="My Account">👤</div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header-section">
+        <h1>Seller Dashboard</h1>
+        <p style="color: var(--muted)">Fill in the details to list your book for sale.</p>
+    </div>
+
+    <div class="form-card">
+        <form id="publishForm">
+            <div class="form-group">
+                <label for="title">Book Title</label>
+                <input type="text" id="title" required placeholder="e.g. The Great Gatsby">
+            </div>
+
+            <div class="form-group">
+                <label for="author">Author</label>
+                <input type="text" id="author" required placeholder="e.g. F. Scott Fitzgerald">
+            </div>
+
+            <div class="form-group">
+                <label for="isbn">ISBN Number</label>
+                <input type="text" id="isbn" required placeholder="e.g. 978247291759">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label for="genre">Genre</label>
+                    <input type="text" id="genre" required placeholder="Fiction, History...">
+                </div>
+                <div class="form-group">
+                    <label for="edition">Edition</label>
+                    <input type="text" id="edition" placeholder="1st, 2nd...">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="year">Year</label>
+                    <input type="number" id="year" min="1000" max="2026" required>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price ($)</label>
+                    <input type="number" id="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="stock">In Stock</label>
+                    <input type="number" id="stock" min="1" required value="1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="condition">Condition</label>
+                <select id="condition" required>
+                    <option value="">Select Condition</option>
+                    <option value="NEW">New</option>
+                    <option value="LIKE_NEW">Like New</option>
+                    <option value="VERY_GOOD">Very Good</option>
+                    <option value="GOOD">Good</option>
+                    <option value="ACCEPTABLE">Acceptable</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" rows="4" placeholder="Tell buyers about the book..."></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Post Listing</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Notification function
+    function showNotification(message, type = 'info') {
+        const note = document.getElementById('notification');
+        note.innerText = message;
+        note.className = `notification-${type}`;
+        note.style.display = 'block';
+        setTimeout(() => {
+            note.style.display = 'none';
+        }, 3000);
+    }
+
+    function getSavedUserId() {
+        return localStorage.getItem('bookstack-user-id');
+    }
+
+    document.getElementById('publishForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const currentUserId = getSavedUserId();
+
+        if (!currentUserId) {
+            showNotification("Session expired. Please log in again.", "error");
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1500);
+            return;
+        }
+
+        const bookData = {
+            ownerId: Number(currentUserId),
+            stock: parseInt(document.getElementById('stock').value),
+            price: parseFloat(document.getElementById('price').value),
+            title: document.getElementById('title').value,
+            author: document.getElementById('author').value,
+            genre: document.getElementById('genre').value,
+            edition: document.getElementById('edition').value,
+            condition: document.getElementById('condition').value,
+            publishedYear: parseInt(document.getElementById('year').value),
+            description: document.getElementById('description').value,
+            isbn: document.getElementById('isbn').value,
+            coverImageUrl: ""
+        };
+
+        try {
+            const response = await fetch('http://localhost:9090/api/books/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(bookData)
+            });
+
+            if (response.ok) {
+                showNotification('Book listed successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = 'homepage.html';
+                }, 1500);
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                showNotification(`Error: ${errData.message || 'Failed to list book'}`, 'error');
+            }
+        } catch (error) {
+            showNotification('Connection error. Is the server running?', 'error');
+            console.error(error);
+        }
+    });
+</script>
+
+</body>
+</html>

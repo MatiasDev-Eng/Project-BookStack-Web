@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Cart | BookStack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --primary: #1e293b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --danger: #ef4444;
+      --radius: 12px;
+    }
+
+    body { background: var(--bg); font-family: system-ui, sans-serif; padding: 40px 5%; }
+    .cart-container { max-width: 900px; margin: 0 auto; background: var(--white); padding: 30px; border-radius: var(--radius); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .cart-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: #64748b; font-size: 0.9rem; text-transform: uppercase; }
+    td { padding: 16px 12px; border-bottom: 1px solid var(--border); }
+
+    .qty-input { width: 50px; padding: 5px; border: 1px solid var(--border); border-radius: 4px; text-align: center; }
+    .remove-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-weight: 600; }
+    .remove-btn:hover { text-decoration: underline; }
+
+    .cart-summary { display: flex; justify-content: flex-end; align-items: center; gap: 20px; font-size: 1.2rem; padding-top: 20px; border-top: 2px solid var(--border); }
+    .checkout-btn { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .nav-link { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-weight: 500; }
+
+    /* Address Section Styles */
+    .address-section {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #f1f5f9;
+    }
+    .address-section h3 { margin-top: 0; color: var(--primary); }
+    .address-input {
+      width: 100%; padding: 12px; margin: 15px 0;
+      border: 1px solid var(--border); border-radius: 8px;
+      box-sizing: border-box; font-size: 1rem;
+    }
+    .address-actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .cancel-btn { background: #e2e8f0; color: var(--primary); border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+    .confirm-btn { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
+
+    /* Notification Styles */
+    #notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      display: none;
+      z-index: 2000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .notification-success { background: #10b981; }
+    .notification-error { background: #ef4444; }
+    .notification-info { background: #3b82f6; }
+
+    /* Inline Confirm Styles */
+    .inline-confirm {
+      font-size: 0.85rem;
+      color: var(--danger);
+      margin-left: 10px;
+      display: none;
+    }
+    .inline-confirm button {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 600;
+      text-decoration: underline;
+      padding: 0 5px;
+    }
+  </style>
+</head>
+
+<body>
+<div id="notification"></div>
+
+<div class="cart-container">
+  <a href="orders.html" class="nav-link">← View My Orders</a>
+  <div class="cart-title">Your Shopping Cart</div>
+
+  <table>
+    <thead>
+    <tr>
+      <th>Book</th>
+      <th>Price</th>
+      <th>Qty</th>
+      <th>Total</th>
+      <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="cartTableBody">
+    </tbody>
+  </table>
+
+  <div class="cart-summary">
+    <div><strong>Grand Total:</strong> <span id="totalAmount">$0.00</span></div>
+    <button id="checkoutBtn" class="checkout-btn" onclick="showAddressSection()">Proceed to Checkout</button>
+  </div>
+
+  <div id="addressSection" class="address-section">
+    <h3>Delivery Address</h3>
+    <p style="color: #64748b; font-size: 0.9rem;">Where should we send your books?</p>
+    <textarea id="deliveryAddress" class="address-input" rows="3" placeholder="123 Street Name, City, Zip Code"></textarea>
+    <div class="address-actions">
+      <button class="cancel-btn" onclick="hideAddressSection()">Cancel</button>
+      <button id="confirmOrderBtn" class="confirm-btn" onclick="handleCheckout()">Confirm Order</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Notification function
+  function showNotification(message, type = 'info') {
+    const note = document.getElementById('notification');
+    note.innerText = message;
+    note.className = `notification-${type}`;
+    note.style.display = 'block';
+    setTimeout(() => {
+      note.style.display = 'none';
+    }, 3000);
+  }
+
+  async function fetchCart() {
+    try {
+      const response = await fetch('http://localhost:9090/api/cart/', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Unauthorized or server error");
+      const items = await response.json();
+      renderCart(items);
+    } catch (err) {
+      console.error("Failed to load cart", err);
+      showNotification("Failed to load cart", "error");
+    }
+  }
+
+  function renderCart(items) {
+    const tbody = document.getElementById('cartTableBody');
+    const totalSpan = document.getElementById('totalAmount');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    tbody.innerHTML = '';
+    let grandTotal = 0;
+
+    if (!items || items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Your cart is empty.</td></tr>';
+      checkoutBtn.disabled = true;
+    } else {
+      checkoutBtn.disabled = false;
+      items.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        grandTotal += itemTotal;
+        tbody.innerHTML += `
+            <tr>
+              <td><strong>${item.title}</strong></td>
+              <td>$${item.price.toFixed(2)}</td>
+              <td>
+                <input type="number" class="qty-input" value="${item.quantity}"
+                       onchange="updateQty(${item.cartItemId}, this.value)" min="1">
+              </td>
+              <td>$${itemTotal.toFixed(2)}</td>
+              <td>
+                <button class="remove-btn" id="remove-btn-${item.cartItemId}" onclick="showInlineConfirm(${item.cartItemId})">Remove</button>
+                <span id="confirm-span-${item.cartItemId}" class="inline-confirm">
+                  Sure? <button onclick="removeItem(${item.cartItemId})">Yes</button>
+                  <button onclick="hideInlineConfirm(${item.cartItemId})" style="color: var(--muted)">No</button>
+                </span>
+              </td>
+            </tr>
+          `;
+      });
+    }
+    totalSpan.innerText = `$${grandTotal.toFixed(2)}`;
+  }
+
+  function showInlineConfirm(itemId) {
+    document.getElementById(`remove-btn-${itemId}`).style.display = 'none';
+    document.getElementById(`confirm-span-${itemId}`).style.display = 'inline';
+  }
+
+  function hideInlineConfirm(itemId) {
+    document.getElementById(`remove-btn-${itemId}`).style.display = 'inline';
+    document.getElementById(`confirm-span-${itemId}`).style.display = 'none';
+  }
+
+  async function updateQty(itemId, newQty) {
+    if (newQty < 1) return;
+    await fetch(`http://localhost:9090/api/cart/update-quantity/${itemId}/?quantity=${newQty}`, {
+      method: 'PUT',
+      credentials: 'include'
+    });
+    fetchCart();
+  }
+
+  async function removeItem(itemId) {
+    await fetch(`http://localhost:9090/api/cart/remove/${itemId}/`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    fetchCart();
+  }
+
+  // UI Functions for Address Section
+  function showAddressSection() {
+    document.getElementById('addressSection').style.display = 'block';
+    document.getElementById('checkoutBtn').style.display = 'none';
+    document.getElementById('addressSection').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function hideAddressSection() {
+    document.getElementById('addressSection').style.display = 'none';
+    document.getElementById('checkoutBtn').style.display = 'block';
+  }
+
+  async function handleCheckout() {
+    const deliveryAddress = document.getElementById('deliveryAddress').value.trim();
+
+    if (!deliveryAddress) {
+      showNotification("Please enter a delivery address.", "error");
+      return;
+    }
+
+    const btn = document.getElementById('confirmOrderBtn');
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+
+    try {
+      const response = await fetch(`http://localhost:9090/api/orders/?deliveryAddress=${encodeURIComponent(deliveryAddress)}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        showNotification("Order placed successfully!", "success");
+        setTimeout(() => {
+          window.location.href = 'orders.html';
+        }, 1500);
+      } else {
+        const errorMsg = await response.text();
+        showNotification("Checkout failed: " + errorMsg, "error");
+        btn.disabled = false;
+        btn.innerText = "Confirm Order";
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      btn.disabled = false;
+      btn.innerText = "Confirm Order";
+      showNotification("A connection error occurred.", "error");
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchCart);
+</script>
+</body>
+</html>
