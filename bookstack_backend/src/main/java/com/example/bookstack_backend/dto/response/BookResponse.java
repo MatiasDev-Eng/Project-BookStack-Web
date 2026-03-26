@@ -9,6 +9,8 @@ public class BookResponse {
     private String title;
     private String author;
     private String isbn;
+    private String genre;
+
     private BigDecimal price;
 
     public BookResponse(Book book) {
@@ -17,6 +19,7 @@ public class BookResponse {
         this.author = book.getAuthor();
         this.isbn = book.getIsbn();
         this.price = book.getPrice();
+        this.genre = book.getGenre();
     }
 
     public BookResponse() {}
@@ -60,5 +63,13 @@ public class BookResponse {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
     }
 }

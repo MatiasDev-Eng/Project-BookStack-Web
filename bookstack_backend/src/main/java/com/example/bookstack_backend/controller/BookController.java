@@ -45,8 +45,8 @@ public class BookController {
             tags = { "pointclouds", "get" })
     @GetMapping("/")
     public ResponseEntity<List<BookResponse>> getAllPointclouds() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         List<Book> bookList = bookService.getAllBooks();
 
@@ -88,6 +88,17 @@ public class BookController {
         bookService.deleteBookListing(bookId);
         
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/{bookId}/similar")
+    public ResponseEntity<List<BookResponse>> getSimilarBooks(@PathVariable Long bookId) {
+        List<Book> similar = bookService.getSimilarBooks(bookId);
+
+        List<BookResponse> response = similar.stream()
+            .map(BookResponse::new)
+            .toList();
+
+        return ResponseEntity.ok(response);
     }
 
 //    @Autowired
