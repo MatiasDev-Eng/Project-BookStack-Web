@@ -85,5 +85,11 @@ public class BookService {
         bookRepository.delete(existingBook);
     }
 
-    
+    public List<Book> getSimilarBooks(Long bookId) {
+    Book target = bookRepository.findById(bookId)
+        .orElseThrow(() -> new RuntimeException("Book not found"));
+
+    return bookRepository.findByGenreAndBookIdNot(target.getGenre(), bookId);
+    }
+
 }

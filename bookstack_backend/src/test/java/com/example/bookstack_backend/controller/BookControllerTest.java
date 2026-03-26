@@ -28,10 +28,10 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -136,5 +136,55 @@ public class BookControllerTest {
         mockMvc.perform(get("/api/books/"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void testGetSingleBook_Success() throws Exception {
+        when(bookService.findBookById(1L)).thenReturn(book);
+
+        mockMvc.perform(get("/api/books/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Test Book"));
+    }
+
+    @Test
+    void testUpdateBookListing_Success() throws Exception {
+        CreateBookRequest updateRequest = new CreateBookRequest();
+        updateRequest.setTitle("Updated Title");
+        
+        when(bookService.updateBookListing(eq(1L), any(CreateBookRequest.class))).thenReturn(book);
+        book.setTitle("Updated Title");
+
+        mockMvc.perform(put("/api/books/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated Title"));
+    }
+
+    @Test
+    void testDeleteBookListing_Success() throws Exception {
+        Mockito.doNothing().when(bookService).deleteBookListing(1L);
+
+        mockMvc.perform(delete("/api/books/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testGetSellerListings_Success() throws Exception {
+        when(bookService.getActiveBooksByOwner(1L)).thenReturn(Arrays.asList(book));
+
+        mockMvc.perform(get("/api/books/owner/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void testGetSimilarBooks_Success() throws Exception {
+        when(bookService.getSimilarBooks(1L)).thenReturn(Arrays.asList(book));
+
+        mockMvc.perform(get("/api/books/1/similar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
     }
 }

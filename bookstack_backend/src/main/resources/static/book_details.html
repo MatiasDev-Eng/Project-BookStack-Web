@@ -29,42 +29,83 @@
     </header>
 
     <div class="container">
-        <h1>The Great Gatsby</h1>
+        <h1 id="book-title">Loading...</h1>
 
         <div class="form-group">
             <label><strong>Author:</strong></label>
-            <p>F. Scott Fitzgerald</p>
+            <p id="book-author">Loading...</p>
         </div>
 
         <div class="form-group">
             <label><strong>Condition:</strong></label>
-            <p>LIKE_NEW</p>
+            <p id="book-condition">Loading...</p>
         </div>
 
         <div class="form-group">
             <label><strong>Price:</strong></label>
-            <p>$12.99</p>
+            <p id="book-price">Loading...</p>
         </div>
 
         <div class="form-group">
             <label><strong>Seller Rating:</strong></label>
-            <p>★★★★☆</p>
+            <p id="seller-rating">★★★★☆</p>
         </div>
 
         <button class="submit-btn" style="margin-top: 1rem;">Add to Cart</button>
         <button class="add-new-btn" style="margin-top: 1rem; margin-left: 10px;">Add to Wishlist</button>
 
         <h2 style="margin-top: 2rem;">Description</h2>
-        <p>
-            A classic novel set in the Roaring Twenties, exploring themes of wealth,
-            ambition, and the American Dream.
-        </p>
+        <p id="book-description">Loading...</p>
+
+        <h2 style="margin-top: 2rem;">More Like This</h2>
+        <div id="similar-books" class="similar-books-container"></div>
     </div>
 
     <script>
         document.getElementById("filterBtn").addEventListener("click", () => {
             console.log("Filter options coming soon");
         });
+        const params = new URLSearchParams(window.location.search);
+        const bookId = params.get("id");
+
+        async function loadBook() {
+            const res = await fetch(`http://localhost:9090/api/books/${bookId}`);
+            const data = await res.json();
+
+            document.getElementById("book-title").textContent = data.title;
+            document.getElementById("book-author").textContent = data.author;
+            document.getElementById("book-condition").textContent = data.condition || "N/A";
+            document.getElementById("book-price").textContent = "$" + data.price;
+            document.getElementById("book-description").textContent = data.description || "No description available";
+        }
+
+        async function loadSimilarBooks() {
+            const res = await fetch(`http://localhost:9090/api/books/${bookId}/similar`);
+            const similarBooks = await res.json();
+
+            const container = document.getElementById("similar-books");
+            container.innerHTML = "";
+
+            similarBooks.forEach(book => {
+                const card = document.createElement("div");
+                card.classList.add("similar-book-card");
+
+                card.innerHTML = `
+                    <p><strong>${book.title}</strong></p>
+                    <p>${book.author}</p>
+                    <p>$${book.price}</p>
+                `;
+
+                card.onclick = () => {
+                    window.location.href = `book-details.html?id=${book.id}`;
+                };
+
+                container.appendChild(card);
+            });
+        }
+
+        loadBook();
+        loadSimilarBooks();
     </script>
 </body>
 </html>
