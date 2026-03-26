@@ -101,6 +101,18 @@ public class BookController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<BookResponse>> searchBooks(@RequestParam String query) {
+        List<Book> results = bookService.searchBooks(query);
+
+        List<BookResponse> response = results.stream()
+                .map(BookResponse::new)
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+
 //    @Autowired
 //    private BookRepository bookRepository;
 //

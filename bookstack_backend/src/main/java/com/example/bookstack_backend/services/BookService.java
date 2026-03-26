@@ -92,4 +92,9 @@ public class BookService {
     return bookRepository.findByGenreAndBookIdNot(target.getGenre(), bookId);
     }
 
+    public List<Book> searchBooks(String query) {
+    return bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(query, query, query);
+    }
+
+
 }
