@@ -216,4 +216,45 @@ public class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("You've been signed out!"));
     }
+
+    @Test
+    void testAuthenticateUser_IncorrectCredentials() throws Exception {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setUsername("testuser");
+        loginRequest.setPassword("wrongpassword");
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new org.springframework.security.authentication.BadCredentialsException("Bad credentials"));
+
+        org.junit.jupiter.api.Assertions.assertThrows(org.springframework.security.authentication.BadCredentialsException.class, () -> {
+            try {
+                mockMvc.perform(post("/api/auth/signin/")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(loginRequest)));
+            } catch (jakarta.servlet.ServletException e) {
+                if (e.getCause() instanceof org.springframework.security.authentication.BadCredentialsException) {
+                    throw (org.springframework.security.authentication.BadCredentialsException) e.getCause();
+                }
+                throw e;
+            }
+        });
+    }
+
+    @Test
+    void testRegisterUser_PasswordTooShort() throws Exception {
+        SignUpRequest signUpRequest = new SignUpRequest();
+        signUpRequest.setUsername("newuser");
+        signUpRequest.setEmail("new@example.com");
+        signUpRequest.setPassword("123"); // Too short (min 6)
+        signUpRequest.setRole(Set.of("user"));
+
+        // Validation happens before it reaches the controller method when using @Valid
+        // But since we are using addFilters=false, some validation might be skipped depending on setup
+        // Actually @Valid is handled by Spring MVC, not security filters.
+        
+        mockMvc.perform(post("/api/auth/signup/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signUpRequest)))
+                .andExpect(status().isBadRequest());
+    }
 }
