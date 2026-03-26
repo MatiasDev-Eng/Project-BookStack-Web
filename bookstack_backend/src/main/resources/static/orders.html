@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>My Orders | BookStack</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            --bg: #f8fafc; --white: #ffffff; --primary: #1e293b;
+            --border: #e2e8f0; --accent: #2563eb; --radius: 12px;
+        }
+        body { background: var(--bg); font-family: system-ui, sans-serif; padding: 40px 5%; margin: 0; }
+        .container { max-width: 800px; margin: 40px auto; background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .title { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
+        .order-link { text-decoration: none; color: inherit; display: block; margin-bottom: 15px; }
+        .order-card {
+            border: 1px solid var(--border); padding: 20px; border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.2s ease;
+        }
+        .order-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .order-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: var(--primary); }
+        .order-info p { margin: 0; color: #64748b; font-size: 0.9rem; }
+        .order-total { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+        .nav-link { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-weight: 500; }
+
+        /* Dynamic Badge Styles */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+        .badge-ordered { background: #dbeafe; color: #1e40af; } /* Blue */
+        .badge-transit { background: #fef3c7; color: #92400e; } /* Orange */
+        .badge-delivered { background: #dcfce7; color: #166534; } /* Green */
+        .badge-default { background: #f1f5f9; color: #475569; }
+
+        .empty-state { text-align: center; padding: 40px; color: #64748b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="homepage.html" class="nav-link">← Back Home</a>
+    <div class="title">My Order History</div>
+    <div id="ordersList">
+        <p>Loading your orders...</p>
+    </div>
+</div>
+
+<script>
+    function getStatusClass(status) {
+        if (!status) return 'badge-default';
+        switch (status.toUpperCase()) {
+            case 'ORDERED': return 'badge-ordered';
+            case 'IN_TRANSIT': return 'badge-transit';
+            case 'DELIVERED': return 'badge-delivered';
+            default: return 'badge-default';
+        }
+    }
+
+    function formatStatus(status) {
+        if (!status) return 'Unknown';
+        return status.replace(/_/g, ' ').toLowerCase()
+            .replace(/\b\w/g, s => s.toUpperCase());
+    }
+
+    async function fetchOrders() {
+        const listDiv = document.getElementById('ordersList');
+
+        try {
+            const response = await fetch('http://localhost:9090/api/orders/', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (response.status === 401) {
+                listDiv.innerHTML = '<p class="empty-state">Session expired. Please <a href="login.html">log in</a>.</p>';
+                return;
+            }
+
+            if (!response.ok) throw new Error("Failed to load orders");
+
+            const orders = await response.json();
+
+            if (!orders || orders.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">You haven\'t placed any orders yet.</div>';
+                return;
+            }
+
+            listDiv.innerHTML = orders.map(order => {
+                const date = new Date(order.orderDate).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric'
+                });
+
+                const statusClass = getStatusClass(order.status);
+                const displayStatus = formatStatus(order.status);
+
+                return `
+                  <a href="order-details.html?id=${order.id}" class="order-link">
+                    <div class="order-card">
+                      <div class="order-info">
+                        <h3>Order #${order.id} <span class="badge ${statusClass}">${displayStatus}</span></h3>
+                        <p>Placed on ${date} • ${order.itemCount} Items</p>
+                      </div>
+                      <div class="order-total">$${Number(order.totalPrice).toFixed(2)}</div>
+                    </div>
+                  </a>
+                `;
+            }).join('');
+
+        } catch (err) {
+            listDiv.innerHTML = `<p class="empty-state" style="color: #ef4444;">${err.message}</p>`;
+            console.error("Fetch error:", err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchOrders);
+</script>
+</body>
+</html>

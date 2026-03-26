@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Details | Bookstore</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="nav-content">
+            <div class="logo">BookStore</div>
+
+            <div class="search-container">
+                <input type="text" placeholder="Search for books, authors, or ISBN...">
+                <button class="search-btn">&#128269;</button>
+                <button class="add-new-btn" id="filterBtn">Filter</button>
+            </div>
+
+            <div class="nav-icons" style="display: flex; align-items: center; gap: 1rem;">
+                <a href="wishlist.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#10084;</a>
+                <a href="cart.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#128722;</a>
+                <div class="profile-container">
+                    <div class="profile-circle"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>The Great Gatsby</h1>
+
+        <div class="form-group">
+            <label><strong>Author:</strong></label>
+            <p>F. Scott Fitzgerald</p>
+        </div>
+
+        <div class="form-group">
+            <label><strong>Condition:</strong></label>
+            <p>LIKE_NEW</p>
+        </div>
+
+        <div class="form-group">
+            <label><strong>Price:</strong></label>
+            <p>$12.99</p>
+        </div>
+
+        <div class="form-group">
+            <label><strong>Seller Rating:</strong></label>
+            <p>★★★★☆</p>
+        </div>
+
+        <button class="submit-btn" style="margin-top: 1rem;">Add to Cart</button>
+        <button class="add-new-btn" style="margin-top: 1rem; margin-left: 10px;">Add to Wishlist</button>
+
+        <h2 style="margin-top: 2rem;">Description</h2>
+        <p>
+            A classic novel set in the Roaring Twenties, exploring themes of wealth,
+            ambition, and the American Dream.
+        </p>
+    </div>
+
+    <script>
+        document.getElementById("filterBtn").addEventListener("click", () => {
+            console.log("Filter options coming soon");
+        });
+    </script>
+</body>
+</html>
+

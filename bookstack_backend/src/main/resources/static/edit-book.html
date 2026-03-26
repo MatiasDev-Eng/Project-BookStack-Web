@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Book Listing | Bookstore</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="notification"></div>
+<header class="navbar">
+    <div class="nav-content">
+        <div class="logo" onclick="window.location.href='homepage.html'" style="cursor:pointer">BookStore</div>
+        <div class="profile-container">
+            <div class="profile-circle"></div>
+        </div>
+    </div>
+</header>
+
+<div class="container small">
+    <div class="dashboard-header">
+        <h1>Edit Book Listing</h1>
+        <button class="delete-btn" onclick="window.location.href='homepage.html'">Cancel</button>
+    </div>
+
+    <div class="form-container">
+        <form id="editBookForm">
+            <div class="form-group">
+                <label for="title">Book Title</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="author">Author</label>
+                    <input type="text" id="author" name="author" required>
+                </div>
+                <div class="form-group">
+                    <label for="year">Publication Year</label>
+                    <input type="number" id="year" name="year" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="isbn">ISBN</label>
+                    <input type="text" id="isbn" name="isbn" required>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price ($)</label>
+                    <input type="number" id="price" name="price" step="0.01" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="condition">Condition</label>
+                <select id="condition" name="condition">
+                    <option value="NEW">New</option>
+                    <option value="LIKE_NEW">Like New</option>
+                    <option value="VERY_GOOD">Very Good</option>
+                    <option value="GOOD">Good</option>
+                    <option value="ACCEPTABLE">Acceptable</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="5"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="add-new-btn" style="width: 100%; margin-top: 20px;">Update Listing</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+  // Notification function
+  function showNotification(message, type = "info") {
+    const note = document.getElementById("notification");
+    note.innerText = message;
+    note.className = `notification-${type}`;
+    note.style.display = "block";
+    setTimeout(() => {
+      note.style.display = "none";
+    }, 3000);
+  }
+    const API_BASE = "http://localhost:9090/api/books/";
+    const token = localStorage.getItem('token');
+
+    // Get the ID from URL: edit-book.html?id=123
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookId = urlParams.get('id');
+
+    if (!bookId) {
+        showNotification("No Book ID provided!", "error");
+        window.location.href = 'homepage.html';
+    }
+
+    // 1. Fetch current book data to populate form
+    async function loadBookData() {
+        try {
+            const response = await fetch(`${API_BASE}${bookId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) throw new Error("Failed to load book data");
+
+            const book = await response.json();
+
+            // Populate fields
+            document.getElementById('title').value = book.title;
+            document.getElementById('author').value = book.author || '';
+            document.getElementById('year').value = book.year || '';
+            document.getElementById('isbn').value = book.isbn || '';
+            document.getElementById('price').value = book.price || '';
+            document.getElementById('condition').value = book.condition || 'GOOD';
+            document.getElementById('description').value = book.description || '';
+
+        } catch (error) {
+            console.error(error);
+            showNotification("Error loading book details.", "error");
+        }
+    }
+
+    // 2. Handle Form Submission (PUT request)
+    document.getElementById('editBookForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const updatedData = {
+            title: document.getElementById('title').value,
+            author: document.getElementById('author').value,
+            year: parseInt(document.getElementById('year').value),
+            isbn: document.getElementById('isbn').value,
+            price: parseFloat(document.getElementById('price').value),
+            condition: document.getElementById('condition').value,
+            description: document.getElementById('description').value
+        };
+
+        try {
+            const response = await fetch(`${API_BASE}${bookId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                showNotification("Listing updated successfully!", "success");
+                window.location.href = 'homepage.html'; // Redirect back to dashboard
+            } else {
+                const err = await response.json();
+                showNotification("Update failed: " + (err.message || "Unknown error"), "error");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showNotification("An error occurred while saving.", "error");
+        }
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadBookData);
+</script>
+</body>
+</html>

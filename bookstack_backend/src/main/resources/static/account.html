@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Account | Bookstore</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<header class="navbar">
+    <div class="nav-content">
+        <div class="logo">BookStore</div>
+
+        <div class="search-container">
+            <input type="text" placeholder="Search for books, authors, or ISBN...">
+            <button class="search-btn">&#128269;</button>
+            <button class="add-new-btn" id="filterBtn">Filter</button>
+        </div>
+
+        <div class="nav-icons" style="display: flex; align-items: center; gap: 1rem;">
+            <a href="wishlist.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#10084;</a>
+            <a href="cart.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#128722;</a>
+            <div class="profile-container">
+                <div class="profile-circle"></div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <h1>Your Account</h1>
+
+    <div id="statusMessage" style="text-align: center; margin-bottom: 1rem; color: #6b7280;">Loading profile...</div>
+
+    <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+        <div style="width: 120px; height: 120px; border-radius: 50%; background-color: #d1d5db; display: flex; justify-content: center; align-items: center; font-size: 3rem; color: #6b7280;">
+            👤
+        </div>
+    </div>
+
+    <button class="add-new-btn" style="display: block; margin: 1rem auto 2rem auto;">
+        Change Profile Picture
+    </button>
+
+    <div class="form-group">
+        <label><strong>Username</strong></label>
+        <input type="text" id="usernameInput" placeholder="Current username">
+    </div>
+
+    <div class="form-group">
+        <label><strong>Email</strong></label>
+        <input type="email" id="emailInput" placeholder="you@example.com">
+    </div>
+
+    <div class="form-group">
+        <label><strong>Address</strong></label>
+        <input type="text" placeholder="123 Main St, City, State">
+    </div>
+
+    <div class="form-group">
+        <label><strong>Change Password</strong></label>
+        <input type="password" placeholder="New password">
+    </div>
+
+    <button class="submit-btn" style="margin-top: 1rem;">Save Changes</button>
+
+    <h2 style="margin-top: 2.5rem;">Account Options</h2>
+    <p style="margin-bottom: 0.5rem;">You can permanently delete your account at any time.</p>
+    <button class="cancel-btn">Delete Account</button>
+</div>
+
+<script>
+    // Run immediately when the page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+        const usernameField = document.getElementById('usernameInput');
+        const emailField = document.getElementById('emailInput');
+        const statusMessage = document.getElementById('statusMessage');
+
+        try {
+            const response = await fetch('http://localhost:9090/api/me/', {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Populate the inputs with data from backend
+                usernameField.value = data.username || "";
+                emailField.value = data.email || "";
+
+                statusMessage.textContent = "Profile loaded successfully.";
+                statusMessage.style.color = "green";
+            } else {
+                // If 401 Unauthorized, redirect to login
+                if (response.status === 401) {
+                    window.location.href = 'login.html';
+                }
+                statusMessage.textContent = "Failed to load profile details.";
+                statusMessage.style.color = "red";
+            }
+        } catch (error) {
+            console.error("Error fetching profile:", error);
+            statusMessage.textContent = "Error connecting to the server.";
+            statusMessage.style.color = "red";
+        }
+    });
+
+    document.getElementById("filterBtn").addEventListener("click", () => {
+        console.log("Filter options coming soon!");
+    });
+</script>
+</body>
+</html>
