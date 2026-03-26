@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Account | Bookstore</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="nav-content">
+            <div class="logo">BookStore</div>
+
+            <div class="search-container">
+                <input type="text" placeholder="Search for books, authors, or ISBN...">
+                <button class="search-btn">&#128269;</button>
+                <button class="add-new-btn" id="filterBtn">Filter</button>
+            </div>
+
+            <div class="nav-icons" style="display: flex; align-items: center; gap: 1rem;">
+                <a href="wishlist.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#10084;</a>
+                <a href="cart.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#128722;</a>
+                <div class="profile-container">
+                    <div class="profile-circle"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Your Account</h1>
+
+        <div style="display: flex; justify-content: center; margin-top: 1.5rem;">
+            <div style="
+                width: 120px;
+                height: 120px;
+                border-radius: 50%;
+                background-color: #d1d5db;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 3rem;
+                color: #6b7280;
+            ">
+                👤
+            </div>
+        </div>
+
+        <button class="add-new-btn" style="display: block; margin: 1rem auto 2rem auto;">
+            Change Profile Picture
+        </button>
+
+        <div class="form-group">
+            <label><strong>Username</strong></label>
+            <input type="text" placeholder="Current username">
+        </div>
+
+        <div class="form-group">
+            <label><strong>Email</strong></label>
+            <input type="email" placeholder="you@example.com">
+        </div>
+
+        <div class="form-group">
+            <label><strong>Address</strong></label>
+            <input type="text" placeholder="123 Main St, City, State">
+        </div>
+
+        <div class="form-group">
+            <label><strong>Change Password</strong></label>
+            <input type="password" placeholder="New password">
+        </div>
+
+        <button class="submit-btn" style="margin-top: 1rem;">Save Changes</button>
+
+        <h2 style="margin-top: 2.5rem;">Account Options</h2>
+        <p style="margin-bottom: 0.5rem;">You can permanently delete your account at any time.</p>
+        <button class="cancel-btn">Delete Account</button>
+    </div>
+
+    <script>
+        document.getElementById("filterBtn").addEventListener("click", () => {
+            alert("Filter options coming soon!");
+        });
+    </script>
+</body>
+</html>

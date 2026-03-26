@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BookStack Register</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --white: #ffffff;
+      --primary: #111827;
+      --muted: #9ca3af;
+      --border: #e5e7eb;
+      --accent: #f5a623;
+      --radius: 10px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .register-card {
+      background: var(--white);
+      width: 100%;
+      max-width: 420px;
+      padding: 32px 28px;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .register-title {
+      font-size: 1.4rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--primary);
+    }
+
+    .register-subtitle {
+      font-size: 0.85rem;
+      text-align: center;
+      color: var(--muted);
+      margin-top: -10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      color: var(--primary);
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f9fafb;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #111827;
+      color: #f9fafb;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .footer-text {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .footer-text a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .footer-text a:hover {
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="register-card">
+    <div class="register-title">Create Your Account</div>
+    <div class="register-subtitle">Join BookStack today</div>
+
+    <form>
+      <div class="form-group">
+        <label for="fullname">Full Name</label>
+        <input id="fullname" type="text" placeholder="Enter full name" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="Enter email" />
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="Choose a username" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Create a password" />
+      </div>
+
+      <div class="form-group">
+        <label for="role">Account Type</label>
+        <select id="role">
+          <option value="">Select role</option>
+          <option value="buyer">Buyer</option>
+          <option value="seller">Seller</option>
+        </select>
+      </div>
+
+      <button class="btn" type="submit">Register</button>
+    </form>
+
+    <div class="footer-text">
+      Already have an account?
+      <a href="#">Log in</a>
+    </div>
+  </div>
+
+</body>
+</html>
+
