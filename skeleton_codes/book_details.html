@@ -59,55 +59,12 @@
             A classic novel set in the Roaring Twenties, exploring themes of wealth,
             ambition, and the American Dream.
         </p>
-        <h2 style="margin-top: 2rem;">More Like This</h2>
-        <div id="similar-books" class="similar-books-container"></div>
     </div>
 
     <script>
         document.getElementById("filterBtn").addEventListener("click", () => {
-            console.log("Filter options coming soon");
+            alert("Filter options coming soon");
         });
-        const params = new URLSearchParams(window.location.search);
-        const bookId = params.get("id");
-
-        async function loadBook() {
-            const res = await fetch(`http://localhost:9090/api/books/${bookId}`);
-            const data = await res.json();
-
-            document.getElementById("book-title").textContent = data.title;
-            document.getElementById("book-author").textContent = data.author;
-            document.getElementById("book-condition").textContent = "N/A";
-            document.getElementById("book-price").textContent = "$" + data.price;
-            document.getElementById("book-description").textContent = "No description available";
-        }
-
-        async function loadSimilarBooks() {
-            const res = await fetch(`http://localhost:9090/api/books/${bookId}/similar`);
-            const similarBooks = await res.json();
-
-            const container = document.getElementById("similar-books");
-            container.innerHTML = "";
-
-            similarBooks.forEach(book => {
-                const card = document.createElement("div");
-                card.classList.add("similar-book-card");
-
-                card.innerHTML = `
-                    <p><strong>${book.title}</strong></p>
-                    <p>${book.author}</p>
-                    <p>$${book.price}</p>
-                `;
-
-                card.onclick = () => {
-                    window.location.href = `book-details.html?id=${book.id}`;
-                };
-
-                container.appendChild(card);
-            });
-        }
-
-        loadBook();
-        loadSimilarBooks();
     </script>
 </body>
 </html>
