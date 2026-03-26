@@ -122,4 +122,21 @@ public class UserServiceTest {
 
         assertThrows(RuntimeException.class, () -> userService.registerUser("testuser", "test@example.com", "password", null));
     }
+
+    @Test
+    void registerUser_ShouldEncryptPassword() {
+        // Tests REQ-5: The system shall use encryption for password handling
+        String rawPassword = "password123";
+        String encodedPassword = "encoded_password_abc";
+        
+        when(encoder.encode(rawPassword)).thenReturn(encodedPassword);
+        
+        Role userRole = new Role(ERole.ROLE_USER);
+        when(roleRepository.findByName(ERole.ROLE_USER)).thenReturn(Optional.of(userRole));
+        
+        User registeredUser = userService.registerUser("testuser", "test@example.com", rawPassword, null);
+        
+        assertEquals(encodedPassword, registeredUser.getPassword());
+        verify(encoder).encode(rawPassword);
+    }
 }

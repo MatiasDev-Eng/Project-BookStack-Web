@@ -115,4 +115,28 @@ public class OrderControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ORDERED")); // Mocked order still has ORDERED in our setup
     }
+
+    @Test
+    void testCheckoutCart_WithPaymentInfo_Success() throws Exception {
+        // Tests REQ-44: Credit card number, expiration date, CVV, and billing name
+        mockMvc.perform(post("/api/orders/")
+                        .param("deliveryAddress", "123 Test St")
+                        .param("cardNumber", "1234567812345678")
+                        .param("expirationDate", "12/28")
+                        .param("cvv", "123")
+                        .param("billingName", "Test User"))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void testCheckoutCart_InvalidPaymentInfo_Failure() throws Exception {
+        // Tests REQ-45: Validate the format of the entered payment information
+        mockMvc.perform(post("/api/orders/")
+                        .param("deliveryAddress", "123 Test St")
+                        .param("cardNumber", "invalid-card") // Invalid format
+                        .param("expirationDate", "99/99")     // Invalid date
+                        .param("cvv", "abc")                // Invalid CVV
+                        .param("billingName", ""))           // Empty name
+                .andExpect(status().isBadRequest());
+    }
 }
