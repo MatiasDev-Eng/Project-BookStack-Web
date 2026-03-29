@@ -62,6 +62,7 @@
     </div>
 
     <script>
+        const API_BASE = `${window.location.origin}/api`;
         document.getElementById("filterBtn").addEventListener("click", () => {
             console.log("Filter options coming soon");
         });
@@ -69,7 +70,7 @@
         const bookId = params.get("id");
 
         async function loadBook() {
-            const res = await fetch(`http://localhost:9090/api/books/${bookId}`);
+            const res = await fetch(`${API_BASE}/books/${bookId}`);
             const data = await res.json();
 
             document.getElementById("book-title").textContent = data.title;
@@ -80,7 +81,7 @@
         }
 
         async function loadSimilarBooks() {
-            const res = await fetch(`http://localhost:9090/api/books/${bookId}/similar`);
+            const res = await fetch(`${API_BASE}/books/${bookId}/similar`);
             const similarBooks = await res.json();
 
             const container = document.getElementById("similar-books");

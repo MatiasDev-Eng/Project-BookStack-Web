@@ -113,17 +113,19 @@
 </div>
 
 <script>
-  function showNotification(message, type = 'info') {
-    const note = document.getElementById('notification');
+  const API_BASE = `${window.location.origin}/api`;
+
+  function showNotification(message, type = "info") {
+    const note = document.getElementById("notification");
     note.innerText = message;
     note.className = `notification-${type}`;
-    note.style.display = 'block';
-    setTimeout(() => { note.style.display = 'none'; }, 3000);
+    note.style.display = "block";
+    setTimeout(() => { note.style.display = "none"; }, 3000);
   }
 
   async function fetchCart() {
     try {
-      const response = await fetch('http://localhost:9090/api/cart/', { credentials: 'include' });
+      const response = await fetch(`${API_BASE}/cart/`, { credentials: 'include' });
       if (!response.ok) throw new Error("Unauthorized");
       const items = await response.json();
       renderCart(items);
@@ -176,7 +178,7 @@
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch('http://localhost:9090/api/payments/cards/', {
+      const response = await fetch(`${API_BASE}/payments/cards/`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -233,7 +235,7 @@
     };
 
     try {
-      const response = await fetch('http://localhost:9090/api/orders/', {
+      const response = await fetch(`${API_BASE}/orders/`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -266,11 +268,11 @@
   }
   async function updateQty(itemId, newQty) {
     if (newQty < 1) return;
-    await fetch(`http://localhost:9090/api/cart/update-quantity/${itemId}/?quantity=${newQty}`, { method: 'PUT', credentials: 'include' });
+    await fetch(`${API_BASE}/cart/update-quantity/${itemId}/?quantity=${newQty}`, { method: 'PUT', credentials: 'include' });
     fetchCart();
   }
   async function removeItem(itemId) {
-    await fetch(`http://localhost:9090/api/cart/remove/${itemId}/`, { method: 'DELETE', credentials: 'include' });
+    await fetch(`${API_BASE}/cart/remove/${itemId}/`, { method: 'DELETE', credentials: 'include' });
     fetchCart();
   }
 

@@ -242,6 +242,8 @@
 </div>
 
 <script>
+    const API_BASE = `${window.location.origin}/api`;
+
     // Notification function
     function showNotification(message, type = 'info') {
         const note = document.getElementById('notification');
@@ -286,7 +288,7 @@
         };
 
         try {
-            const response = await fetch('http://localhost:9090/api/books/', {
+            const response = await fetch(`${API_BASE}/books/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',

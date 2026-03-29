@@ -40,6 +40,7 @@
 </div>
 
 <script>
+    const API_BASE = `${window.location.origin}/api`;
     const loginForm = document.getElementById('loginForm');
     const messageDiv = document.getElementById('message');
     const submitBtn = document.getElementById('submitBtn');
@@ -58,7 +59,7 @@
         };
 
         try {
-            const response = await fetch('http://localhost:9090/api/auth/signin/', {
+            const response = await fetch(`${API_BASE}/auth/signin/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

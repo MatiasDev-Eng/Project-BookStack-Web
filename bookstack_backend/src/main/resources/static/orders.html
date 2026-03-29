@@ -65,6 +65,8 @@
 </div>
 
 <script>
+    const API_BASE = `${window.location.origin}/api`;
+
     function getStatusClass(status) {
         if (!status) return 'badge-default';
         switch (status.toUpperCase()) {
@@ -85,7 +87,7 @@
         const listDiv = document.getElementById('ordersList');
 
         try {
-            const response = await fetch('http://localhost:9090/api/orders/', {
+            const response = await fetch(`${API_BASE}/orders/`, {
                 method: 'GET',
                 credentials: 'include'
             });
