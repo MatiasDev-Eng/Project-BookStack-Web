@@ -262,6 +262,8 @@
 </section>
 
 <script>
+  const API_BASE = `${window.location.origin}/api`;
+
   function showNotification(message, type = "info") {
     const note = document.getElementById("notification");
     note.innerText = message;
@@ -283,7 +285,7 @@
     const qty = parseInt(document.getElementById(`qty-${bookId}`).innerText);
 
     try {
-      const response = await fetch('http://localhost:9090/api/cart/add/', {
+      const response = await fetch(`${API_BASE}/cart/add/`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -306,8 +308,8 @@
 
     try {
       const url = searchQuery
-              ? `http://localhost:9090/api/books/search?query=${encodeURIComponent(searchQuery)}`
-              : 'http://localhost:9090/api/books/';
+              ? `${API_BASE}/books/search?query=${encodeURIComponent(searchQuery)}`
+              : `${API_BASE}/books/`;
 
       const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);

@@ -57,6 +57,8 @@
 </div>
 
 <script>
+    const API_BASE = `${window.location.origin}/api`;
+
     // Exact same helper from your Publish file
     function getSavedUserId() {
         return localStorage.getItem('bookstack-user-id');
@@ -85,7 +87,7 @@
         const token = localStorage.getItem('token');
 
         try {
-            const response = await fetch('http://localhost:9090/api/payments/cards/', {
+            const response = await fetch(`${API_BASE}/payments/cards/`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -133,7 +135,7 @@
         };
 
         try {
-            const response = await fetch('http://localhost:9090/api/payments/add-card/', {
+            const response = await fetch(`${API_BASE}/payments/add-card/`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

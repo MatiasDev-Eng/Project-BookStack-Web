@@ -59,7 +59,8 @@
       note.style.display = "none";
     }, 3000);
   }
-    const API_URL = "http://localhost:9090/api/books/";
+    const API_BASE = `${window.location.origin}/api`;
+    const API_URL = `${API_BASE}/books/`;
     // This assumes your login process stores the JWT in localStorage
     const token = localStorage.getItem('token');
 
