@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -51,5 +52,18 @@ public class PaymentController {
         log.info("userDetails = {}", userDetails);
         List<CreditCardResponse> cards = paymentService.getCreditCards(userDetails.getId());
         return new ResponseEntity<>(cards, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "Retrieve balance",
+            description = "Simulates retrieval of balance for a user. Just sets it to zero",
+            tags = { "payments", "POST" })
+    @PostMapping("/retrieve-balance/")
+    public ResponseEntity<BigDecimal> retrieveBalance() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        BigDecimal balance = paymentService.retrieveBalance(userDetails.getId());
+        return ResponseEntity.ok(balance);
     }
 }

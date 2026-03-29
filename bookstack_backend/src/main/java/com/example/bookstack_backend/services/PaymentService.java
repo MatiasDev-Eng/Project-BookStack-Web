@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 @Slf4j
@@ -70,6 +71,17 @@ public class PaymentService {
     private String maskCardNumber(String fullNumber) {
         if (fullNumber == null || fullNumber.length() < 4) return "****";
         return "**** **** **** " + fullNumber.substring(fullNumber.length() - 4);
+    }
+
+    public BigDecimal retrieveBalance(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        BigDecimal balance = user.getBalance();
+        user.setBalance(BigDecimal.ZERO);
+        userRepository.save(user);
+
+        return balance;
     }
 
 

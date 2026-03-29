@@ -1,5 +1,6 @@
 package com.example.bookstack_backend.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,6 +51,8 @@ public class User {
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CreditCard> creditCards = new ArrayList<>();
 
+    private BigDecimal balance = BigDecimal.ZERO;
+
     public User() {
     }
 
@@ -94,4 +97,7 @@ public class User {
     public List<CreditCard> getCreditCards() { return creditCards; }
 
     public void setCreditCards(List<CreditCard> creditCards) { this.creditCards = creditCards; }
+
+    public BigDecimal getBalance() { return balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
 }
