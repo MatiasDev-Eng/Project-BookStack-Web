@@ -32,7 +32,7 @@
     .checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .nav-link { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-weight: 500; }
 
-    /* Address Section Styles */
+    /* Address & Payment Section Styles */
     .address-section {
       display: none;
       margin-top: 20px;
@@ -42,48 +42,26 @@
       background: #f1f5f9;
     }
     .address-section h3 { margin-top: 0; color: var(--primary); }
-    .address-input {
-      width: 100%; padding: 12px; margin: 15px 0;
+    .form-label { display: block; margin-top: 15px; font-weight: 600; font-size: 0.9rem; color: var(--primary); }
+
+    .address-input, .card-select {
+      width: 100%; padding: 12px; margin: 8px 0 15px 0;
       border: 1px solid var(--border); border-radius: 8px;
-      box-sizing: border-box; font-size: 1rem;
+      box-sizing: border-box; font-size: 1rem; background: white;
     }
-    .address-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+    .address-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
     .cancel-btn { background: #e2e8f0; color: var(--primary); border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
     .confirm-btn { background: var(--accent); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; }
 
-    /* Notification Styles */
     #notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 25px;
-      border-radius: 8px;
-      color: white;
-      font-weight: 600;
-      display: none;
-      z-index: 2000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: 600; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     .notification-success { background: #10b981; }
     .notification-error { background: #ef4444; }
-    .notification-info { background: #3b82f6; }
 
-    /* Inline Confirm Styles */
-    .inline-confirm {
-      font-size: 0.85rem;
-      color: var(--danger);
-      margin-left: 10px;
-      display: none;
-    }
-    .inline-confirm button {
-      background: none;
-      border: none;
-      color: var(--accent);
-      cursor: pointer;
-      font-weight: 600;
-      text-decoration: underline;
-      padding: 0 5px;
-    }
+    .inline-confirm { font-size: 0.85rem; color: var(--danger); margin-left: 10px; display: none; }
+    .inline-confirm button { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 600; text-decoration: underline; padding: 0 5px; }
   </style>
 </head>
 
@@ -91,7 +69,7 @@
 <div id="notification"></div>
 
 <div class="cart-container">
-  <a href="orders.html" class="nav-link">← View My Orders</a>
+  <a href="homepage.html" class="nav-link">← Continue Shopping</a>
   <div class="cart-title">Your Shopping Cart</div>
 
   <table>
@@ -110,42 +88,46 @@
 
   <div class="cart-summary">
     <div><strong>Grand Total:</strong> <span id="totalAmount">$0.00</span></div>
-    <button id="checkoutBtn" class="checkout-btn" onclick="showAddressSection()">Proceed to Checkout</button>
+    <button id="checkoutBtn" class="checkout-btn" onclick="showCheckoutSection()">Proceed to Checkout</button>
   </div>
 
   <div id="addressSection" class="address-section">
-    <h3>Delivery Address</h3>
-    <p style="color: #64748b; font-size: 0.9rem;">Where should we send your books?</p>
-    <textarea id="deliveryAddress" class="address-input" rows="3" placeholder="123 Street Name, City, Zip Code"></textarea>
+    <h3>Checkout Details</h3>
+
+    <label class="form-label">Delivery Address</label>
+    <textarea id="deliveryAddress" class="address-input" rows="2" placeholder="123 Street Name, City, Zip Code"></textarea>
+
+    <label class="form-label">Select Payment Method</label>
+    <select id="cardSelect" class="card-select">
+      <option value="">Loading saved cards...</option>
+    </select>
+    <p style="font-size: 0.8rem; color: #64748b; margin-top: -10px;">
+      <a href="my_cards.html" style="color: var(--accent);">+ Add a new card in Account Settings</a>
+    </p>
+
     <div class="address-actions">
-      <button class="cancel-btn" onclick="hideAddressSection()">Cancel</button>
+      <button class="cancel-btn" onclick="hideCheckoutSection()">Cancel</button>
       <button id="confirmOrderBtn" class="confirm-btn" onclick="handleCheckout()">Confirm Order</button>
     </div>
   </div>
 </div>
 
 <script>
-  // Notification function
   function showNotification(message, type = 'info') {
     const note = document.getElementById('notification');
     note.innerText = message;
     note.className = `notification-${type}`;
     note.style.display = 'block';
-    setTimeout(() => {
-      note.style.display = 'none';
-    }, 3000);
+    setTimeout(() => { note.style.display = 'none'; }, 3000);
   }
 
   async function fetchCart() {
     try {
-      const response = await fetch('http://localhost:9090/api/cart/', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error("Unauthorized or server error");
+      const response = await fetch('http://localhost:9090/api/cart/', { credentials: 'include' });
+      if (!response.ok) throw new Error("Unauthorized");
       const items = await response.json();
       renderCart(items);
     } catch (err) {
-      console.error("Failed to load cart", err);
       showNotification("Failed to load cart", "error");
     }
   }
@@ -179,7 +161,7 @@
                 <button class="remove-btn" id="remove-btn-${item.cartItemId}" onclick="showInlineConfirm(${item.cartItemId})">Remove</button>
                 <span id="confirm-span-${item.cartItemId}" class="inline-confirm">
                   Sure? <button onclick="removeItem(${item.cartItemId})">Yes</button>
-                  <button onclick="hideInlineConfirm(${item.cartItemId})" style="color: var(--muted)">No</button>
+                  <button onclick="hideInlineConfirm(${item.cartItemId})">No</button>
                 </span>
               </td>
             </tr>
@@ -189,50 +171,54 @@
     totalSpan.innerText = `$${grandTotal.toFixed(2)}`;
   }
 
-  function showInlineConfirm(itemId) {
-    document.getElementById(`remove-btn-${itemId}`).style.display = 'none';
-    document.getElementById(`confirm-span-${itemId}`).style.display = 'inline';
+  async function fetchSavedCards() {
+    const cardSelect = document.getElementById('cardSelect');
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch('http://localhost:9090/api/payments/cards/', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const cards = await response.json();
+        if (cards.length === 0) {
+          cardSelect.innerHTML = '<option value="">No saved cards found</option>';
+        } else {
+          cardSelect.innerHTML = '<option value="">-- Choose a Card --</option>' +
+                  cards.map(card => `<option value="${card.cardId}">${card.cardNumber} (${card.cardHolderName})</option>`).join('');
+        }
+      } else {
+        cardSelect.innerHTML = '<option value="">Error loading cards</option>';
+      }
+    } catch (err) {
+      cardSelect.innerHTML = '<option value="">Connection error</option>';
+    }
   }
 
-  function hideInlineConfirm(itemId) {
-    document.getElementById(`remove-btn-${itemId}`).style.display = 'inline';
-    document.getElementById(`confirm-span-${itemId}`).style.display = 'none';
-  }
-
-  async function updateQty(itemId, newQty) {
-    if (newQty < 1) return;
-    await fetch(`http://localhost:9090/api/cart/update-quantity/${itemId}/?quantity=${newQty}`, {
-      method: 'PUT',
-      credentials: 'include'
-    });
-    fetchCart();
-  }
-
-  async function removeItem(itemId) {
-    await fetch(`http://localhost:9090/api/cart/remove/${itemId}/`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
-    fetchCart();
-  }
-
-  // UI Functions for Address Section
-  function showAddressSection() {
+  function showCheckoutSection() {
     document.getElementById('addressSection').style.display = 'block';
     document.getElementById('checkoutBtn').style.display = 'none';
+    fetchSavedCards();
     document.getElementById('addressSection').scrollIntoView({ behavior: 'smooth' });
   }
 
-  function hideAddressSection() {
+  function hideCheckoutSection() {
     document.getElementById('addressSection').style.display = 'none';
     document.getElementById('checkoutBtn').style.display = 'block';
   }
 
   async function handleCheckout() {
     const deliveryAddress = document.getElementById('deliveryAddress').value.trim();
+    const selectedCard = document.getElementById('cardSelect').value;
 
     if (!deliveryAddress) {
       showNotification("Please enter a delivery address.", "error");
+      return;
+    }
+    if (!selectedCard) {
+      showNotification("Please select a payment method.", "error");
       return;
     }
 
@@ -240,17 +226,23 @@
     btn.disabled = true;
     btn.innerText = "Processing...";
 
+    // UPDATED: Sending JSON body to match Backend DTO
+    const payload = {
+      deliveryAddress: deliveryAddress,
+      cardId: parseInt(selectedCard)
+    };
+
     try {
-      const response = await fetch(`http://localhost:9090/api/orders/?deliveryAddress=${encodeURIComponent(deliveryAddress)}`, {
+      const response = await fetch('http://localhost:9090/api/orders/', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
         showNotification("Order placed successfully!", "success");
-        setTimeout(() => {
-          window.location.href = 'orders.html';
-        }, 1500);
+        setTimeout(() => { window.location.href = 'orders.html'; }, 1500);
       } else {
         const errorMsg = await response.text();
         showNotification("Checkout failed: " + errorMsg, "error");
@@ -258,11 +250,28 @@
         btn.innerText = "Confirm Order";
       }
     } catch (err) {
-      console.error("Checkout error:", err);
       btn.disabled = false;
       btn.innerText = "Confirm Order";
       showNotification("A connection error occurred.", "error");
     }
+  }
+
+  function showInlineConfirm(itemId) {
+    document.getElementById(`remove-btn-${itemId}`).style.display = 'none';
+    document.getElementById(`confirm-span-${itemId}`).style.display = 'inline';
+  }
+  function hideInlineConfirm(itemId) {
+    document.getElementById(`remove-btn-${itemId}`).style.display = 'inline';
+    document.getElementById(`confirm-span-${itemId}`).style.display = 'none';
+  }
+  async function updateQty(itemId, newQty) {
+    if (newQty < 1) return;
+    await fetch(`http://localhost:9090/api/cart/update-quantity/${itemId}/?quantity=${newQty}`, { method: 'PUT', credentials: 'include' });
+    fetchCart();
+  }
+  async function removeItem(itemId) {
+    await fetch(`http://localhost:9090/api/cart/remove/${itemId}/`, { method: 'DELETE', credentials: 'include' });
+    fetchCart();
   }
 
   document.addEventListener('DOMContentLoaded', fetchCart);

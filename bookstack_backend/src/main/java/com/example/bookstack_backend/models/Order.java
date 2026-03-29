@@ -32,6 +32,10 @@ public class Order {
 
     private String deliveryAddress;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "card_id")
+    private CreditCard creditCard; // The card used for this specific order
+
     public Order() {
     }
 
@@ -86,4 +90,7 @@ public class Order {
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+    public CreditCard getCreditCard() { return creditCard; }
+    public void setCreditCard(CreditCard creditCard) { this.creditCard = creditCard; }
 }
