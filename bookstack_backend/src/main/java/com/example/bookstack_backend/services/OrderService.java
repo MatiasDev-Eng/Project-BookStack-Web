@@ -6,6 +6,7 @@ import com.example.bookstack_backend.models.*;
 import com.example.bookstack_backend.repository.CartItemRepository;
 import com.example.bookstack_backend.repository.CartRepository;
 import com.example.bookstack_backend.repository.OrderRepository;
+import com.example.bookstack_backend.repository.PaymentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +31,11 @@ public class OrderService {
     @Autowired
     private CartItemRepository cartItemRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
     @Transactional
-    public Order checkout(User user, String address) {
+    public Order checkout(User user, String address, Long cardId) {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
@@ -39,11 +43,15 @@ public class OrderService {
             throw new RuntimeException("Can't checkout an empty cart");
         }
 
+        CreditCard card = paymentRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Payment method not found"));
+
         Order order = new Order();
         order.setUserOrder(user);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.ORDERED);
         order.setDeliveryAddress(address);
+        order.setCreditCard(card);
 
         List<OrderItem> orderItems = cart.getItems().stream().map(cartItem -> {
             OrderItem orderItem = new OrderItem();

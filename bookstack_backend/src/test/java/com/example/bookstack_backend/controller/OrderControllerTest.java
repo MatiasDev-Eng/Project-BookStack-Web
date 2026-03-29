@@ -1,13 +1,16 @@
 package com.example.bookstack_backend.controller;
 
+import com.example.bookstack_backend.dto.request.CheckoutRequest;
 import com.example.bookstack_backend.dto.response.OrderDetailsResponse;
 import com.example.bookstack_backend.dto.response.OrderResponse;
+import com.example.bookstack_backend.models.CreditCard;
 import com.example.bookstack_backend.models.Order;
 import com.example.bookstack_backend.models.OrderStatus;
 import com.example.bookstack_backend.models.User;
 import com.example.bookstack_backend.repository.OrderRepository;
 import com.example.bookstack_backend.repository.UserRepository;
 import com.example.bookstack_backend.services.OrderService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -22,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,8 +52,12 @@ public class OrderControllerTest {
     @MockBean
     private OrderRepository orderRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private User user;
     private Order order;
+    private CreditCard card;
 
     @BeforeEach
     void setUp() {
@@ -70,12 +78,24 @@ public class OrderControllerTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("testuser");
+
+        card = new CreditCard();
+        card.setCardHolderName("testcardholder");
+        card.setCardNumber("123456789");
+        card.setCvv(123);
+        card.setCardId(1L);
+        card.setExpirationDate(LocalDate.from(LocalDateTime.now().plusYears(3)));
     }
 
     @Test
     void testCheckoutCart_Success() throws Exception {
+        CheckoutRequest request = new CheckoutRequest();
+        request.setDeliveryAddress("123 Street");
+        request.setCardId(1L);
+
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(orderService.checkout(any(User.class), anyString())).thenReturn(order);
+        when(orderService.checkout(eq(user), eq("123 Street"), eq(1L)))
+                .thenReturn(order);
 
         mockMvc.perform(post("/api/orders/")
                         .param("deliveryAddress", "123 Street")

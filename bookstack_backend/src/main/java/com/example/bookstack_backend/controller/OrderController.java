@@ -1,5 +1,6 @@
 package com.example.bookstack_backend.controller;
 
+import com.example.bookstack_backend.dto.request.CheckoutRequest;
 import com.example.bookstack_backend.dto.response.OrderDetailsResponse;
 import com.example.bookstack_backend.dto.response.OrderResponse;
 import com.example.bookstack_backend.models.Order;
@@ -36,24 +37,21 @@ public class OrderController {
             description = "(TAKES IN JWT) takes the current cart and its items and creates an order",
             tags = { "orders", "POST" })
     @PostMapping("/")
-        public ResponseEntity<?> checkoutCart(@RequestParam String deliveryAddress) {
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<?> checkoutCart(@RequestBody CheckoutRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-            return userRepository.findByUsername(username)
-                    .map(user -> {
-                        try {
-                            // Perform the checkout
-                            Order completedOrder = orderService.checkout(user, deliveryAddress);
-
-                            OrderResponse response = new OrderResponse(completedOrder);
-
-                            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-                        } catch (IllegalStateException e) {
-                            return ResponseEntity.badRequest().body(e.getMessage());
-                        }
-                    })
-                    .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
-        }
+        return userRepository.findByUsername(username)
+                .map(user -> {
+                    try {
+                        // Pass both address and cardId to the service
+                        Order completedOrder = orderService.checkout(user, request.getDeliveryAddress(), request.getCardId());
+                        return ResponseEntity.status(HttpStatus.CREATED).body(new OrderResponse(completedOrder));
+                    } catch (RuntimeException e) {
+                        return ResponseEntity.badRequest().body(e.getMessage());
+                    }
+                })
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
 
     @Operation(
             summary = "Get orders",

@@ -14,6 +14,10 @@ public class OrderResponse {
     private String status;
     private String deliveryAddress;
 
+    // Added fields
+    private String cardHolderName;
+    private String cardNumber;
+
     public OrderResponse(Order order) {
         this.id = order.getId();
         this.totalPrice = order.getTotalPrice();
@@ -21,9 +25,21 @@ public class OrderResponse {
         this.itemCount = (order.getOrderItems() != null) ? order.getOrderItems().size() : 0;
         this.status = order.getStatus().name();
         this.deliveryAddress = order.getDeliveryAddress();
+
+        // Populate card info if it exists
+        if (order.getCreditCard() != null) {
+            this.cardHolderName = order.getCreditCard().getCardHolderName();
+            this.cardNumber = maskCardNumber(order.getCreditCard().getCardNumber());
+        }
     }
 
     public OrderResponse() {}
+
+    // Helper to mask the card number for the UI (e.g., **** 5678)
+    private String maskCardNumber(String fullNumber) {
+        if (fullNumber == null || fullNumber.length() < 4) return "****";
+        return "**** " + fullNumber.substring(fullNumber.length() - 4);
+    }
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -43,4 +59,10 @@ public class OrderResponse {
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+    public String getCardHolderName() { return cardHolderName; }
+    public void setCardHolderName(String cardHolderName) { this.cardHolderName = cardHolderName; }
+
+    public String getCardNumber() { return cardNumber; }
+    public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
 }
