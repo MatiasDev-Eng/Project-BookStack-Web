@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Product Approval | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --primary: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --accent: #2563eb;
+            --success: #059669;
+            --error: #ef4444;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            color: var(--primary);
+        }
+
+        /* Notification System */
+        #notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .notification-success { background: var(--success); }
+        .notification-error { background: var(--error); }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            padding: 32px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.95rem;
+            color: var(--primary);
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: #f1f5f9;
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Main content */
+        .main {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .header {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--muted);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--border);
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table td {
+            padding: 16px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .book-meta {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .approve {
+            background: var(--success);
+            color: white;
+        }
+
+        .approve:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="notification"></div>
+
+<aside class="sidebar">
+    <div class="sidebar-title">BookStack</div>
+    <nav class="nav">
+        <a href="admin_usermanagement.html" class="nav-item">User Approval</a>
+        <a href="admin_bookmanagement.html" class="nav-item active">Product Approval</a>
+        <a href="index.html" class="nav-item">Back to Store</a>
+    </nav>
+</aside>
+
+<main class="main">
+    <div class="header">Product Approval</div>
+
+    <div class="card">
+        <div class="card-title">Books Awaiting Publication</div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Book Info</th>
+                <th>Author</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="bookTableBody">
+            <tr>
+                <td colspan="4" class="empty-state">Loading pending products...</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+<script>
+    const API_BASE = `http://localhost:9090/api/admin/books`;
+
+    function showNotification(message, type = "info") {
+        const note = document.getElementById("notification");
+        note.innerText = message;
+        note.className = `notification-${type}`;
+        note.style.display = "block";
+
+        setTimeout(() => {
+            note.style.display = "none";
+        }, 3000);
+    }
+
+    async function fetchUnapprovedBooks() {
+        const tbody = document.getElementById('bookTableBody');
+
+        try {
+            const response = await fetch(`${API_BASE}/`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (response.status === 403) {
+                showNotification("Access Denied: Admin role required.", "error");
+                return;
+            }
+
+            if (!response.ok) throw new Error("Failed to load books.");
+
+            const books = await response.json();
+            renderBooks(books);
+        } catch (err) {
+            console.error(err);
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color: var(--error);">Error: ${err.message}</td></tr>`;
+        }
+    }
+
+    function renderBooks(books) {
+        const tbody = document.getElementById('bookTableBody');
+
+        if (!books || books.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No products awaiting approval.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = books.map(book => `
+        <tr>
+          <td>
+            <div style="font-weight: 700;">${book.title}</div>
+            <div class="book-meta">ID: #${book.id}</div>
+          </td>
+          <td>${book.author}</td>
+          <td style="font-weight: 600; color: var(--success);">$${book.price.toFixed(2)}</td>
+          <td>
+            <button class="btn-action approve" onclick="approveBook(${book.id}, '${book.title.replace(/'/g, "\\'")}')">
+              Approve Book
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function approveBook(bookId, bookTitle) {
+        try {
+            const response = await fetch(`${API_BASE}/${bookId}/approve/`, {
+                method: 'PUT',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                showNotification(`"${bookTitle}" has been approved!`, "success");
+                fetchUnapprovedBooks();
+            } else {
+                showNotification("Failed to approve book.", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showNotification("Server error during approval.", "error");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchUnapprovedBooks);
+</script>
+</body>
+</html>

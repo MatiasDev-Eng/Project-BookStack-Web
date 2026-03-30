@@ -68,6 +68,15 @@
       box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
     }
 
+    /* Admin specific style */
+    .admin-btn {
+      background: var(--primary);
+    }
+    .admin-btn:hover {
+      background: #0f172a;
+      box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+    }
+
     .nav-left .logo {
       font-size: 1.5rem;
       font-weight: 800;
@@ -246,6 +255,10 @@
   </div>
 
   <div class="nav-right">
+    <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display: none;">
+      🛡️ Admin
+    </a>
+
     <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
     <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
     <div class="user-profile-btn" onclick="window.location.href='account.html'">👤</div>
@@ -262,7 +275,7 @@
 </section>
 
 <script>
-  const API_BASE = `${window.location.origin}/api`;
+  const API_BASE = `http://localhost:9090/api`;
 
   function showNotification(message, type = "info") {
     const note = document.getElementById("notification");
@@ -272,8 +285,26 @@
     setTimeout(() => { note.style.display = "none"; }, 3000);
   }
 
+  async function checkAdminStatus() {
+    const adminBtn = document.getElementById('adminBtn');
+    try {
+      const response = await fetch(`${API_BASE}/auth/me/`, {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        if (user.roles && user.roles.includes('ROLE_ADMIN')) {
+          adminBtn.style.display = 'flex';
+        }
+      }
+    } catch (error) {
+      console.warn("User not logged in or session expired.");
+    }
+  }
+
   function updateQty(event, btn, delta) {
-    event.stopPropagation(); // Prevent the card click (redirect)
+    event.stopPropagation();
     const qtySpan = btn.parentElement.querySelector('.qty-num');
     let currentQty = parseInt(qtySpan.innerText);
     currentQty = Math.max(1, currentQty + delta);
@@ -281,7 +312,7 @@
   }
 
   async function addToCart(event, bookId) {
-    event.stopPropagation(); // Prevent the card click (redirect)
+    event.stopPropagation();
     const qty = parseInt(document.getElementById(`qty-${bookId}`).innerText);
 
     try {
@@ -357,6 +388,8 @@
       if (query) window.location.href = `index.html?search=${encodeURIComponent(query)}`;
     });
 
+    // Run both checks
+    checkAdminStatus();
     fetchFeaturedBooks(searchQuery);
   });
 </script>

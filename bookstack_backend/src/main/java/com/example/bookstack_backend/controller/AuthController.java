@@ -1,5 +1,7 @@
 package com.example.bookstack_backend.controller;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.example.bookstack_backend.dto.request.LoginRequest;
@@ -26,11 +28,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.bookstack_backend.models.User;
 import com.example.bookstack_backend.repository.UserRepository;
@@ -86,8 +84,8 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
                 .body(new UserInfoResponse(userDetails.getId(),
                         userDetails.getUsername(),
-                        userDetails.getEmail(),
-                        roles));
+                        userDetails.getEmail()
+                        ));
 
     }
 
@@ -162,5 +160,21 @@ public class AuthController {
         }
 
         return ResponseEntity.badRequest().body(new MessageResponse("Refresh Token is empty!"));
+    }
+
+    @GetMapping("/me/")
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Map<String, Object> userDetails = new HashMap<>();
+        userDetails.put("username", authentication.getName());
+        userDetails.put("roles", authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
+
+        return ResponseEntity.ok(userDetails);
     }
 }

@@ -2,212 +2,304 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>User Management</title>
+  <title>User Approval | Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
     :root {
-      --bg: #f5f5f7;
+      --bg: #f8fafc;
       --white: #ffffff;
-      --primary: #111827;
-      --muted: #9ca3af;
-      --border: #e5e7eb;
-      --accent: #f5a623;
-      --radius: 10px;
+      --primary: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --success: #059669;
+      --error: #ef4444;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
     }
 
     body {
       background: var(--bg);
       min-height: 100vh;
       display: flex;
+      color: var(--primary);
     }
+
+    /* Notification System */
+    #notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      display: none;
+      z-index: 2000;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      animation: slideIn 0.3s ease-out;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .notification-success { background: var(--success); }
+    .notification-error { background: var(--error); }
+    .notification-info { background: var(--accent); }
 
     /* Sidebar */
     .sidebar {
-      width: 240px;
+      width: 260px;
       background: var(--white);
       border-right: 1px solid var(--border);
-      padding: 24px 18px;
+      padding: 32px 20px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 30px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
     }
 
     .sidebar-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--primary);
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.5px;
     }
 
     .nav {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
     .nav-item {
-      padding: 10px 12px;
+      padding: 12px 16px;
       border-radius: 8px;
       cursor: pointer;
+      text-decoration: none;
       font-size: 0.95rem;
       color: var(--primary);
       transition: 0.2s;
+      font-weight: 500;
     }
 
     .nav-item:hover {
-      background: #f3f4f6;
+      background: #f1f5f9;
     }
 
     .nav-item.active {
-      background: #111827;
-      color: #f9fafb;
+      background: var(--primary);
+      color: white;
     }
 
     /* Main content */
     .main {
       flex: 1;
-      padding: 28px;
+      padding: 40px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 24px;
     }
 
     .header {
-      font-size: 1.7rem;
-      font-weight: 600;
+      font-size: 1.8rem;
+      font-weight: 700;
       color: var(--primary);
     }
 
     .card {
       background: var(--white);
-      padding: 20px;
+      padding: 24px;
       border-radius: var(--radius);
       border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow);
     }
 
     .card-title {
       font-size: 1.1rem;
       font-weight: 600;
-      margin-bottom: 12px;
+      margin-bottom: 20px;
+      color: var(--muted);
     }
 
     .table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-
-    .table th, .table td {
-      padding: 10px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
     }
 
     .table th {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 2px solid var(--border);
       color: var(--muted);
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .table td {
+      padding: 16px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
     }
 
     .btn-action {
-      padding: 6px 12px;
+      padding: 8px 16px;
       border-radius: 6px;
       border: none;
       cursor: pointer;
-      font-size: 0.8rem;
-      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
     }
 
-    .block {
-      background: #dc2626;
+    .approve {
+      background: var(--success);
+      color: white;
     }
 
-    .unblock {
-      background: #16a34a;
+    .approve:hover {
+      background: #047857;
+      transform: translateY(-1px);
     }
 
-    .status {
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      background: #e5e7eb;
-      color: #374151;
+    .empty-state {
+      text-align: center;
+      padding: 60px;
+      color: var(--muted);
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-title">Admin Panel</div>
+<div id="notification"></div>
 
-    <div class="nav">
-      <a href="admin_dashboard.html" class="nav-item">Dashboard</a>
-      <a href="admin_usermanagement.html" class="nav-item active">User Management</a>
-      <a href="admin_sellerapproval.html" class="nav-item">Seller Approval</a>
-      <a href="admin_productapproval.html" class="nav-item">Product Approval</a>
-      <a href="admin_profile.html" class="nav-item">Admin Profile</a>
-    </div>
-  </aside>
+<aside class="sidebar">
+  <div class="sidebar-title">BookStack</div>
+
+  <nav class="nav">
+    <a href="admin_usermanagement.html" class="nav-item active">User Approval</a>
+    <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
+    <a href="index.html" class="nav-item">Back to Store</a>
+  </nav>
+</aside>
 
 
-  <!-- Main content -->
-  <main class="main">
-    <div class="header">User Management</div>
+<main class="main">
+  <div class="header">User Approval</div>
 
-    <div class="card">
-      <div class="card-title">All Users</div>
+  <div class="card">
+    <div class="card-title">Pending Account Approvals</div>
 
-      <table class="table">
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
+    <table class="table">
+      <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody id="userTableBody">
+      <tr>
+        <td colspan="4" class="empty-state">Fetching pending users...</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</main>
 
-        <tbody>
-          <tr>
-            <td>John Carter</td>
-            <td>john@example.com</td>
-            <td>Buyer</td>
-            <td><span class="status">Active</span></td>
-            <td><button class="btn-action block">Block</button></td>
-          </tr>
+<script>
+  const API_BASE = `http://localhost:9090/api/admin`;
 
-          <tr>
-            <td>Sarah Lee</td>
-            <td>sarah@example.com</td>
-            <td>Seller</td>
-            <td><span class="status">Blocked</span></td>
-            <td><button class="btn-action unblock">Unblock</button></td>
-          </tr>
+  function showNotification(message, type = "info") {
+    const note = document.getElementById("notification");
+    note.innerText = message;
+    note.className = `notification-${type}`;
+    note.style.display = "block";
 
-          <tr>
-            <td>Michael Brown</td>
-            <td>michael@example.com</td>
-            <td>Buyer</td>
-            <td><span class="status">Active</span></td>
-            <td><button class="btn-action block">Block</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    setTimeout(() => {
+      note.style.display = "none";
+    }, 3000);
+  }
 
-  </main>
+  async function fetchUnapprovedUsers() {
+    const tbody = document.getElementById('userTableBody');
 
+    try {
+      const response = await fetch(`${API_BASE}/users/`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (response.status === 403) {
+        showNotification("Access Denied: Admin role required.", "error");
+        return;
+      }
+
+      if (!response.ok) throw new Error("Failed to load users.");
+
+      const users = await response.json();
+      renderUsers(users);
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color: var(--error);">Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  function renderUsers(users) {
+    const tbody = document.getElementById('userTableBody');
+
+    if (!users || users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No users awaiting approval.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = users.map(user => `
+        <tr>
+          <td>#${user.userId}</td>
+          <td><strong>${user.username}</strong></td>
+          <td>${user.email}</td>
+          <td>
+            <button class="btn-action approve" onclick="approveUser(${user.userId}, '${user.username}')">
+              Approve Access
+            </button>
+          </td>
+        </tr>
+      `).join('');
+  }
+
+  async function approveUser(userId, username) {
+    try {
+      const response = await fetch(`${API_BASE}/users/${userId}/approve/`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        showNotification(`User "${username}" approved!`, "success");
+        fetchUnapprovedUsers();
+      } else {
+        showNotification("Approval failed. Please try again.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Server error during approval.", "error");
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchUnapprovedUsers);
+</script>
 </body>
 </html>

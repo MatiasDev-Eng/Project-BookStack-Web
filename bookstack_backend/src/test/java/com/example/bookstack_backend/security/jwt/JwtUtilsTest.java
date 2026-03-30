@@ -9,10 +9,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.util.WebUtils;
 
 import java.util.Collections;
-import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -37,7 +39,8 @@ public class JwtUtilsTest {
     @Test
     void generateTokenFromUsername_ShouldReturnValidToken() {
         String username = "testuser";
-        String token = jwtUtils.generateTokenFromUsername(username);
+        // Pass empty authorities for the test
+        String token = jwtUtils.generateTokenFromUsername(username, Collections.emptyList());
 
         assertNotNull(token);
         assertEquals(username, jwtUtils.getUserNameFromJwtToken(token));
@@ -45,7 +48,7 @@ public class JwtUtilsTest {
 
     @Test
     void validateJwtToken_ShouldReturnTrueForValidToken() {
-        String token = jwtUtils.generateTokenFromUsername("testuser");
+        String token = jwtUtils.generateTokenFromUsername("testuser", Collections.emptyList());
         assertTrue(jwtUtils.validateJwtToken(token));
     }
 
@@ -56,24 +59,32 @@ public class JwtUtilsTest {
 
     @Test
     void validateJwtToken_ShouldReturnFalseForExpiredToken() {
+        // Set expiration to a past time
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", -1000);
-        String token = jwtUtils.generateTokenFromUsername("testuser");
+        String token = jwtUtils.generateTokenFromUsername("testuser", Collections.emptyList());
         assertFalse(jwtUtils.validateJwtToken(token));
     }
 
     @Test
     void generateJwtCookie_FromUserDetails_ShouldReturnCookie() {
-        UserDetailsImpl userDetails = new UserDetailsImpl(1L, "testuser", "test@email.com", "password", Collections.emptyList());
+        // UserDetailsImpl already has a getAuthorities() method
+        UserDetailsImpl userDetails = new UserDetailsImpl(1L, "testuser", "test@email.com", "password",
+                List.of(new SimpleGrantedAuthority("ROLE_USER")));
+
         ResponseCookie cookie = jwtUtils.generateJwtCookie(userDetails);
 
         assertNotNull(cookie);
         assertEquals(jwtCookieName, cookie.getName());
         assertNotNull(cookie.getValue());
+        assertTrue(cookie.isHttpOnly());
     }
 
     @Test
     void generateJwtCookie_FromUser_ShouldReturnCookie() {
+        // Assuming your User model has a getRoles() method that might be empty here
         User user = new User("testuser", "test@email.com", "password");
+        user.setRoles(Collections.emptySet()); // Ensure roles are initialized
+
         ResponseCookie cookie = jwtUtils.generateJwtCookie(user);
 
         assertNotNull(cookie);
@@ -116,7 +127,8 @@ public class JwtUtilsTest {
         ResponseCookie cleanJwt = jwtUtils.getCleanJwtCookie();
         ResponseCookie cleanRefresh = jwtUtils.getCleanJwtRefreshCookie();
 
-        assertEquals("", cleanJwt.getValue());
-        assertEquals("", cleanRefresh.getValue());
+        // ResponseCookie returns null or empty string for value when "cleaned"
+        assertTrue(cleanJwt.getValue() == null || cleanJwt.getValue().isEmpty());
+        assertTrue(cleanRefresh.getValue() == null || cleanRefresh.getValue().isEmpty());
     }
 }

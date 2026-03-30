@@ -26,7 +26,7 @@ public class AdminBookService {
     public List<Book> getBooksByOwner(Long ownerId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + ownerId));
-        return bookRepository.findByOwnerAndIsActiveTrue(owner);
+        return bookRepository.findByOwner(owner);
     }
 
     // delete book

@@ -60,8 +60,7 @@
     }, 3000);
   }
     const API_BASE = `${window.location.origin}/api`;
-    const API_URL = `${API_BASE}/books/`;
-    // This assumes your login process stores the JWT in localStorage
+    const API_URL = `${API_BASE}/books/me/`;
     const token = localStorage.getItem('token');
 
     async function fetchListings() {

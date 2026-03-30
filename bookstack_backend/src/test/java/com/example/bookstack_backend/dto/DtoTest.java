@@ -101,19 +101,16 @@ public class DtoTest {
     
     @Test
     void testUserInfoResponse() {
-        UserInfoResponse response = new UserInfoResponse(1L, "user", "email", Collections.singletonList("ROLE_USER"));
+        UserInfoResponse response = new UserInfoResponse(1L, "user", "email");
         assertEquals(1L, response.getUserId());
         assertEquals("user", response.getUsername());
         assertEquals("email", response.getEmail());
-        assertEquals(Collections.singletonList("ROLE_USER"), response.getRoles());
-        
+
         response.setUserId(2L);
         response.setUsername("user2");
         response.setEmail("email2");
-        response.setRoles(Collections.singletonList("ROLE_ADMIN"));
         assertEquals(2L, response.getUserId());
         assertEquals("user2", response.getUsername());
         assertEquals("email2", response.getEmail());
-        assertEquals(Collections.singletonList("ROLE_ADMIN"), response.getRoles());
     }
 }
