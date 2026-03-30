@@ -1,6 +1,7 @@
 package com.example.bookstack_backend.controller;
 
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
+import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
 import com.example.bookstack_backend.models.ECondition;
 import com.example.bookstack_backend.models.User;
@@ -50,12 +51,19 @@ public class BookControllerTest {
 
     private Book book;
     private User owner;
+    private BookResponse response;
 
     @BeforeEach
     void setUp() {
         owner = new User();
         owner.setId(1L);
         owner.setUsername("testuser");
+        response.setAuthor("testauthor");
+        response.setId(1L);
+        response.setGenre("genre");
+        response.setIsbn("isbn");
+        response.setTitle("title");
+        response.setPrice(BigDecimal.TEN);
 
         book = new Book();
         book.setBookId(1L);
@@ -172,7 +180,7 @@ public class BookControllerTest {
 
     @Test
     void testGetSellerListings_Success() throws Exception {
-        when(bookService.getActiveBooksByOwner(1L)).thenReturn(Arrays.asList(book));
+        when(bookService.getBooksByOwner(1L)).thenReturn(Arrays.asList(response));
 
         mockMvc.perform(get("/api/books/owner/1"))
                 .andExpect(status().isOk())
