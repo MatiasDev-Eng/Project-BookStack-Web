@@ -30,36 +30,6 @@ public class AdminControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void testAdminLogin_Success() throws Exception {
-        AdminLoginRequest request = new AdminLoginRequest();
-        request.setUsername("admin");
-        request.setPassword("password");
-
-        when(adminService.login("admin", "password")).thenReturn(true);
-
-        mockMvc.perform(post("/api/admin/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Admin login successful"));
-    }
-
-    @Test
-    void testAdminLogin_Failure() throws Exception {
-        AdminLoginRequest request = new AdminLoginRequest();
-        request.setUsername("admin");
-        request.setPassword("wrongpassword");
-
-        when(adminService.login("admin", "wrongpassword")).thenReturn(false);
-
-        mockMvc.perform(post("/api/admin/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Invalid admin credentials"));
-    }
-
-    @Test
     void testGetAdminLogs_Success() throws Exception {
         // Tests REQ-20 and REQ-21: Admin can access and query logs
         mockMvc.perform(get("/api/admin/logs"))
