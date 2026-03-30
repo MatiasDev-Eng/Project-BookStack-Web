@@ -223,7 +223,7 @@
 </main>
 
 <script>
-    const API_BASE = `http://localhost:9090/api/admin/books`;
+    const API_BASE = `${window.location.origin}/api/admin/books`;
 
     function showNotification(message, type = "info") {
         const note = document.getElementById("notification");
