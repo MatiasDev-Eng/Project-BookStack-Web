@@ -295,7 +295,8 @@
 
   <div class="nav-center">
     <input id="searchInput" type="text" class="search-bar" placeholder="Search for titles, authors, or genres...">
-    <button id="searchBtn" class="search-button">Search</button>button></button>
+    <button id="searchBtn" class="search-button">Search</button>
+    <button id="filterBtn" class="filter-toggle">Filters</button>
   </div>
 
   <div class="nav-right">
@@ -312,6 +313,26 @@
   </div>
 </nav>
 
+<div id="filterPanel" class="filter-panel">
+  <h3>Filters</h3>
+
+  <label>Min Price</label>
+  <input type="number" id="minPrice" placeholder="0">
+
+  <label>Max Price</label>
+  <input type="number" id="maxPrice" placeholder="100">
+
+  <label>Min Year</label>
+  <input type="number" id="minYear" placeholder="1900">
+
+  <label>Max Year</label>
+  <input type="number" id="maxYear" placeholder="2025">
+
+  <button id="applyFiltersBtn">Apply Filters</button>
+  <button id="clearFiltersBtn" class="clear-btn">Clear Filters</button>
+</div>
+
+
 <section class="featured">
   <h2>Featured Books</h2>
   <div class="book-grid" id="bookGrid">
@@ -322,6 +343,14 @@
 </section>
 
 <script>
+
+  let activeFilters = {
+    minPrice: null,
+    maxPrice: null,
+    minYear: null,
+    maxYear: null
+  };
+
   // Notification function
   function showNotification(message, type = "info") {
     const note = document.getElementById("notification");
@@ -360,34 +389,33 @@
       console.error("Cart error:", error);
     }
   }
-  async function fetchFeaturedBooks(searchQuery) {
+  async function fetchFeaturedBooks(searchQuery, minPrice, maxPrice, minYear, maxYear) {
     const bookGrid = document.getElementById('bookGrid');
 
     try {
-      let response;
 
-      if (searchQuery) {
-        response = await fetch(`http://localhost:9090/api/books/search?query=${searchQuery}`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' }
-      });
-      } 
-      else {
-        response = await fetch('http://localhost:9090/api/books/', {
+      let url = `http://localhost:9090/api/books/search?query=${searchQuery || ""}`;
+        
+      if (minPrice) url += `&minPrice=${minPrice}`;
+      if (maxPrice) url += `&maxPrice=${maxPrice}`;
+      if (minYear) url += `&minYear=${minYear}`;
+      if (maxYear) url += `&maxYear=${maxYear}`;
+
+      const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
-      }
       
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const books = await response.json();
       bookGrid.innerHTML = '';
 
-      const list = searchQuery ? books : books.slice(0,5);
-      // Displaying max 5 books as requested
+      const list = searchQuery || minPrice || maxPrice || minYear || maxYear
+        ? books 
+        : books.slice(0,5);
+
       list.forEach(book => {
         const card = document.createElement('div');
         card.className = 'book-card';
@@ -416,6 +444,11 @@
         bookGrid.appendChild(card);
       });
 
+      document.getElementById("minPrice").value = activeFilters.minPrice ?? "";
+      document.getElementById("maxPrice").value = activeFilters.maxPrice ?? "";
+      document.getElementById("minYear").value  = activeFilters.minYear ?? "";
+      document.getElementById("maxYear").value  = activeFilters.maxYear ?? "";
+
     } catch (error) {
       console.error("Fetch error:", error);
       bookGrid.innerHTML = `
@@ -431,14 +464,64 @@
     const params = new URLSearchParams(window.location.search);
     const searchQuery = params.get("search");
 
-    document.getElementById("searchBtn").addEventListener("click", () => {
-      const query = document.getElementById("searchInput").value.trim();
-      if (query.length > 0) {
-        window.location.href = `index.html?search=${encodeURIComponent(query)}`;
-      }
+    const minPrice = params.get("minPrice");
+    const maxPrice = params.get("maxPrice");
+    const minYear  = params.get("minYear");
+    const maxYear  = params.get("maxYear");
+
+    activeFilters.minPrice = minPrice;
+    activeFilters.maxPrice = maxPrice;
+    activeFilters.minYear  = minYear;
+    activeFilters.maxYear  = maxYear;
+
+    const filterPanel = document.getElementById("filterPanel");
+    const filterBtn = document.getElementById("filterBtn");
+
+    filterBtn.addEventListener("click", () => {
+      filterPanel.classList.toggle("open");
     });
 
-    fetchFeaturedBooks(searchQuery);
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const query = document.getElementById("searchInput").value.trim();
+      window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+    });
+
+    document.getElementById("applyFiltersBtn").addEventListener("click", () => {
+      const query = document.getElementById("searchInput").value.trim();
+
+      activeFilters.minPrice = document.getElementById("minPrice").value || null;
+      activeFilters.maxPrice = document.getElementById("maxPrice").value || null;
+      activeFilters.minYear  = document.getElementById("minYear").value || null;
+      activeFilters.maxYear  = document.getElementById("maxYear").value || null;
+
+      let url = `index.html?search=${encodeURIComponent(query)}`;
+
+      if (activeFilters.minPrice) url += `&minPrice=${activeFilters.minPrice}`;
+      if (activeFilters.maxPrice) url += `&maxPrice=${activeFilters.maxPrice}`;
+      if (activeFilters.minYear)  url += `&minYear=${activeFilters.minYear}`;
+      if (activeFilters.maxYear)  url += `&maxYear=${activeFilters.maxYear}`;
+
+      window.location.href = url;
+    });
+
+    document.getElementById("clearFiltersBtn").addEventListener("click", () => {
+      activeFilters = {
+        minPrice: null,
+        maxPrice: null,
+        minYear: null,
+        maxYear: null
+      };
+
+      document.getElementById("minPrice").value = "";
+      document.getElementById("maxPrice").value = "";
+      document.getElementById("minYear").value = "";
+      document.getElementById("maxYear").value = "";
+
+      const query = document.getElementById("searchInput").value.trim();
+      window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+    });
+
+    fetchFeaturedBooks(searchQuery, minPrice, maxPrice, minYear, maxYear);
   });
 </script>
 

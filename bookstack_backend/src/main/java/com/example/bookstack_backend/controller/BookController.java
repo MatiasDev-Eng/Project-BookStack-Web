@@ -102,8 +102,15 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<BookResponse>> searchBooks(@RequestParam String query) {
-        List<Book> results = bookService.searchBooks(query);
+    public ResponseEntity<List<BookResponse>> searchBooks(
+        @RequestParam String query,
+        @RequestParam(required = false) Double minPrice,
+        @RequestParam(required = false) Double maxPrice,
+        @RequestParam(required = false) Integer minYear,
+        @RequestParam(required = false) Integer maxYear
+        
+    ) {
+        List<Book> results = bookService.searchBooks(query, minPrice, maxPrice, minYear, maxYear);
 
         List<BookResponse> response = results.stream()
                 .map(BookResponse::new)
