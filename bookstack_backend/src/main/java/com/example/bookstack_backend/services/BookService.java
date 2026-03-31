@@ -7,6 +7,8 @@ import com.example.bookstack_backend.models.User;
 import com.example.bookstack_backend.repository.BookRepository;
 import com.example.bookstack_backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -110,9 +112,19 @@ public class BookService {
     return bookRepository.findByGenreAndBookIdNot(target.getGenre(), bookId);
     }
 
-    public List<Book> searchBooks(String query) {
-    return bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(query, query, query);
+    public List<Book> searchBooks(String query, Double minPrice, Double maxPrice, Integer minYear, Integer maxYear) {
+        List<Book> baseResults =
+                bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(
+                    query, query, query
+                );
+    
+    
+        return baseResults.stream()
+                .filter(book -> minPrice == null || book.getPrice().compareTo(BigDecimal.valueOf(minPrice)) >= 0)
+                .filter(book -> maxPrice == null || book.getPrice().compareTo(BigDecimal.valueOf(maxPrice)) <= 0)
+                .filter(book -> minYear == null || book.getPublishedYear() >= minYear)
+                .filter(book -> maxYear == null || book.getPublishedYear() <= maxYear)
+                .toList();
     }
-
 
 }
