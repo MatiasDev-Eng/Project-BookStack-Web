@@ -160,11 +160,11 @@
 
 <nav>
     <div class="nav-left">
-        <a href="homepage.html" class="logo">BookStack</a>
+        <a href="index.html" class="logo">BookStack</a>
     </div>
 
     <div class="nav-right">
-        <div class="nav-icon-btn" onclick="window.location.href='homepage.html'" title="Back Home">🏠</div>
+        <div class="nav-icon-btn" onclick="window.location.href='index.html'" title="Back Home">🏠</div>
         <div class="nav-icon-btn" onclick="window.location.href='/cart.html'" title="View Cart">🛒</div>
         <div class="nav-icon-btn" onclick="window.location.href='/account.html'" title="My Account">👤</div>
     </div>
@@ -242,6 +242,8 @@
 </div>
 
 <script>
+    const API_BASE = `${window.location.origin}/api`;
+
     // Notification function
     function showNotification(message, type = 'info') {
         const note = document.getElementById('notification');
@@ -286,7 +288,7 @@
         };
 
         try {
-            const response = await fetch('http://localhost:9090/api/books/', {
+            const response = await fetch(`${API_BASE}/books/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -296,7 +298,7 @@
             if (response.ok) {
                 showNotification('Book listed successfully!', 'success');
                 setTimeout(() => {
-                    window.location.href = 'homepage.html';
+                    window.location.href = 'index.html';
                 }, 1500);
             } else {
                 const errData = await response.json().catch(() => ({}));

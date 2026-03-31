@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Methods | Bookstore</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
+        .credit-card-item { background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); color: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); height: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-number-display { font-family: 'Courier New', monospace; font-size: 1.4rem; letter-spacing: 3px; margin: 20px 0; }
+        .card-label { font-size: 0.7rem; text-transform: uppercase; color: #94a3b8; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: white; margin: 10% auto; padding: 30px; border-radius: 8px; max-width: 450px; }
+    </style>
+</head>
+<body>
+<div id="notification"></div>
+
+<header class="navbar">
+    <div class="nav-content">
+        <div class="logo">BookStore</div>
+    </div>
+</header>
+
+<div class="container wide">
+    <div class="dashboard-header">
+        <h1>Your Payment Methods</h1>
+        <button class="add-new-btn" onclick="openModal()">+ Add New Card</button>
+    </div>
+    <div id="card-container" class="card-grid">
+        <p style="padding: 20px; color: #666;">Loading your cards...</p>
+    </div>
+</div>
+
+<div id="cardModal" class="modal">
+    <div class="modal-content">
+        <h2>Link New Credit Card</h2>
+        <div class="form-group">
+            <label>Cardholder Name</label>
+            <input type="text" id="cardHolderName">
+        </div>
+        <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" id="cardNumber" maxlength="19">
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group"><label>Expiration Date</label><input type="date" id="expirationDate"></div>
+            <div class="form-group"><label>CVV</label><input type="number" id="cvv"></div>
+        </div>
+        <div class="form-group"><label>Zip Code</label><input type="text" id="zipCode"></div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="submit-btn" onclick="saveCard()">Save Card</button>
+            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = `${window.location.origin}/api`;
+
+    // Exact same helper from your Publish file
+    function getSavedUserId() {
+        return localStorage.getItem('bookstack-user-id');
+    }
+
+    function showNotification(message, type = 'info') {
+        const note = document.getElementById('notification');
+        note.innerText = message;
+        note.className = `notification-${type}`;
+        note.style.display = 'block';
+        setTimeout(() => { note.style.display = 'none'; }, 3000);
+    }
+
+    // Format card number blocks
+    document.getElementById('cardNumber').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        e.target.value = value.match(/.{1,4}/g)?.join(' ') || '';
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchCards();
+    });
+
+    async function fetchCards() {
+        const container = document.getElementById('card-container');
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await fetch(`${API_BASE}/payments/cards/`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const cards = await response.json();
+                if (cards.length === 0) {
+                    container.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No cards found.</p>';
+                    return;
+                }
+                container.innerHTML = cards.map(card => `
+                    <div class="credit-card-item">
+                        <div class="card-number-display">${card.cardNumber}</div>
+                        <div>
+                            <div class="card-label">Card Holder</div>
+                            <div style="font-weight: bold;">${card.cardHolderName}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    async function saveCard() {
+        const currentUserId = getSavedUserId();
+        const token = localStorage.getItem('token');
+
+        if (!currentUserId) {
+            showNotification("Session expired. Please log in again.", "error");
+            return;
+        }
+
+        const cardData = {
+            userId: Number(currentUserId),
+            cardNumber: document.getElementById('cardNumber').value.replace(/\s+/g, ''),
+            cardHolderName: document.getElementById('cardHolderName').value,
+            expirationDate: document.getElementById('expirationDate').value + "T00:00:00",
+            cvv: parseInt(document.getElementById('cvv').value),
+            zipCode: document.getElementById('zipCode').value
+        };
+
+        try {
+            const response = await fetch(`${API_BASE}/payments/add-card/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(cardData)
+            });
+
+            if (response.ok) {
+                showNotification('Card added!', 'success');
+                closeModal();
+                fetchCards();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    function openModal() { document.getElementById('cardModal').style.display = 'block'; }
+    function closeModal() { document.getElementById('cardModal').style.display = 'none'; }
+</script>
+</body>
+</html>

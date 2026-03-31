@@ -6,6 +6,7 @@ import com.example.bookstack_backend.models.*;
 import com.example.bookstack_backend.repository.CartItemRepository;
 import com.example.bookstack_backend.repository.CartRepository;
 import com.example.bookstack_backend.repository.OrderRepository;
+import com.example.bookstack_backend.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,9 @@ public class OrderServiceTest {
     @Mock
     private CartItemRepository cartItemRepository;
 
+    @Mock
+    private PaymentRepository paymentRepository;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -43,6 +47,7 @@ public class OrderServiceTest {
     private Cart cart;
     private Book book;
     private CartItem cartItem;
+    private CreditCard card;
 
     @BeforeEach
     void setUp() {
@@ -54,6 +59,10 @@ public class OrderServiceTest {
         book.setTitle("Test Book");
         book.setPrice(BigDecimal.valueOf(10.00));
 
+        card = new CreditCard();
+        card.setCardId(1L);
+        card.setCardHolderName("Test User");
+
         cart = new Cart(user);
         cartItem = new CartItem(cart, book, 2);
         cart.getItems().add(cartItem);
@@ -62,17 +71,19 @@ public class OrderServiceTest {
     @Test
     void checkout_ShouldCreateOrder_WhenCartIsNotEmpty() {
         when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
+        when(paymentRepository.findById(1L)).thenReturn(Optional.of(card));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             order.setId(1L);
             return order;
         });
 
-        Order result = orderService.checkout(user, "123 Test St");
+        Order result = orderService.checkout(user, "123 Test St", 1L);
 
         assertNotNull(result);
-        assertEquals(BigDecimal.valueOf(20.00), result.getTotalPrice());
+        assertEquals(new BigDecimal("20.00"), result.getTotalPrice());
         assertEquals(OrderStatus.ORDERED, result.getStatus());
+        assertEquals(card, result.getCreditCard());
         verify(cartItemRepository, times(1)).deleteAllByCart(cart);
         verify(cartRepository, times(1)).save(cart);
         assertTrue(cart.getItems().isEmpty());
@@ -82,7 +93,7 @@ public class OrderServiceTest {
     void checkout_ShouldThrowException_WhenCartNotFound() {
         when(cartRepository.findByUser(user)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> orderService.checkout(user, "123 Test St"));
+        assertThrows(RuntimeException.class, () -> orderService.checkout(user, "123 Test St", 1L));
     }
 
     @Test
@@ -90,7 +101,15 @@ public class OrderServiceTest {
         cart.getItems().clear();
         when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
 
-        assertThrows(RuntimeException.class, () -> orderService.checkout(user, "123 Test St"));
+        assertThrows(RuntimeException.class, () -> orderService.checkout(user, "123 Test St", 1L));
+    }
+
+    @Test
+    void checkout_ShouldThrowException_WhenCardNotFound() {
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
+        when(paymentRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> orderService.checkout(user, "123 Test St", 1L));
     }
 
     @Test

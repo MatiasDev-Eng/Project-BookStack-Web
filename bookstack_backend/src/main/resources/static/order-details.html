@@ -8,167 +8,150 @@
         :root {
             --bg: #f8fafc; --white: #ffffff; --primary: #1e293b;
             --border: #e2e8f0; --accent: #2563eb; --radius: 12px;
-            --danger: #ef4444;
+            --muted: #64748b;
         }
         body { background: var(--bg); font-family: system-ui, sans-serif; padding: 40px 5%; margin: 0; }
-        .container { max-width: 700px; margin: 40px auto; background: var(--white); padding: 40px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .nav-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 25px; }
-        .header { border-bottom: 2px solid var(--border); margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .header h2 { margin: 0; color: var(--primary); }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
-        .item-main h4 { margin: 0; color: var(--primary); }
-        .item-main p { margin: 4px 0 0 0; color: #64748b; font-size: 0.9rem; }
-        .footer-summary { text-align: right; background: #f1f5f9; padding: 20px; border-radius: 8px; margin-top: 30px; }
-        .grand-total { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .container { max-width: 850px; margin: 0 auto; background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
-        .status-section { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border); }
-        .address-box { margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid var(--bg); padding-bottom: 20px; }
+        .title { font-size: 1.8rem; font-weight: 700; color: var(--primary); margin: 0; }
 
-        .return-btn {
-            background: white; color: var(--danger); border: 1px solid var(--danger);
-            padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;
-            transition: all 0.2s; margin-top: 10px;
-        }
-        .return-btn:hover { background: var(--danger); color: white; }
-        .return-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #ccc; }
-    /* Notification Styles */
-    #notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 15px 25px;
-      border-radius: 8px;
-      color: white;
-      font-weight: 600;
-      display: none;
-      z-index: 2000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .notification-success { background: #10b981; }
-    .notification-error { background: #ef4444; }
-    .notification-info { background: #3b82f6; }
+        .nav-link { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-weight: 500; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+        .info-section h4 { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+        .info-content { font-size: 1rem; color: var(--primary); line-height: 1.5; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border); color: var(--muted); font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 16px 12px; border-bottom: 1px solid var(--border); }
+
+        .book-title { font-weight: 600; color: var(--primary); }
+        .price-col { text-align: right; }
+
+        .order-summary { margin-left: auto; max-width: 300px; }
+        .summary-row { display: flex; justify-content: space-between; padding: 10px 0; font-size: 1rem; }
+        .total-row { border-top: 2px solid var(--primary); margin-top: 10px; padding-top: 15px; font-weight: 800; font-size: 1.4rem; color: #059669; }
+
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .badge-ordered { background: #dbeafe; color: #1e40af; }
+        .badge-transit { background: #fef3c7; color: #92400e; }
+        .badge-delivered { background: #dcfce7; color: #166534; }
+        .badge-default { background: #f1f5f9; color: #475569; }
+
+        .error-msg { color: #ef4444; text-align: center; padding: 50px; }
     </style>
 </head>
 <body>
-<div id="notification"></div>
 
 <div class="container">
     <a href="orders.html" class="nav-link">← Back to My Orders</a>
-    <div id="orderContent"><p>Loading details...</p></div>
+
+    <div id="detailsContent">
+        <p style="text-align: center; color: var(--muted);">Fetching order details...</p>
+    </div>
 </div>
 
 <script>
-  // Notification function
-  function showNotification(message, type = "info") {
-    const note = document.getElementById("notification");
-    note.innerText = message;
-    note.className = `notification-${type}`;
-    note.style.display = "block";
-    setTimeout(() => {
-      note.style.display = "none";
-    }, 3000);
-  }
-    const urlParams = new URLSearchParams(window.location.search);
-    const orderId = urlParams.get('id');
+    const API_BASE = `${window.location.origin}/api`;
 
-    async function fetchDetails() {
-        const container = document.getElementById('orderContent');
+    function getStatusClass(status) {
+        if (!status) return 'badge-default';
+        switch (status.toUpperCase()) {
+            case 'ORDERED': return 'badge-ordered';
+            case 'IN_TRANSIT': return 'badge-transit';
+            case 'DELIVERED': return 'badge-delivered';
+            default: return 'badge-default';
+        }
+    }
+
+    async function fetchOrderDetails() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('id');
+        const contentDiv = document.getElementById('detailsContent');
+
         if (!orderId) {
-            container.innerHTML = "<p>Error: No Order ID provided.</p>";
+            contentDiv.innerHTML = '<p class="error-msg">No Order ID provided.</p>';
             return;
         }
 
         try {
-            const response = await fetch(`http://localhost:9090/api/orders/${orderId}/`, {
+            const response = await fetch(`${API_BASE}/orders/${orderId}/`, {
                 method: 'GET',
                 credentials: 'include'
             });
 
-            if (!response.ok) throw new Error("Order not found or access denied.");
+            if (!response.ok) throw new Error("Could not find order details.");
+
             const order = await response.json();
 
-            const date = new Date(order.orderDate).toLocaleString();
-            const itemsHtml = order.items.map(item => `
-                <div class="item-row">
-                  <div class="item-main">
-                    <h4>${item.bookTitle}</h4>
-                    <p>Qty: ${item.quantity} × $${item.priceAtPurchase.toFixed(2)}</p>
-                  </div>
-                  <div style="font-weight:600;">$${(item.quantity * item.priceAtPurchase).toFixed(2)}</div>
-                </div>
-            `).join('');
+            const displayAddress = order.deliveryAddress || 'No address provided';
+            const displayCard = order.cardNumber || 'N/A';
+            const displayHolder = order.cardHolderName || 'Unknown Holder';
 
-            // Logic to show/hide return button
-            const isReturned = order.status === 'RETURNED';
-            const returnButtonHtml = isReturned
-                ? `<p style="color: var(--danger); font-weight: 600;">This order has been returned.</p>`
-                : `<button class="return-btn" onclick="handleReturn()">Return Order</button>`;
-
-            container.innerHTML = `
+            contentDiv.innerHTML = `
                 <div class="header">
-                  <div><h2>Order Details</h2><p>ID: #${order.id}</p></div>
-                  <div style="text-align: right"><p>Date Ordered</p><strong>${date}</strong></div>
+                    <div>
+                        <h1 class="title">Order #${order.id}</h1>
+                        <p style="color: var(--muted); margin-top: 5px;">
+                            Placed on ${new Date(order.orderDate).toLocaleDateString()}
+                        </p>
+                    </div>
+                    <span class="badge ${getStatusClass(order.status)}">
+                        ${order.status.replace(/_/g, ' ')}
+                    </span>
                 </div>
 
-                <div class="item-list">${itemsHtml}</div>
-
-                <div class="footer-summary">
-                  <p style="margin:0; font-size:0.9rem; color:#64748b;">Total Paid</p>
-                  <div class="grand-total">$${Number(order.totalPrice).toFixed(2)}</div>
+                <div class="info-grid">
+                    <div class="info-section">
+                        <h4>Shipping Address</h4>
+                        <div class="info-content">${displayAddress}</div>
+                    </div>
+                    <div class="info-section">
+                        <h4>Payment Method</h4>
+                        <div class="info-content">
+                            <strong>💳 ${displayCard}</strong><br>
+                            <span style="color: var(--muted); font-size: 0.9rem;">${displayHolder}</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="status-section">
-                    <p>Current Status: <strong style="text-transform: uppercase; color: var(--accent);">${order.status}</strong></p>
-                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th style="text-align: center;">Qty</th>
+                            <th class="price-col">Price</th>
+                            <th class="price-col">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${order.items && order.items.length > 0 ?
+                order.items.map(item => `
+                            <tr>
+                                <td class="book-title">${item.bookTitle || 'Book Title Not Found'}</td>
+                                <td style="text-align: center;">${item.quantity}</td>
+                                <td class="price-col">$${Number(item.priceAtPurchase).toFixed(2)}</td>
+                                <td class="price-col">$${(item.quantity * item.priceAtPurchase).toFixed(2)}</td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="4" style="text-align:center;">No items found.</td></tr>'}
+                    </tbody>
+                </table>
 
-                <div class="address-box">
-                    <strong>Delivery Address:</strong>
-                    <p style="margin: 5px 0 0 0; color: #64748b;">${order.deliveryAddress || 'No address provided'}</p>
-                </div>
-
-                <div style="text-align: center; margin-top: 30px;">
-                    ${returnButtonHtml}
+                <div class="order-summary">
+                    <div class="summary-row total-row">
+                        <span>Total Paid</span>
+                        <span>$${Number(order.totalPrice).toFixed(2)}</span>
+                    </div>
                 </div>
             `;
         } catch (err) {
-            container.innerHTML = `<p style="color:red;">${err.message}</p>`;
+            contentDiv.innerHTML = `<div class="error-msg">${err.message}</div>`;
+            console.error("Order Details Error:", err);
         }
     }
 
-    async function handleReturn() {
-        const btn = event.target;
-        if (btn.innerText === "Return Order") {
-            btn.innerText = "Sure?";
-            btn.style.backgroundColor = "#ef4444";
-            btn.style.color = "white";
-            setTimeout(() => {
-                btn.innerText = "Return Order";
-                btn.style.backgroundColor = "";
-                btn.style.color = "";
-            }, 3000);
-            return;
-        }
-
-        try {
-            const response = await fetch(`http://localhost:9090/api/orders/${orderId}/status/?status=RETURNED`, {
-                method: 'PUT',
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                showNotification("Order returned successfully.", "success");
-                fetchDetails();
-            } else {
-                const msg = await response.text();
-                showNotification("Failed to update order: " + msg, "error");
-            }
-        } catch (err) {
-            console.error(err);
-            showNotification("An error occurred.", "error");
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', fetchDetails);
+    document.addEventListener('DOMContentLoaded', fetchOrderDetails);
 </script>
 </body>
 </html>

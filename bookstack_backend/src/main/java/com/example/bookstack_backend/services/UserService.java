@@ -2,6 +2,7 @@ package com.example.bookstack_backend.services;
 
 import com.example.bookstack_backend.dto.request.UpdateUserDetailsRequest;
 import com.example.bookstack_backend.dto.response.MessageResponse;
+import com.example.bookstack_backend.dto.response.UserInfoResponse;
 import com.example.bookstack_backend.exceptions.UserNotFoundException;
 import com.example.bookstack_backend.models.ERole;
 import com.example.bookstack_backend.models.Role;
@@ -16,7 +17,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
@@ -70,8 +74,11 @@ public class UserService {
         }
 
         user.setRoles(roles);
+        user.setIsBanned(true); // admin will set this to false in their logs page.
         userRepository.save(user);
 
         return user;
     }
+
+
 }

@@ -3,9 +3,7 @@ package com.example.bookstack_backend.services;
 import com.example.bookstack_backend.dto.response.OrderDetailsResponse;
 import com.example.bookstack_backend.dto.response.OrderResponse;
 import com.example.bookstack_backend.models.*;
-import com.example.bookstack_backend.repository.CartItemRepository;
-import com.example.bookstack_backend.repository.CartRepository;
-import com.example.bookstack_backend.repository.OrderRepository;
+import com.example.bookstack_backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,8 +26,14 @@ public class OrderService {
     @Autowired
     private CartItemRepository cartItemRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
     @Transactional
-    public Order checkout(User user, String address) {
+    public Order checkout(User user, String address, Long cardId) {
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
@@ -39,11 +41,15 @@ public class OrderService {
             throw new RuntimeException("Can't checkout an empty cart");
         }
 
+        CreditCard card = paymentRepository.findById(cardId)
+                .orElseThrow(() -> new RuntimeException("Payment method not found"));
+
         Order order = new Order();
         order.setUserOrder(user);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.ORDERED);
         order.setDeliveryAddress(address);
+        order.setCreditCard(card);
 
         List<OrderItem> orderItems = cart.getItems().stream().map(cartItem -> {
             OrderItem orderItem = new OrderItem();
@@ -60,6 +66,20 @@ public class OrderService {
                 .map(item -> item.getPriceAtPurchase().multiply(new BigDecimal(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalPrice(total);
+
+        Map<User, BigDecimal> ownerEarnings = new HashMap<>();
+
+        orderItems.forEach(item -> {
+            User bookOwner = item.getBook().getOwner();
+            BigDecimal earnings = item.getPriceAtPurchase()
+                    .multiply(new BigDecimal(item.getQuantity()));
+            ownerEarnings.merge(bookOwner, earnings, BigDecimal::add);
+        });
+
+        ownerEarnings.forEach((owner, earnings) -> {
+            owner.setBalance(owner.getBalance().add(earnings));
+            userRepository.save(owner);
+        });
 
         Order savedOrder = orderRepository.save(order);
 
