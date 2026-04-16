@@ -160,7 +160,7 @@
 
 <nav>
     <div class="nav-left">
-        <a href="index.html" class="logo">BookStack</a>
+        <a href="homepage.html" class="logo">BookStack</a>
     </div>
 
     <div class="nav-right">
@@ -298,7 +298,7 @@
             if (response.ok) {
                 showNotification('Book listed successfully!', 'success');
                 setTimeout(() => {
-                    window.location.href = 'index.html';
+                    window.location.href = 'homepage.html';
                 }, 1500);
             } else {
                 const errData = await response.json().catch(() => ({}));

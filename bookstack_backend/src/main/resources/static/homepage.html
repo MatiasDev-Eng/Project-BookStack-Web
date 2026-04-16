@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BookStack | Discover Your Next Read</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --primary: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --accent: #2563eb;
+      --success: #059669;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      color: var(--primary);
+    }
+
+    /* NAVBAR STYLING */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .publish-btn {
+      background: var(--success);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .publish-btn:hover {
+      background: #047857;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2);
+    }
+
+    /* Admin specific style */
+    .admin-btn {
+      background: var(--primary);
+    }
+    .admin-btn:hover {
+      background: #0f172a;
+      box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
+    }
+
+    .nav-left .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-center {
+      flex-grow: 1;
+      max-width: 500px;
+      margin: 0 20px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: #f1f5f9;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-bar:focus {
+      border-color: var(--accent);
+      background: var(--white);
+    }
+
+    .search-button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-icon-btn {
+      width: 42px;
+      height: 42px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .nav-icon-btn:hover {
+      background: var(--white);
+      border-color: var(--accent);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+
+    .user-profile-btn {
+      width: 40px;
+      height: 40px;
+      background: #e2e8f0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .user-profile-btn:hover {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* GRID & CARD STYLING */
+    .featured {
+      padding: 40px 5%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .book-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 24px;
+    }
+
+    .book-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+
+    .book-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+
+    .book-cover {
+      height: 160px;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .book-info {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .book-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary);
+      height: 2.6rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .book-author { font-size: 0.85rem; color: var(--muted); }
+    .book-price { font-size: 1.25rem; font-weight: 800; color: var(--success); margin: 4px 0; }
+
+    .cart-controls { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .quantity-selector { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); border-radius: 8px; padding: 4px; }
+    .qty-btn { width: 30px; height: 30px; border: none; background: none; cursor: pointer; font-weight: bold; }
+    .qty-num { font-size: 0.9rem; font-weight: 600; }
+    .add-to-cart-btn { width: 100%; padding: 10px; background: var(--accent); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+    #notification {
+      position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 8px; color: white; font-weight: 600; display: none; z-index: 2000;
+    }
+    .notification-success { background: #10b981; }
+    .notification-error { background: #ef4444; }
+  </style>
+</head>
+
+<body>
+<div id="notification"></div>
+
+<nav>
+  <div class="nav-left">
+    <a href="homepage.html" class="logo">BookStack</a>
+  </div>
+
+  <div class="nav-center">
+    <input id="searchInput" type="text" class="search-bar" placeholder="Search for titles, authors, or genres...">
+    <button id="searchBtn" class="search-button">Search</button>
+    <button id="filterBtn" class="filter-toggle">Filters</button>
+  </div>
+
+  <div class="nav-right">
+    <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display: none;">
+      🛡️ Admin
+    </a>
+
+    <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
+    <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
+    <div class="user-profile-btn" onclick="window.location.href='account.html'">👤</div>
+  </div>
+</nav>
+
+<div id="filterPanel" class="filter-panel">
+  <h3>Filters</h3>
+
+  <label>Min Price</label>
+  <input type="number" id="minPrice" placeholder="0">
+
+  <label>Max Price</label>
+  <input type="number" id="maxPrice" placeholder="100">
+
+  <label>Min Year</label>
+  <input type="number" id="minYear" placeholder="1900">
+
+  <label>Max Year</label>
+  <input type="number" id="maxYear" placeholder="2025">
+
+  <button id="applyFiltersBtn">Apply Filters</button>
+  <button id="clearFiltersBtn" class="clear-btn">Clear Filters</button>
+</div>
+
+
+<section class="featured">
+  <h2 id="featuredTitle">Featured Books</h2>
+  <div class="book-grid" id="bookGrid">
+    <div class="book-card" style="padding: 40px; text-align: center; color: var(--muted);">
+      Loading books...
+    </div>
+  </div>
+</section>
+
+<script>
+
+  let activeFilters = {
+    minPrice: null,
+    maxPrice: null,
+    minYear: null,
+    maxYear: null
+  };
+
+  // Notification function
+  const API_BASE = `${window.location.origin}/api`;
+
+  function showNotification(message, type = "info") {
+    const note = document.getElementById("notification");
+    note.innerText = message;
+    note.className = `notification-${type}`;
+    note.style.display = "block";
+    setTimeout(() => { note.style.display = "none"; }, 3000);
+  }
+
+  async function checkAdminStatus() {
+    const adminBtn = document.getElementById('adminBtn');
+    try {
+      const response = await fetch(`${API_BASE}/auth/me/`, {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        if (user.roles && user.roles.includes('ROLE_ADMIN')) {
+          adminBtn.style.display = 'flex';
+        }
+      }
+    } catch (error) {
+      console.warn("User not logged in or session expired.");
+    }
+  }
+
+  function updateQty(event, btn, delta) {
+    event.stopPropagation();
+    const qtySpan = btn.parentElement.querySelector('.qty-num');
+    let currentQty = parseInt(qtySpan.innerText);
+    currentQty = Math.max(1, currentQty + delta);
+    qtySpan.innerText = currentQty;
+  }
+
+  async function addToCart(event, bookId) {
+    event.stopPropagation();
+    const qty = parseInt(document.getElementById(`qty-${bookId}`).innerText);
+
+    try {
+      const response = await fetch(`${API_BASE}/cart/add/`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookId: bookId, quantity: qty })
+      });
+
+      if (response.ok) {
+        showNotification("Added to cart!", "success");
+      } else {
+        showNotification("Failed to add to cart.", "error");
+      }
+    } catch (error) {
+      console.error("Cart error:", error);
+    }
+  }
+  async function fetchFeaturedBooks(searchQuery, minPrice, maxPrice, minYear, maxYear) {
+    const bookGrid = document.getElementById('bookGrid');
+    if (searchQuery) document.getElementById('featuredTitle').innerText = `Results for "${searchQuery}"`;
+
+    try {
+
+      let url = `${API_BASE}/books/search?query=${searchQuery || ""}`;
+        
+      if (minPrice) url += `&minPrice=${minPrice}`;
+      if (maxPrice) url += `&maxPrice=${maxPrice}`;
+      if (minYear) url += `&minYear=${minYear}`;
+      if (maxYear) url += `&maxYear=${maxYear}`;
+
+      const response = await fetch(url, {credentials: 'include'});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const books = await response.json();
+      bookGrid.innerHTML = '';
+
+      const list = searchQuery || minPrice || maxPrice || minYear || maxYear
+        ? books 
+        : books.slice(0,5);
+
+      list.forEach(book => {
+        const card = document.createElement('div');
+        card.className = 'book-card';
+        card.onclick = () => { window.location.href = `book_details.html?id=${book.id}`; };
+
+        card.innerHTML = `
+          <div class="book-cover">📖</div>
+          <div class="book-info">
+            <div class="book-title">${book.title}</div>
+            <div class="book-author">by ${book.author}</div>
+            <div class="book-price">$${book.price.toFixed(2)}</div>
+
+            <div class="cart-controls">
+              <div class="quantity-selector">
+                <button class="qty-btn" onclick="updateQty(event, this, -1)">−</button>
+                <span class="qty-num" id="qty-${book.id}">1</span>
+                <button class="qty-btn" onclick="updateQty(event, this, 1)">+</button>
+              </div>
+              <button class="add-to-cart-btn" onclick="addToCart(event, ${book.id})">Add to Cart</button>
+            </div>
+          </div>
+        `;
+        bookGrid.appendChild(card);
+      });
+
+      document.getElementById("minPrice").value = activeFilters.minPrice ?? "";
+      document.getElementById("maxPrice").value = activeFilters.maxPrice ?? "";
+      document.getElementById("minYear").value  = activeFilters.minYear ?? "";
+      document.getElementById("maxYear").value  = activeFilters.maxYear ?? "";
+
+    } catch (error) {
+      bookGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;">Failed to load books.</div>`;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const searchQuery = params.get("search");
+
+    const minPrice = params.get("minPrice");
+    const maxPrice = params.get("maxPrice");
+    const minYear  = params.get("minYear");
+    const maxYear  = params.get("maxYear");
+
+    activeFilters.minPrice = minPrice;
+    activeFilters.maxPrice = maxPrice;
+    activeFilters.minYear  = minYear;
+    activeFilters.maxYear  = maxYear;
+
+    const filterPanel = document.getElementById("filterPanel");
+    const filterBtn = document.getElementById("filterBtn");
+
+    filterBtn.addEventListener("click", () => {
+      filterPanel.classList.toggle("open");
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const query = document.getElementById("searchInput").value.trim();
+      window.location.href = `homepage.html?search=${encodeURIComponent(query)}`;
+    });
+
+    document.getElementById("applyFiltersBtn").addEventListener("click", () => {
+      const query = document.getElementById("searchInput").value.trim();
+
+      activeFilters.minPrice = document.getElementById("minPrice").value || null;
+      activeFilters.maxPrice = document.getElementById("maxPrice").value || null;
+      activeFilters.minYear  = document.getElementById("minYear").value || null;
+      activeFilters.maxYear  = document.getElementById("maxYear").value || null;
+
+      let url = `homepage.html?search=${encodeURIComponent(query)}`;
+
+      if (activeFilters.minPrice) url += `&minPrice=${activeFilters.minPrice}`;
+      if (activeFilters.maxPrice) url += `&maxPrice=${activeFilters.maxPrice}`;
+      if (activeFilters.minYear)  url += `&minYear=${activeFilters.minYear}`;
+      if (activeFilters.maxYear)  url += `&maxYear=${activeFilters.maxYear}`;
+
+      window.location.href = url;
+    });
+
+    document.getElementById("clearFiltersBtn").addEventListener("click", () => {
+      activeFilters = {
+        minPrice: null,
+        maxPrice: null,
+        minYear: null,
+        maxYear: null
+      };
+
+      document.getElementById("minPrice").value = "";
+      document.getElementById("maxPrice").value = "";
+      document.getElementById("minYear").value = "";
+      document.getElementById("maxYear").value = "";
+
+      const query = document.getElementById("searchInput").value.trim();
+      window.location.href = `homepage.html?search=${encodeURIComponent(query)}`;
+    });
+
+    // Run both checks
+    checkAdminStatus();
+    fetchFeaturedBooks(searchQuery, minPrice, maxPrice, minYear, maxYear);
+  });
+</script>
+</body>
+</html>
