@@ -3,13 +3,10 @@ package com.example.bookstack_backend.controller;
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
 import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
-import com.example.bookstack_backend.security.services.UserDetailsImpl;
 import com.example.bookstack_backend.services.BookService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,7 +41,7 @@ public class BookController {
             description = "(TAKES IN JWT) Returns metadata + download link for all pcls owned by a user",
             tags = { "pointclouds", "get" })
     @GetMapping("/")
-    public ResponseEntity<List<BookResponse>> getAllPointclouds() {
+    public ResponseEntity<List<BookResponse>> getAllBooks() {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 

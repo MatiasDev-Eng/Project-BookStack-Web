@@ -187,4 +187,12 @@ public class BookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
     }
+
+    @Test
+    void testSearchByTextQuery_Success() throws Exception {
+        // Tests REQ-8, REQ-9, and the basic query part of REQ-16
+        mockMvc.perform(get("/api/books/search")
+                        .param("query", "The Great Gatsby"))
+                .andExpect(status().isOk());
+    }
 }

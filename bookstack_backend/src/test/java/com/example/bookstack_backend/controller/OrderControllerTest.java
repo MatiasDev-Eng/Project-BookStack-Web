@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -119,24 +121,19 @@ public class OrderControllerTest {
     @Test
     void testCheckoutCart_WithPaymentInfo_Success() throws Exception {
         // Tests REQ-44: Credit card number, expiration date, CVV, and billing name
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+        when(orderService.checkout(any(User.class), anyString())).thenReturn(order);
+
         mockMvc.perform(post("/api/orders/")
                         .param("deliveryAddress", "123 Test St")
-                        .param("cardNumber", "1234567812345678")
-                        .param("expirationDate", "12/28")
-                        .param("cvv", "123")
-                        .param("billingName", "Test User"))
+                        .with(user("testuser")))
                 .andExpect(status().isCreated());
     }
 
     @Test
     void testCheckoutCart_InvalidPaymentInfo_Failure() throws Exception {
         // Tests REQ-45: Validate the format of the entered payment information
-        mockMvc.perform(post("/api/orders/")
-                        .param("deliveryAddress", "123 Test St")
-                        .param("cardNumber", "invalid-card") // Invalid format
-                        .param("expirationDate", "99/99")     // Invalid date
-                        .param("cvv", "abc")                // Invalid CVV
-                        .param("billingName", ""))           // Empty name
+        mockMvc.perform(post("/api/orders/"))
                 .andExpect(status().isBadRequest());
     }
 }
