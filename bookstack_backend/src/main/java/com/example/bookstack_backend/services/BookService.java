@@ -1,13 +1,17 @@
 package com.example.bookstack_backend.services;
 
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
+import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
 import com.example.bookstack_backend.models.User;
 import com.example.bookstack_backend.repository.BookRepository;
 import com.example.bookstack_backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
+
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BookService {
@@ -47,10 +51,26 @@ public class BookService {
         return bookRepository.findAll();
     }
 
-    public List<Book> getActiveBooksByOwner(Long ownerId) {
+    public List<BookResponse> getBooksByOwner(Long ownerId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + ownerId));
-        return bookRepository.findByOwnerAndIsActiveTrue(owner);
+
+        List<Book> books = bookRepository.findByOwner(owner);
+
+        return books.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private BookResponse mapToResponse(Book book) {
+        BookResponse response = new BookResponse();
+        response.setId(book.getBookId());
+        response.setTitle(book.getTitle());
+        response.setAuthor(book.getAuthor());
+        response.setIsbn(book.getIsbn());
+        response.setGenre(book.getGenre());
+        response.setPrice(book.getPrice());
+        return response;
     }
 
     public Book findBookById(Long id) {
@@ -92,9 +112,19 @@ public class BookService {
     return bookRepository.findByGenreAndBookIdNot(target.getGenre(), bookId);
     }
 
-    public List<Book> searchBooks(String query) {
-    return bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(query, query, query);
+    public List<Book> searchBooks(String query, Double minPrice, Double maxPrice, Integer minYear, Integer maxYear) {
+        List<Book> baseResults =
+                bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(
+                    query, query, query
+                );
+    
+    
+        return baseResults.stream()
+                .filter(book -> minPrice == null || book.getPrice().compareTo(BigDecimal.valueOf(minPrice)) >= 0)
+                .filter(book -> maxPrice == null || book.getPrice().compareTo(BigDecimal.valueOf(maxPrice)) <= 0)
+                .filter(book -> minYear == null || book.getPublishedYear() >= minYear)
+                .filter(book -> maxYear == null || book.getPublishedYear() <= maxYear)
+                .toList();
     }
-
 
 }

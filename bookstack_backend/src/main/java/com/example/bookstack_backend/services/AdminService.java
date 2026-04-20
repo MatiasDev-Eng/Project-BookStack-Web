@@ -1,7 +1,15 @@
 package com.example.bookstack_backend.services;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.example.bookstack_backend.dto.response.BookResponse;
+import com.example.bookstack_backend.dto.response.UserInfoResponse;
+import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.User;
+import com.example.bookstack_backend.repository.BookRepository;
+import com.example.bookstack_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,16 +22,43 @@ public class AdminService {
     @Autowired
     private AdminRepository adminRepository;
 
-    public boolean login(String username, String password) {
-        Optional<Admin> adminOpt = adminRepository.findByUsername(username);
+    @Autowired
+    private UserRepository userRepository;
 
-        if (adminOpt.isEmpty()) {
-            return false;
-        }
+    @Autowired
+    private BookRepository bookRepository;
 
-        Admin admin = adminOpt.get();
+    public List<UserInfoResponse> getAllUnapprovedUsers() {
+        List<User> users = userRepository.findAllByIsBanned();
 
-        // Simple password check (no hashing yet)
-        return admin.getPassword().equals(password);
+        // convert into UserInfoResponse
+        return users.stream()
+                .map(user -> {
+                    return new UserInfoResponse(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getEmail()
+                    );
+                })
+                .collect(Collectors.toList());
+        // return
+    }
+
+    public List<BookResponse> getAllUnapprovedBooks() {
+        List<Book> books = bookRepository.findByIsActiveFalse();
+
+        // convert into UserInfoResponse
+        return books.stream()
+                .map(BookResponse::new)
+                .collect(Collectors.toList());
+        // return
+    }
+
+    public void approveUser(Long userId) {
+        userRepository.approveUser(userId);
+    }
+
+    public void approveBook(Long bookId) {
+        bookRepository.approveBook(bookId);
     }
 }

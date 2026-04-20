@@ -10,7 +10,6 @@ public class BookResponse {
     private String author;
     private String isbn;
     private String genre;
-
     private BigDecimal price;
 
     public BookResponse(Book book) {

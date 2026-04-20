@@ -1,6 +1,9 @@
 package com.example.bookstack_backend.security.jwt;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.WebUtils;
 
@@ -34,12 +39,17 @@ public class JwtUtils {
     private String jwtRefreshCookie;
 
     public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
-        String jwt = generateTokenFromUsername(userPrincipal.getUsername());
+        String jwt = generateTokenFromUsername(userPrincipal.getUsername(), userPrincipal.getAuthorities());
         return generateCookie(jwtCookie, jwt, "/api");
     }
 
     public ResponseCookie generateJwtCookie(User user) {
-        String jwt = generateTokenFromUsername(user.getUsername());
+        List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .collect(Collectors.toList());
+
+        String jwt = generateTokenFromUsername(user.getUsername(), authorities);
+
         return generateCookie(jwtCookie, jwt, "/api");
     }
 
@@ -88,10 +98,14 @@ public class JwtUtils {
         return false;
     }
 
-    public String generateTokenFromUsername(String username) {
+    public String generateTokenFromUsername(String username, Collection<? extends GrantedAuthority> authorities) {
+        List<String> roles = authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
+                .claim("roles", roles)
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();

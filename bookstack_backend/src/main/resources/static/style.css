@@ -156,3 +156,32 @@ input, select, textarea {
 .similar-book-card p {
     margin: 5px 0;
 }
+
+.filter-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin: 10px 0;
+  padding: 0;
+}
+
+.filter-panel.open {
+  max-height: 500px;
+  padding: 16px;
+}
+
+.filter-panel label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.filter-panel input {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}

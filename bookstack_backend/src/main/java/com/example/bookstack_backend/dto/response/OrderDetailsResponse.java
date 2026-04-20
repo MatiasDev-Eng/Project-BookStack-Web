@@ -13,6 +13,8 @@ public class OrderDetailsResponse {
     private List<OrderItemResponse> items;
     private String status;
     private String deliveryAddress;
+    private String cardNumber;
+    private String cardHolderName;
 
     public OrderDetailsResponse() {
     }
@@ -26,44 +28,40 @@ public class OrderDetailsResponse {
                 .toList();
         this.status = order.getStatus().name();
         this.deliveryAddress = order.getDeliveryAddress();
+
+        if (order.getCreditCard() != null) {
+            this.cardNumber = maskCardNumber(order.getCreditCard().getCardNumber());
+            this.cardHolderName = order.getCreditCard().getCardHolderName();
+        }
+    }
+
+    private String maskCardNumber(String fullNumber) {
+        if (fullNumber == null || fullNumber.length() < 4) return "****";
+        return "**** " + fullNumber.substring(fullNumber.length() - 4);
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public BigDecimal getTotalPrice() { return totalPrice; }
+    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
 
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
+    public LocalDateTime getOrderDate() { return orderDate; }
+    public void setOrderDate(LocalDateTime orderDate) { this.orderDate = orderDate; }
 
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public List<OrderItemResponse> getItems() {
-        return items;
-    }
-
-    public void setItems(List<OrderItemResponse> items) {
-        this.items = items;
-    }
+    public List<OrderItemResponse> getItems() { return items; }
+    public void setItems(List<OrderItemResponse> items) { this.items = items; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+    public String getCardNumber() { return cardNumber; }
+    public void setCardNumber(String cardNumber) { this.cardNumber = cardNumber; }
+
+    public String getCardHolderName() { return cardHolderName; }
+    public void setCardHolderName(String cardHolderName) { this.cardHolderName = cardHolderName; }
 }

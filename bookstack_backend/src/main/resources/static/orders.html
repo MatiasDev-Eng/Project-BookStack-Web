@@ -8,37 +8,50 @@
         :root {
             --bg: #f8fafc; --white: #ffffff; --primary: #1e293b;
             --border: #e2e8f0; --accent: #2563eb; --radius: 12px;
+            --muted: #64748b;
         }
         body { background: var(--bg); font-family: system-ui, sans-serif; padding: 40px 5%; margin: 0; }
-        .container { max-width: 800px; margin: 40px auto; background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .container { max-width: 850px; margin: 40px auto; background: var(--white); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .title { font-size: 1.8rem; font-weight: 700; margin-bottom: 20px; color: var(--primary); }
-        .order-link { text-decoration: none; color: inherit; display: block; margin-bottom: 15px; }
+        .order-link { text-decoration: none; color: inherit; display: block; margin-bottom: 20px; }
         .order-card {
-            border: 1px solid var(--border); padding: 20px; border-radius: 8px;
-            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--border); padding: 24px; border-radius: 10px;
+            display: flex; flex-direction: column; gap: 15px;
             transition: all 0.2s ease;
+            position: relative;
         }
         .order-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .order-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: var(--primary); }
-        .order-info p { margin: 0; color: #64748b; font-size: 0.9rem; }
-        .order-total { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+
+        .order-info h3 { margin: 0 0 5px 0; font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; }
+        .order-info p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+        /* New Details Section */
+        .order-details-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border);
+            font-size: 0.85rem;
+        }
+        .detail-item strong { display: block; color: var(--primary); margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .detail-item span { color: var(--muted); line-height: 1.4; }
+
+        .order-total { font-size: 1.3rem; font-weight: 800; color: #059669; }
         .nav-link { display: inline-block; margin-bottom: 20px; color: var(--accent); text-decoration: none; font-weight: 500; }
 
-        /* Dynamic Badge Styles */
         .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-left: 10px;
+            padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; margin-left: 12px;
         }
-        .badge-ordered { background: #dbeafe; color: #1e40af; } /* Blue */
-        .badge-transit { background: #fef3c7; color: #92400e; } /* Orange */
-        .badge-delivered { background: #dcfce7; color: #166534; } /* Green */
+        .badge-ordered { background: #dbeafe; color: #1e40af; }
+        .badge-transit { background: #fef3c7; color: #92400e; }
+        .badge-delivered { background: #dcfce7; color: #166534; }
         .badge-default { background: #f1f5f9; color: #475569; }
 
-        .empty-state { text-align: center; padding: 40px; color: #64748b; }
+        .empty-state { text-align: center; padding: 40px; color: var(--muted); }
     </style>
 </head>
 <body>
@@ -47,11 +60,13 @@
     <a href="homepage.html" class="nav-link">← Back Home</a>
     <div class="title">My Order History</div>
     <div id="ordersList">
-        <p>Loading your orders...</p>
+        <div class="empty-state">Loading your orders...</div>
     </div>
 </div>
 
 <script>
+    const API_BASE = `${window.location.origin}/api`;
+
     function getStatusClass(status) {
         if (!status) return 'badge-default';
         switch (status.toUpperCase()) {
@@ -72,7 +87,7 @@
         const listDiv = document.getElementById('ordersList');
 
         try {
-            const response = await fetch('http://localhost:9090/api/orders/', {
+            const response = await fetch(`${API_BASE}/orders/`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -91,6 +106,8 @@
                 return;
             }
 
+            orders.sort((a, b) => b.id - a.id);
+
             listDiv.innerHTML = orders.map(order => {
                 const date = new Date(order.orderDate).toLocaleDateString('en-US', {
                     year: 'numeric', month: 'short', day: 'numeric'
@@ -99,14 +116,30 @@
                 const statusClass = getStatusClass(order.status);
                 const displayStatus = formatStatus(order.status);
 
+                const address = order.deliveryAddress || 'No address provided';
+                const cardInfo = order.cardNumber ? `${order.cardNumber} (${order.cardHolderName})` : 'Payment info unavailable';
+
                 return `
                   <a href="order-details.html?id=${order.id}" class="order-link">
                     <div class="order-card">
-                      <div class="order-info">
-                        <h3>Order #${order.id} <span class="badge ${statusClass}">${displayStatus}</span></h3>
-                        <p>Placed on ${date} • ${order.itemCount} Items</p>
+                      <div class="card-header">
+                        <div class="order-info">
+                          <h3>Order #${order.id} <span class="badge ${statusClass}">${displayStatus}</span></h3>
+                          <p>Placed on ${date} • ${order.itemCount} Items</p>
+                        </div>
+                        <div class="order-total">$${Number(order.totalPrice).toFixed(2)}</div>
                       </div>
-                      <div class="order-total">$${Number(order.totalPrice).toFixed(2)}</div>
+
+                      <div class="order-details-summary">
+                        <div class="detail-item">
+                            <strong>Shipping To</strong>
+                            <span>${address}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Payment Method</strong>
+                            <span>💳 ${cardInfo}</span>
+                        </div>
+                      </div>
                     </div>
                   </a>
                 `;

@@ -55,9 +55,11 @@ public class BookController {
         return ResponseEntity.ok(responseList);
     }
 
-    @GetMapping("/owner/{ownerId}")
-    public ResponseEntity<List<Book>> getSellerListings(@PathVariable Long ownerId) {
-        List<Book> listings = bookService.getActiveBooksByOwner(ownerId);
+    @GetMapping("/me/")
+    public ResponseEntity<List<BookResponse>> getSellerListings() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        List<BookResponse> listings = bookService.getBooksByOwner(userDetails.getId());
         
         return new ResponseEntity<>(listings, HttpStatus.OK);
     }
@@ -99,8 +101,15 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<BookResponse>> searchBooks(@RequestParam String query) {
-        List<Book> results = bookService.searchBooks(query);
+    public ResponseEntity<List<BookResponse>> searchBooks(
+        @RequestParam String query,
+        @RequestParam(required = false) Double minPrice,
+        @RequestParam(required = false) Double maxPrice,
+        @RequestParam(required = false) Integer minYear,
+        @RequestParam(required = false) Integer maxYear
+        
+    ) {
+        List<Book> results = bookService.searchBooks(query, minPrice, maxPrice, minYear, maxYear);
 
         List<BookResponse> response = results.stream()
                 .map(BookResponse::new)
