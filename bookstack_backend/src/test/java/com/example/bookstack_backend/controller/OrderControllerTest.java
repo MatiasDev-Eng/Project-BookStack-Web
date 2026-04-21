@@ -142,7 +142,7 @@ public class OrderControllerTest {
     void testCheckoutCart_WithPaymentInfo_Success() throws Exception {
         // Tests REQ-44: Credit card number, expiration date, CVV, and billing name
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
-        when(orderService.checkout(any(User.class), anyString())).thenReturn(order);
+        when(orderService.checkout(any(User.class), anyString(), 1L)).thenReturn(order);
 
         mockMvc.perform(post("/api/orders/")
                         .param("deliveryAddress", "123 Test St")
