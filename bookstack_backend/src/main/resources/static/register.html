@@ -158,6 +158,24 @@
     </div>
   </div>
 
+<script>
+    // This function runs automatically when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedPicUrl = localStorage.getItem('bookstack-profile-pic');
+        const profileCircle = document.querySelector('.profile-circle');
+
+        if (savedPicUrl && profileCircle) {
+            // Because the backend returns "/uploads/name.jpg", we must add the localhost port!
+            const fullImageUrl = `http://localhost:8080${savedPicUrl}`;
+            
+            // Replace the empty circle with the image tag
+            profileCircle.innerHTML = `<img src="${fullImageUrl}" alt="User Profile">`;
+        } else if (profileCircle) {
+            // Fallback if they haven't uploaded a picture yet
+            profileCircle.innerHTML = '👤'; 
+        }
+    });
+</script>
 </body>
 </html>
 

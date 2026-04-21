@@ -153,6 +153,8 @@
         .notification-success { background: #10b981; }
         .notification-error { background: #ef4444; }
         .notification-info { background: #3b82f6; }
+
+        input[type="file"] { padding: 8px; background: #f8fafc; border: 1px dashed var(--border); }
     </style>
 </head>
 <body>
@@ -262,7 +264,15 @@
     document.getElementById('publishForm').addEventListener('submit', async function(event) {
         event.preventDefault();
 
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Processing";
+
         const currentUserId = getSavedUserId();
+        const fileInput = document.getElementById('bookCover');
+        const imageFile = fileInput.files[0];
+
+        let uploadedImageUrl = "";
 
         if (!currentUserId) {
             showNotification("Session expired. Please log in again.", "error");
@@ -271,6 +281,23 @@
             }, 1500);
             return;
         }
+
+        try {
+            if (imageFile) {
+                const formData = new FormData();
+                formData.append('file', imageFile);
+
+                const imageResponse = await fetch(`${API_BASE}/images/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (imageResponse.ok) {
+                    uploadedImageUrl = await imageResponse.text();
+                } else {
+                    throw new Error("Image upload failed");
+                }
+            }
 
         const bookData = {
             ownerId: Number(currentUserId),
@@ -284,32 +311,32 @@
             publishedYear: parseInt(document.getElementById('year').value),
             description: document.getElementById('description').value,
             isbn: document.getElementById('isbn').value,
-            coverImageUrl: ""
+            coverImageUrl: UploadedImageUrl
         };
 
-        try {
-            const response = await fetch(`${API_BASE}/books/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(bookData)
-            });
+        const response = await fetch(`${API_BASE}/books/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(bookData)
+        });
 
-            if (response.ok) {
-                showNotification('Book listed successfully!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
-            } else {
-                const errData = await response.json().catch(() => ({}));
-                showNotification(`Error: ${errData.message || 'Failed to list book'}`, 'error');
-            }
+        if (response.ok) {
+            showNotification('Book listed successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } else {
+            const errData = await response.json().catch(() => ({}));
+            showNotification(`Error: ${errData.message || 'Failed to list book'}`, 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Post Listing";
+        }
         } catch (error) {
             showNotification('Connection error. Is the server running?', 'error');
             console.error(error);
         }
     });
 </script>
-
 </body>
 </html>

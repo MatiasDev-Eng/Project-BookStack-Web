@@ -94,7 +94,14 @@
     </div>
 
     <div class="profile-section">
-        <div class="avatar-circle">👤</div>
+        <div class="profile-circle" id="profileDisplay" onclick="document.getElementById('profileInput').click()">
+        👤
+    </div>
+    <input type="file" id="profileInput" hidden accept="image/*">
+    <span style="color: #059669; font-size: 0.85rem; cursor: pointer; font-weight: 600;" 
+          onclick="document.getElementById('profileInput').click()">
+        Change Photo
+    </span>
     </div>
 
     <div class="form-group">
@@ -116,75 +123,92 @@
 </div>
 
 <script>
-    const API_BASE = `${window.location.origin}/api`;
+const API_BASE = `${window.location.origin}/api`;
 
-    // Currency Formatter
-    const usd = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-    });
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
-    function updateStatus(text, type = 'success') {
-        const el = document.getElementById('statusMessage');
-        el.textContent = text;
-        el.style.color = type === 'error' ? '#dc2626' : '#059669';
-        setTimeout(() => el.textContent = "", 5000);
-    }
+function updateStatus(text, type = 'success') {
+    const el = document.getElementById('statusMessage');
+    el.textContent = text;
+    el.style.color = type === 'error' ? '#dc2626' : '#059669';
+    setTimeout(() => el.textContent = "", 5000);
+}
 
-    async function initPage() {
-        try {
-            const response = await fetch(`${API_BASE}/me/`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                const user = await response.json();
-                document.getElementById('usernameInput').value = user.username || "";
-                document.getElementById('emailInput').value = user.email || "";
-                document.getElementById('balanceDisplay').textContent = usd.format(user.balance || 0);
-            } else if (response.status === 401) {
-                window.location.href = 'login.html';
-            }
-        } catch (e) {
-            updateStatus("Failed to connect to server.", "error");
+// 1. Initial Page Load
+async function initPage() {
+    try {
+        const response = await fetch(`${API_BASE}/me/`, { method: 'GET', credentials: 'include' });
+        if (response.ok) {
+            const user = await response.json();
+            document.getElementById('usernameInput').value = user.username || "";
+            document.getElementById('emailInput').value = user.email || "";
+            document.getElementById('balanceDisplay').textContent = usd.format(user.balance || 0);
         }
+    } catch (e) {
+        updateStatus("Failed to connect to server.", "error");
     }
 
-    async function handleRetrieveFunds() {
-        const btn = document.getElementById('retrieveBtn');
-        const balanceDisplay = document.getElementById('balanceDisplay');
+    const savedPicUrl = localStorage.getItem('bookstack-profile-pic');
+    if (savedPicUrl) {
+        // Since it's on the same server, we just use the relative URL directly
+        document.getElementById('profileDisplay').innerHTML = `<img src="${savedPicUrl}" alt="Profile">`;
+    }
+}
 
-        btn.disabled = true;
-        const originalText = btn.textContent;
-        btn.textContent = "Processing...";
+// 2. Handle Image Upload
+document.getElementById('profileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        try {
-            const response = await fetch(`${API_BASE}/payments/retrieve-balance/`, {
-                method: 'POST',
-                credentials: 'include'
-            });
+    const formData = new FormData();
+    formData.append('file', file);
 
-            if (response.ok) {
-                const retrievedAmount = await response.json();
-                balanceDisplay.textContent = usd.format(0);
-                updateStatus(`${usd.format(retrievedAmount)} successfully moved to your bank account!`);
-            } else {
-                updateStatus("Could not process retrieval.", "error");
-            }
-        } catch (e) {
-            updateStatus("Network error occurred.", "error");
-        } finally {
-            btn.disabled = false;
-            btn.textContent = originalText;
+    try {
+        const response = await fetch(`${API_BASE}/images/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const imageUrl = await response.text();
+            
+            localStorage.setItem('bookstack-profile-pic', imageUrl);
+            document.getElementById('profileDisplay').innerHTML = `<img src="${imageUrl}" alt="Profile">`;
+            
+            const navCircle = document.querySelector('.profile-circle');
+            if(navCircle) navCircle.innerHTML = `<img src="${imageUrl}" alt="Profile">`;
+            
+            updateStatus("Profile photo updated!");
+        } else {
+            updateStatus("Upload failed.", "error");
         }
+    } catch (err) {
+        updateStatus("Network error during upload.", "error");
     }
+});
 
-    // Initialization
-    document.addEventListener('DOMContentLoaded', () => {
-        initPage();
-        document.getElementById('retrieveBtn').addEventListener('click', handleRetrieveFunds);
-    });
+// 3. Handle Funds
+async function handleRetrieveFunds() {
+    const btn = document.getElementById('retrieveBtn');
+    btn.disabled = true;
+    try {
+        const response = await fetch(`${API_BASE}/payments/retrieve-balance/`, { method: 'POST', credentials: 'include' });
+        if (response.ok) {
+            const retrievedAmount = await response.json();
+            document.getElementById('balanceDisplay').textContent = usd.format(0);
+            updateStatus(`${usd.format(retrievedAmount)} successfully moved to your bank account!`);
+        }
+    } catch (e) {
+        updateStatus("Network error occurred.", "error");
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initPage();
+    document.getElementById('retrieveBtn').addEventListener('click', handleRetrieveFunds);
+});
 </script>
 </body>
 </html>

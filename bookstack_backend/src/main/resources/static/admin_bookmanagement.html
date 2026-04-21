@@ -305,6 +305,18 @@
     }
 
     document.addEventListener('DOMContentLoaded', fetchUnapprovedBooks);
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedPicUrl = localStorage.getItem('bookstack-profile-pic');
+        const profileCircle = document.querySelector('.profile-circle');
+
+        if (savedPicUrl && profileCircle) {
+            const fullImageUrl = `http://localhost:8080${savedPicUrl}`;
+            
+            profileCircle.innerHTML = `<img src="${fullImageUrl}" alt="User Profile">`;
+        } else if (profileCircle) {
+            profileCircle.innerHTML = '👤'; 
+        }
+    });
 </script>
 </body>
 </html>

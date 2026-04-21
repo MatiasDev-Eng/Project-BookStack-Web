@@ -109,6 +109,7 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
                                 // error is whitelisted so spring does not fall back to 401 unauth in errors
                                 .requestMatchers("/error").permitAll()
                                 .anyRequest().authenticated()
+                                .requestMatchers("/api/images/**", "/uploads/**").permitAll()
                 );
 
         http.authenticationProvider(authenticationProvider());

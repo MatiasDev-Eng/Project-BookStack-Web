@@ -38,3 +38,32 @@ export async function submitBookListing(bookData: BookCreateRequest) {
     throw error;
   }
 }
+
+export async function uploadImage(file: File): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('http://localhost:8080/api/images/upload', {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!response.ok) throw new Error('Image upload failed');
+    
+    return response.text(); 
+}
+
+export async function handleFullBookSubmission(bookData: BookCreateRequest, imageFile: File | null) {
+    let imageUrl = "";
+
+    if (imageFile) {
+        imageUrl = await uploadImage(imageFile);
+    }
+
+    const finalBookData = {
+        ...bookData,
+        coverImageUrl: imageUrl || bookData.coverImageUrl // Use new URL or fallback to default
+    };
+
+    return await submitBookListing(finalBookData);
+}
