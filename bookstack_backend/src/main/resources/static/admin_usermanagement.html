@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>User Approval | Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css">
 
   <style>
     :root {
@@ -320,5 +321,10 @@
 
   document.addEventListener('DOMContentLoaded', fetchUnapprovedUsers);
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
 </body>
 </html>

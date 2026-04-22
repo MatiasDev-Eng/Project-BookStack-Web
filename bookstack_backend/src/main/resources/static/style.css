@@ -185,3 +185,50 @@ input, select, textarea {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+
+
+:root {
+    --toast-green: #27ae60;
+    --toast-text-muted: #64748b;
+}
+
+/* ── Global Toast Styles ── */
+#toastContainer {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.toast {
+    background: #10b981; /* This is the success green from your homepage */
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    pointer-events: auto;
+    animation: toastSlideIn 0.3s ease forwards;
+}
+
+.toast-body {
+    font-weight: 400;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    opacity: 0.9;
+}
+
+@keyframes toastSlideIn {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastSlideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+}

@@ -15,13 +15,16 @@ public class UserDetailsResponse {
 
     private BigDecimal balance;
 
+    private Long id;
+
     public UserDetailsResponse(String username, String email,
                                Collection<? extends GrantedAuthority> authorities,
-                               BigDecimal balance) {
+                               BigDecimal balance, Long id) {
         this.username = username;
         this.email = email;
         this.authorities = authorities;
         this.balance = balance;
+        this.id = id;
     }
 
     public String getUsername() {
@@ -38,4 +41,7 @@ public class UserDetailsResponse {
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 }
