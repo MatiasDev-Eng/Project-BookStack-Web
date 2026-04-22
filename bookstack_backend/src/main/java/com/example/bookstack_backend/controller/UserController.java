@@ -62,7 +62,8 @@ public class UserController {
                 userDetails.getUsername(),
                 userDetails.getEmail(),
                 userDetails.getAuthorities(),
-                user.getBalance());
+                user.getBalance(),
+                user.getId());
 
         return ResponseEntity.ok(response);
 

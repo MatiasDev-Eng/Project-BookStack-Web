@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>My Orders | BookStack</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
     <style>
         :root {
             --bg: #f8fafc; --white: #ffffff; --primary: #1e293b;
@@ -63,6 +64,13 @@
         <div class="empty-state">Loading your orders...</div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
+
 
 <script>
     const API_BASE = `${window.location.origin}/api`;
