@@ -53,6 +53,13 @@ public class User {
 
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "profile_picture")
+    private byte[] profilePicture;
+
+    @Column(name = "profile_picture_type")
+    private String profilePictureType;
+
     public User() {
     }
 
@@ -100,4 +107,11 @@ public class User {
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+
+    public void setProfilePicture(byte[] profilePicture) { this.profilePicture = profilePicture; }
+
+    public byte[] getProfilePicture() {return profilePicture; }
+
+    public void setProfilePictureType(String profilePictureType) { this.profilePictureType = profilePictureType; }
+    public String getProfilePictureType() { return profilePictureType; }
 }

@@ -59,7 +59,7 @@ public class BookControllerTest {
         owner.setId(1L);
         owner.setUsername("testuser");
         response.setAuthor("testauthor");
-        response.setId(1L);
+        response.setBookId(1L);
         response.setGenre("genre");
         response.setIsbn("isbn");
         response.setTitle("title");
