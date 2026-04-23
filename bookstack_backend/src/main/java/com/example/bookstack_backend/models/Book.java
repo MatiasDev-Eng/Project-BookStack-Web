@@ -44,6 +44,13 @@ public class Book {
     private LocalDateTime datePosted;
     private String isbn;
 
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "cover_image")
+    private byte[] coverImage;
+
+    @Column(name = "cover_image_type")
+    private String coverImageType;
+
     public Book() {
     }
 
@@ -196,4 +203,11 @@ public class Book {
     public void setIsbn(String isbn) {
         this.isbn = isbn;
     }
+
+    public void setCoverImage(byte[] coverImage) { this.coverImage = coverImage; }
+
+    public byte[] getCoverImage() {return coverImage; }
+
+    public void setCoverImageType(String coverImageType) { this.coverImageType = coverImageType; }
+    public String getCoverImageType() { return coverImageType; }
 }

@@ -48,7 +48,7 @@ public class UserServiceTest {
     void getUserById_ShouldReturnUser_WhenUserExists() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        User result = userService.getUserById(1L);
+        User result = userService.findById(1L);
 
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
@@ -59,7 +59,7 @@ public class UserServiceTest {
     void getUserById_ShouldThrowException_WhenUserDoesNotExist() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> userService.getUserById(1L));
+        assertThrows(RuntimeException.class, () -> userService.findById(1L));
         verify(userRepository, times(1)).findById(1L);
     }
 

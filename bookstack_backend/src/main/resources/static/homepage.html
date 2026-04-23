@@ -32,6 +32,16 @@
       color: var(--primary);
     }
 
+    .user-profile-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: none;
+    }
+    .user-profile-btn.has-photo img        { display: block; }
+    .user-profile-btn.has-photo .nav-emoji { display: none; }
+
     /* NAVBAR STYLING */
     nav {
       background: var(--white);
@@ -263,7 +273,10 @@
 
     <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
     <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
-    <div class="user-profile-btn" onclick="window.location.href='account.html'">👤</div>
+    <div class="user-profile-btn" onclick="window.location.href='account.html'">
+      <img id="navAvatar" alt="Profile">
+      <span class="nav-emoji">👤</span>
+    </div>
   </div>
 </nav>
 
@@ -330,11 +343,29 @@
       });
 
       if (response.ok) {
-        const user = await response.json();
+        const user = await response.json(); // parse once, use everywhere
+
         if (user.roles && user.roles.includes('ROLE_ADMIN')) {
           adminBtn.style.display = 'flex';
         }
+
+        const navAvatar  = document.getElementById('navAvatar');
+        const profileBtn = document.querySelector('.user-profile-btn');
+
+        try {
+          const picRes = await fetch(`${API_BASE}/me/profile-picture`, {
+            credentials: 'include'
+          });
+          if (picRes.ok) {
+            const blob = URL.createObjectURL(await picRes.blob());
+            navAvatar.src    = blob;
+            navAvatar.onload = () => profileBtn.classList.add('has-photo');
+          }
+        } catch (e) {
+          // no picture, leave emoji as-is
+        }
       }
+
     } catch (error) {
       console.warn("User not logged in or session expired.");
     }
@@ -395,10 +426,17 @@
       list.forEach(book => {
         const card = document.createElement('div');
         card.className = 'book-card';
-        card.onclick = () => { window.location.href = `book_details.html?id=${book.id}`; };
+        card.onclick = () => { window.location.href = `book_details.html?id=${book.bookId}`; };
 
         card.innerHTML = `
-          <div class="book-cover">📖</div>
+          <div class="book-cover" style="padding:0; overflow:hidden;">
+            ${book.hasCover
+                        ? `<img src="${API_BASE}/books/${book.bookId}/cover"
+                      alt="${book.title}"
+                      style="width:100%; height:100%; object-fit:cover;"
+                      onerror="this.parentElement.innerHTML='📖'">`
+                        : `📖`}
+          </div>
           <div class="book-info">
             <div class="book-title">${book.title}</div>
             <div class="book-author">by ${book.author}</div>
@@ -407,10 +445,10 @@
             <div class="cart-controls">
               <div class="quantity-selector">
                 <button class="qty-btn" onclick="updateQty(event, this, -1)">−</button>
-                <span class="qty-num" id="qty-${book.id}">1</span>
+                <span class="qty-num" id="qty-${book.bookId}">1</span>
                 <button class="qty-btn" onclick="updateQty(event, this, 1)">+</button>
               </div>
-              <button class="add-to-cart-btn" onclick="addToCart(event, ${book.id})">Add to Cart</button>
+              <button class="add-to-cart-btn" onclick="addToCart(event, ${book.bookId})">Add to Cart</button>
             </div>
           </div>
         `;
