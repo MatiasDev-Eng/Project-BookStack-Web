@@ -60,6 +60,9 @@ public class User {
     @Column(name = "profile_picture_type")
     private String profilePictureType;
 
+    @Column(name = "api_key", unique = true)
+    private String apiKey;
+
     public User() {
     }
 
@@ -114,4 +117,7 @@ public class User {
 
     public void setProfilePictureType(String profilePictureType) { this.profilePictureType = profilePictureType; }
     public String getProfilePictureType() { return profilePictureType; }
+
+    public void setApiKey(String apiKey) {this.apiKey = apiKey; }
+    public String getApiKey() {return apiKey; }
 }

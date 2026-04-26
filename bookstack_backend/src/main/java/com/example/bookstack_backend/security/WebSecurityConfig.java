@@ -99,20 +99,23 @@ public class WebSecurityConfig { // extends WebSecurityConfigurerAdapter {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/**").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/v3/**").permitAll()
                                 .requestMatchers("/swagger-ui/**").permitAll()
-                                // error is whitelisted so spring does not fall back to 401 unauth in errors
+                                .requestMatchers("/ws/**").permitAll()
+                                .requestMatchers("/ws-native/**").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());
 
+        // Exclude WebSocket upgrade requests from JWT filter
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
