@@ -127,4 +127,20 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PostMapping("/api-key")
+    public ResponseEntity<String> generateApiKey() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(userService.generateApiKey(user.getId()));
+    }
+
+    @GetMapping("/api-key")
+    public ResponseEntity<String> getApiKey() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user.getApiKey());
+    }
 }

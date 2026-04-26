@@ -99,7 +99,7 @@
             display: none;
         }
 
-        .avatar-circle.has-photo img         { display: block; }
+        .avatar-circle.has-photo img          { display: block; }
         .avatar-circle.has-photo .avatar-emoji { display: none; }
 
         .avatar-edit-badge {
@@ -119,7 +119,6 @@
         }
 
         .avatar-hint { font-size: 0.78rem; color: var(--muted-text); }
-
         #avatarFileInput { display: none; }
 
         .container { max-width: 600px; margin: 40px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
@@ -130,7 +129,7 @@
 
         .submit-btn { width: 100%; background: #1e293b; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
 
-        /* ── Notification card ── */
+        /* ── Cards ── */
         .notifications-card {
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -143,6 +142,7 @@
         .notifications-card h3 { margin: 0 0 4px; font-size: 1rem; color: #0f172a; }
         .notifications-card p  { margin: 0 0 14px; font-size: 0.85rem; color: var(--muted-text); }
 
+        /* Status pill */
         .notif-status {
             display: inline-flex;
             align-items: center;
@@ -172,6 +172,52 @@
         #notifToggleBtn.subscribe   { background: #1e293b; color: white; }
         #notifToggleBtn.unsubscribe { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
         #notifToggleBtn:active      { transform: scale(0.98); }
+
+        /* Integration card fields */
+        .integration-field {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .integration-field input {
+            flex: 1;
+            padding: 8px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .copy-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .copy-btn:hover { background: #e2e8f0; }
+
+        .integration-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted-text);
+            margin-bottom: 5px;
+        }
+
+        .danger-note {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 8px;
+            margin-bottom: 0;
+        }
 
         /* ── Toast ── */
         #toastContainer {
@@ -207,6 +253,7 @@
     <h1 style="text-align: center; color: #0f172a;">Account Settings</h1>
     <div id="statusMessage" style="text-align: center; margin-bottom: 1.5rem; min-height: 1.2rem; font-size: 0.9rem;"></div>
 
+    <!-- ── Balance ── -->
     <div class="balance-card">
         <div class="balance-label">Your Wallet Balance</div>
         <div id="balanceDisplay" class="balance-amount">$0.00</div>
@@ -222,6 +269,35 @@
             <span id="notifStatusText">Not subscribed</span>
         </div>
         <button id="notifToggleBtn" class="subscribe">🔔 Subscribe to sale alerts</button>
+    </div>
+
+    <!-- ── External integrations ── -->
+    <div class="notifications-card">
+        <h3>External Integrations</h3>
+        <p>Connect your own inventory system or platform to your real-time sale feed using these credentials.</p>
+
+        <span class="integration-label">WebSocket URL</span>
+        <div class="integration-field">
+            <input type="text" id="wsUrlDisplay" readonly>
+            <button class="copy-btn" onclick="copyField('wsUrlDisplay')">Copy</button>
+        </div>
+
+        <span class="integration-label">Your Topic</span>
+        <div class="integration-field">
+            <input type="text" id="wsTopicDisplay" readonly>
+            <button class="copy-btn" onclick="copyField('wsTopicDisplay')">Copy</button>
+        </div>
+
+        <span class="integration-label">API Key</span>
+        <div class="integration-field">
+            <input type="text" id="apiKeyDisplay" readonly placeholder="No key generated yet">
+            <button class="copy-btn" onclick="copyField('apiKeyDisplay')">Copy</button>
+        </div>
+
+        <button id="generateKeyBtn" class="retrieve-btn" style="width: 100%;">
+            ⚙️ Generate New API Key
+        </button>
+        <p class="danger-note">⚠️ Generating a new key will immediately invalidate the old one.</p>
     </div>
 
     <!-- ── Profile picture ── -->
@@ -330,13 +406,67 @@
         }
     });
 
+    // ── Integration card ───────────────────────────────────────────────────
+    function copyField(id) {
+        const val = document.getElementById(id).value;
+        if (!val) return;
+        navigator.clipboard.writeText(val);
+        updateStatus('Copied to clipboard!');
+    }
+
+    async function loadIntegrationInfo(userId) {
+        document.getElementById('wsUrlDisplay').value   = `${window.location.origin}/ws`;
+        document.getElementById('wsTopicDisplay').value = `/topic/seller.${userId}`;
+
+        try {
+            const res = await fetch(`${API_BASE}/me/api-key`, { credentials: 'include' });
+            if (res.ok) {
+                const key = await res.text();
+                document.getElementById('apiKeyDisplay').value = key || '';
+            }
+        } catch (e) {
+            // leave placeholder
+        }
+    }
+
+    document.getElementById('generateKeyBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('generateKeyBtn');
+        btn.disabled    = true;
+        btn.textContent = 'Generating...';
+        try {
+            const res = await fetch(`${API_BASE}/me/api-key`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                const key = await res.text();
+                document.getElementById('apiKeyDisplay').value = key;
+                updateStatus('New API key generated!');
+            } else {
+                updateStatus('Failed to generate key.', 'error');
+            }
+        } catch (e) {
+            updateStatus('Network error.', 'error');
+        } finally {
+            btn.disabled    = false;
+            btn.textContent = '⚙️ Generate New API Key';
+        }
+    });
+
     // ── Avatar ─────────────────────────────────────────────────────────────
-    function loadAvatar(userId) {
-        const img    = document.getElementById('avatarImg');
-        const circle = document.getElementById('avatarCircle');
-        img.src      = `${API_BASE}/me/${userId}/profile-picture`;
-        img.onload   = () => circle.classList.add('has-photo');
-        img.onerror  = () => circle.classList.remove('has-photo');
+    async function loadAvatar() {
+        try {
+            const res = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
+            if (res.ok) {
+                const blob = URL.createObjectURL(await res.blob());
+                const img    = document.getElementById('avatarImg');
+                const circle = document.getElementById('avatarCircle');
+                img.src    = blob;
+                img.onload = () => circle.classList.add('has-photo');
+            }
+        } catch (e) {
+            // no picture — emoji stays
+        }
     }
 
     document.getElementById('avatarFileInput').addEventListener('change', async function () {
@@ -349,7 +479,7 @@
             return;
         }
 
-        // Optimistic local preview — don't wait for the server
+        // Optimistic local preview
         const reader = new FileReader();
         reader.onload = (e) => {
             document.getElementById('avatarImg').src = e.target.result;
@@ -357,22 +487,21 @@
         };
         reader.readAsDataURL(file);
 
-        // Upload to server
+        // Upload
         const formData = new FormData();
         formData.append('file', file);
 
         try {
-            const res = await fetch(`${API_BASE}/me/${currentUserId}/profile-picture`, {
+            const res = await fetch(`${API_BASE}/users/${currentUserId}/profile-picture`, {
                 method: 'PUT',
                 credentials: 'include',
                 body: formData
             });
-
             if (res.ok) {
                 updateStatus('Profile picture updated!');
             } else {
                 updateStatus('Failed to upload picture.', 'error');
-                loadAvatar(currentUserId); // revert to whatever is stored
+                loadAvatar(); // revert
             }
         } catch (e) {
             updateStatus('Network error uploading picture.', 'error');
@@ -392,7 +521,8 @@
                 document.getElementById('emailInput').value           = user.email    || "";
                 document.getElementById('balanceDisplay').textContent = usd.format(user.balance || 0);
 
-                loadAvatar(currentUserId);
+                loadAvatar();
+                loadIntegrationInfo(user.id);
 
                 if (localStorage.getItem(NOTIF_KEY)) {
                     Notifications.connect(currentUserId, showSaleToast);
@@ -412,7 +542,6 @@
         btn.disabled    = true;
         const orig      = btn.textContent;
         btn.textContent = "Processing...";
-
         try {
             const response = await fetch(`${API_BASE}/payments/retrieve-balance/`, {
                 method: 'POST', credentials: 'include'

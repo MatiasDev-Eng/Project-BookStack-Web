@@ -28,4 +28,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.isBanned = false WHERE u.id = :userId")
     void approveUser(@Param("userId") Long userId);
 
+    Optional<User> findByApiKey(String apiKey);
+
 }
