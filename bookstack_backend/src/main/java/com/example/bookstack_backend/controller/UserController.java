@@ -17,6 +17,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+
 
 
 @Tag(name = "User Details", description = "User Details API")
@@ -62,9 +64,31 @@ public class UserController {
                 userDetails.getUsername(),
                 userDetails.getEmail(),
                 userDetails.getAuthorities(),
-                user.getBalance());
+                user.getBalance(),
+                user.getThemePreference()
+        );
 
         return ResponseEntity.ok(response);
 
+    }
+    @PostMapping("/theme")
+    public ResponseEntity<?> updateTheme(@RequestBody Map<String, String> body) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String theme = body.get("theme");
+
+        if (!theme.equals("light") && !theme.equals("dark")) {
+                return ResponseEntity.badRequest().body("Invalid theme value");
+        }
+
+        user.setThemePreference(theme);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Theme updated");
     }
 }

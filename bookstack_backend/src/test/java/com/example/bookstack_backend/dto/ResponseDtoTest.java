@@ -111,9 +111,10 @@ public class ResponseDtoTest {
 
     @Test
     void testUserDetailsResponse() {
-        UserDetailsResponse response = new UserDetailsResponse("user", "email", Collections.emptyList(), BigDecimal.TEN);
+        UserDetailsResponse response = new UserDetailsResponse("user", "email", Collections.emptyList(), BigDecimal.TEN, "light");
         assertEquals("user", response.getUsername());
         assertEquals("email", response.getEmail());
         assertNotNull(response.getAuthorities());
+        assertEquals("light", response.getThemePreference());
     }
 }

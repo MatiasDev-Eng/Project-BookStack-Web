@@ -11,6 +11,8 @@ public class BookResponse {
     private String isbn;
     private String genre;
     private BigDecimal price;
+    private String condition;
+    private String description;
 
     public BookResponse(Book book) {
         this.id = book.getBookId();
@@ -19,6 +21,8 @@ public class BookResponse {
         this.isbn = book.getIsbn();
         this.price = book.getPrice();
         this.genre = book.getGenre();
+        this.condition = book.getCondition() != null ? book.getCondition().name() : null;
+        this.description = book.getDescription();
     }
 
     public BookResponse() {}
@@ -70,5 +74,21 @@ public class BookResponse {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

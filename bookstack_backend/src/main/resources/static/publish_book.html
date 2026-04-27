@@ -4,158 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Publish a Book | BookStack</title>
-    <style>
-        :root {
-            --bg: #f8fafc;
-            --white: #ffffff;
-            --primary: #1e293b;
-            --muted: #64748b;
-            --border: #e2e8f0;
-            --accent: #2563eb;
-            --success: #059669;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--primary);
-            line-height: 1.5;
-        }
-
-
-        nav {
-            background: var(--white);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-left .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--accent);
-            text-decoration: none;
-            letter-spacing: -0.5px;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .nav-icon-btn {
-            width: 42px;
-            height: 42px;
-            background: #f1f5f9;
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .header-section {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .form-card {
-            background: var(--white);
-            padding: 32px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-        }
-
-        label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--muted);
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--accent);
-        }
-
-        .submit-btn {
-            background: var(--accent);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            transition: opacity 0.2s;
-        }
-
-        .submit-btn:hover { opacity: 0.9; }
-
-        .hidden { display: none; }
-
-        /* Notification Styles */
-        #notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            display: none;
-            z-index: 2000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .notification-success { background: #10b981; }
-        .notification-error { background: #ef4444; }
-        .notification-info { background: #3b82f6; }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Apply theme instantly from cache to prevent white flash
+        (function() {
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
 </head>
-<body>
+<body class="preload">
 <div id="notification"></div>
 
 <nav>
@@ -309,6 +167,25 @@
             console.error(error);
         }
     });
+
+    async function applyTheme() {
+        try {
+            const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+            if (!res.ok) return;
+
+            const user = await res.json();
+            const theme = user.themePreference || "light";
+            localStorage.setItem('bookstack-theme', theme);
+
+            document.body.classList.toggle("dark", theme === "dark");
+        } catch (err) {
+            console.error("Theme load failed", err);
+        }
+        document.body.classList.remove("preload");
+    }
+
+    applyTheme();
+
 </script>
 
 </body>

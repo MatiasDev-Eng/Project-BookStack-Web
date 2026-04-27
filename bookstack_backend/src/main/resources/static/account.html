@@ -5,86 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Account | BookStore</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        :root {
-            --primary-green: #059669;
-            --hover-green: #047857;
-            --danger-red: #dc2626;
-            --muted-text: #64748b;
-            --bg-gray: #f8fafc;
-        }
-
-        body { background-color: var(--bg-gray); margin: 0; font-family: system-ui, sans-serif; }
-
-        .balance-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .balance-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            color: var(--muted-text);
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        .balance-amount {
-            font-size: 2.8rem;
-            font-weight: 800;
-            color: var(--primary-green);
-            margin: 10px 0;
-            transition: all 0.3s ease;
-        }
-
-        .retrieve-btn {
-            background-color: var(--primary-green);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
-            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
-        }
-
-        .retrieve-btn:hover { background-color: var(--hover-green); }
-        .retrieve-btn:active { transform: scale(0.98); }
-        .retrieve-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
-
-        .profile-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 2rem; }
-        .avatar-circle {
-            width: 100px; height: 100px; border-radius: 50%;
-            background-color: #cbd5e1; display: flex; justify-content: center;
-            align-items: center; font-size: 3rem; color: white;
-            border: 4px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .container { max-width: 600px; margin: 40px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: #1e293b; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
-        .form-group input[readonly] { background-color: #f1f5f9; color: #64748b; }
-
-        .submit-btn { width: 100%; background: #1e293b; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    </style>
+    <script>
+        (function() {
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
 </head>
 
-<body>
+<body class="preload">
 <header class="navbar">
     <div class="nav-content">
         <div class="logo" onclick="window.location.href='homepage.html'" style="cursor:pointer">BookStore</div>
     </div>
 </header>
 
+<div class="theme-toggle-wrapper">
+    <label class="theme-toggle" title="Toggle dark mode">
+        <input type="checkbox" id="theme-checkbox">
+        <span class="toggle-track">
+            <span class="toggle-thumb"></span>
+        </span>
+    </label>
+</div>
+
 <div class="container">
-    <h1 style="text-align: center; color: #0f172a;">Account Settings</h1>
+    <h1 style="text-align: center; ">Account Settings</h1>
     <div id="statusMessage" style="text-align: center; margin-bottom: 1.5rem; min-height: 1.2rem; font-size: 0.9rem;"></div>
 
     <div class="balance-card">
@@ -199,6 +145,51 @@
         initPage();
         document.getElementById('retrieveBtn').addEventListener('click', handleRetrieveFunds);
     });
+
+    const themeCheckbox = document.getElementById('theme-checkbox');
+
+    // Load theme from backend
+    async function loadTheme() {
+        const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+        if (!res.ok) return;
+
+        const user = await res.json();
+        const theme = user.themePreference || 'light';
+        const isDark = theme === 'dark';
+
+        // Apply theme
+        document.body.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle('dark', isDark);
+
+        // Set checkbox
+        themeCheckbox.checked = theme === 'dark';
+        
+        localStorage.setItem('bookstack-theme', theme);
+        
+        document.body.classList.remove("preload");
+    }
+
+    // Toggle theme
+    themeCheckbox.addEventListener('change', async () => {
+        const theme = themeCheckbox.checked ? 'dark' : 'light';
+
+        // Apply instantly
+        document.body.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        
+        localStorage.setItem('bookstack-theme', theme);
+
+        // Save to backend
+        await fetch(`${API_BASE}/me/theme`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme })
+        });
+    });
+
+    // Initialize
+    loadTheme();
 </script>
 </body>
 </html>

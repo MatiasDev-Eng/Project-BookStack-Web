@@ -15,13 +15,18 @@ public class UserDetailsResponse {
 
     private BigDecimal balance;
 
+    private String themePreference;
+
+
     public UserDetailsResponse(String username, String email,
                                Collection<? extends GrantedAuthority> authorities,
-                               BigDecimal balance) {
+                               BigDecimal balance, String themePreference) {
         this.username = username;
         this.email = email;
         this.authorities = authorities;
         this.balance = balance;
+        this.themePreference = themePreference;
+
     }
 
     public String getUsername() {
@@ -38,4 +43,9 @@ public class UserDetailsResponse {
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+
+    public String getThemePreference() {
+        return themePreference;
+    }
+
 }

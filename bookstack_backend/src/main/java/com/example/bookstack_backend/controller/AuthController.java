@@ -69,6 +69,8 @@ public class AuthController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
+        User user = userRepository.findById(userDetails.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+        
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
         List<String> roles = userDetails.getAuthorities().stream()
@@ -84,7 +86,8 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
                 .body(new UserInfoResponse(userDetails.getId(),
                         userDetails.getUsername(),
-                        userDetails.getEmail()
+                        userDetails.getEmail(),
+                        user.getThemePreference()
                         ));
 
     }
@@ -169,11 +172,17 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        User user = userRepository.findByUsername(authentication.getName()).orElse(null);
+
+
         Map<String, Object> userDetails = new HashMap<>();
         userDetails.put("username", authentication.getName());
         userDetails.put("roles", authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
+
+        if (user != null) userDetails.put("themePreference", user.getThemePreference());
+
 
         return ResponseEntity.ok(userDetails);
     }
