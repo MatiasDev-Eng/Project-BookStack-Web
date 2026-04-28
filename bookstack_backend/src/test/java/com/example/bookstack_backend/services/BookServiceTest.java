@@ -84,4 +84,95 @@ public class BookServiceTest {
         assertEquals(2, result.size());
         verify(bookRepository, times(1)).findAll();
     }
+
+    @Test
+    void getBooksByOwner_ShouldReturnBooks_WhenUserExists() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        Book book = new Book();
+        book.setBookId(1L);
+        book.setOwner(user);
+        when(bookRepository.findByOwner(user)).thenReturn(Arrays.asList(book));
+
+        List<com.example.bookstack_backend.dto.response.BookResponse> result = bookService.getBooksByOwner(1L);
+
+        assertEquals(1, result.size());
+        assertEquals(1L, result.get(0).getBookId());
+    }
+
+    @Test
+    void findBookById_ShouldReturnBook_WhenExists() {
+        Book book = new Book();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+        Book result = bookService.findBookById(1L);
+
+        assertEquals(book, result);
+    }
+
+    @Test
+    void updateCover_ShouldUpdateBook() {
+        Book book = new Book();
+        byte[] image = "image".getBytes();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+        bookService.updateCover(1L, image, "image/png");
+
+        assertArrayEquals(image, book.getCoverImage());
+        assertEquals("image/png", book.getCoverImageType());
+        verify(bookRepository).save(book);
+    }
+
+    @Test
+    void updateBookListing_ShouldUpdateFields() {
+        Book book = new Book();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(bookRepository.save(any(Book.class))).thenAnswer(i -> i.getArgument(0));
+
+        createBookRequest.setTitle("New Title");
+        Book updated = bookService.updateBookListing(1L, createBookRequest);
+
+        assertEquals("New Title", updated.getTitle());
+        verify(bookRepository).save(book);
+    }
+
+    @Test
+    void deleteBookListing_ShouldDelete() {
+        Book book = new Book();
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+
+        bookService.deleteBookListing(1L);
+
+        verify(bookRepository).delete(book);
+    }
+
+    @Test
+    void getSimilarBooks_ShouldReturnBooks() {
+        Book book = new Book();
+        book.setGenre("Sci-Fi");
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(bookRepository.findByGenreAndBookIdNot("Sci-Fi", 1L)).thenReturn(Arrays.asList(new Book()));
+
+        List<Book> result = bookService.getSimilarBooks(1L);
+
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void searchBooks_ShouldFilterResults() {
+        Book book1 = new Book();
+        book1.setPrice(BigDecimal.valueOf(10));
+        book1.setPublishedYear(2020);
+        
+        Book book2 = new Book();
+        book2.setPrice(BigDecimal.valueOf(100));
+        book2.setPublishedYear(2010);
+
+        when(bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(anyString(), anyString(), anyString()))
+                .thenReturn(Arrays.asList(book1, book2));
+
+        List<Book> result = bookService.searchBooks("query", 5.0, 50.0, 2015, 2025);
+
+        assertEquals(1, result.size());
+        assertEquals(book1, result.get(0));
+    }
 }

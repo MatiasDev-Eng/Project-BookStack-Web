@@ -97,6 +97,7 @@ public class AuthControllerTest {
         UserDetailsImpl userDetails = UserDetailsImpl.build(user);
         Authentication authentication = Mockito.mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(authentication);
 
         ResponseCookie jwtCookie = ResponseCookie.from("jwt", "test-jwt").build();

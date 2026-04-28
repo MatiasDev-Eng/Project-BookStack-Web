@@ -156,21 +156,23 @@
     document.addEventListener('DOMContentLoaded', fetchUnapprovedBooks);
 
     async function applyTheme() {
+        // Don't attempt if no JWT cookie present
+        const hasCookie = document.cookie.includes('bookstack-jwt');
+        if (!hasCookie) {
+            document.body.classList.remove("preload");
+            return;
+        }
+
         try {
-            const res = await fetch(`${window.location.origin}/api/auth/me/`, {
-                credentials: 'include'
-            });
-            if (!res.ok) return;
-
+            const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+            if (!res.ok) {
+                document.body.classList.remove("preload");
+                return;
+            }
             const user = await res.json();
-            const theme = (user.themePreference || "light").toLowerCase().trim();
-            const isDark = theme === "dark";
-
-            // Save to cache for instant next-load
+            const theme = user.themePreference || "light";
             localStorage.setItem('bookstack-theme', theme);
-
-            document.body.classList.toggle("dark", isDark);
-            document.documentElement.classList.toggle("dark", isDark);
+            document.body.classList.toggle("dark", theme === "dark");
         } catch (err) {
             console.error("Theme load failed", err);
         }

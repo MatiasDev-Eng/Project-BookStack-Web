@@ -114,4 +114,38 @@ public class DtoTest {
         assertEquals("user2", response.getUsername());
         assertEquals("email2", response.getEmail());
     }
+
+    @Test
+    void testUserDetailsResponse() {
+        UserDetailsResponse response = new UserDetailsResponse(
+                "user", "email", Collections.emptyList(), BigDecimal.TEN, "dark", 1L
+        );
+        assertEquals("user", response.getUsername());
+        assertEquals("email", response.getEmail());
+        assertEquals("[]", response.getAuthorities());
+        assertEquals(BigDecimal.TEN, response.getBalance());
+        assertEquals("dark", response.getThemePreference());
+        assertEquals(1L, response.getId());
+    }
+
+    @Test
+    void testBookResponse() {
+        User owner = new User();
+        owner.setId(1L);
+        owner.setUsername("owner");
+
+        Book book = new Book();
+        book.setBookId(1L);
+        book.setTitle("Title");
+        book.setOwner(owner);
+        book.setPrice(BigDecimal.ONE);
+        book.setCondition(ECondition.NEW);
+
+        BookResponse response = new BookResponse(book);
+        assertEquals(1L, response.getBookId());
+        assertEquals("Title", response.getTitle());
+        assertEquals(1L, response.getOwnerId());
+        assertEquals("owner", response.getOwnerUsername());
+        assertEquals("NEW", response.getCondition());
+    }
 }

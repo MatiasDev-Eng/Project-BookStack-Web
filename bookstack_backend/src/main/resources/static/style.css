@@ -1752,10 +1752,41 @@ body.dark .nav-item:hover {
     background: #1a1714;
 }
 
+body.dark .book-title {
+    color: var(--primary);
+}
+
+body.dark .book-author {
+    color: var(--muted);
+}
+
+body.dark .featured h2 {
+    color: var(--primary);
+}
+
+body.dark .qty-btn {
+    color: var(--primary);
+}
+
+body.dark .qty-num {
+    color: var(--primary);
+}
+
+body.dark .quantity-selector {
+    border-color: var(--border);
+}
+
+body.dark .book-cover {
+    background: var(--bg-subtle);
+    border-color: var(--border);
+}
+
+
 /* Checkout page note text */
 body.dark p[style*="color: #64748b"] {
     color: var(--muted) !important;
 }
+
 
 /* =========================================================
    UTILITY

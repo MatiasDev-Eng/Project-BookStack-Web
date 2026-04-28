@@ -22,6 +22,10 @@ public class ResponseDtoTest {
         book.setIsbn("123");
         book.setPrice(BigDecimal.TEN);
 
+        User owner = new User();
+        owner.setId(1L);
+        book.setOwner(owner);
+
         BookResponse response = new BookResponse(book);
         assertEquals(1L, response.getBookId());
         assertEquals("Title", response.getTitle());

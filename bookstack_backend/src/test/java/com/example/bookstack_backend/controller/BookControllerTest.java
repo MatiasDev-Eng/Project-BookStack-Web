@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,6 +59,8 @@ public class BookControllerTest {
         owner = new User();
         owner.setId(1L);
         owner.setUsername("testuser");
+
+        response = new BookResponse();
         response.setAuthor("testauthor");
         response.setBookId(1L);
         response.setGenre("genre");
@@ -84,8 +87,13 @@ public class BookControllerTest {
         book.setCoverImageUrl("");
         book.setDatePosted(LocalDateTime.now());
 
-        // test args constructor
-        Book testBook = new Book(owner, 20, BigDecimal.valueOf(20.f), "pride", "test", ECondition.ACCEPTABLE, "isbn");
+        // Mock SecurityContext
+        UserDetailsImpl userDetails = UserDetailsImpl.build(owner);
+        Authentication authentication = Mockito.mock(Authentication.class);
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
     }
 
     @Test
@@ -95,6 +103,7 @@ public class BookControllerTest {
         request.setAuthor("New Author");
         request.setPrice(new BigDecimal("19.99"));
         request.setCondition(ECondition.NEW);
+        request.setOwnerId(1L);
 
         when(bookService.createBookListing(any(CreateBookRequest.class))).thenReturn(book);
 
@@ -107,17 +116,7 @@ public class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "testuser")
     void testGetAllBooks_Success() throws Exception {
-        // Mock SecurityContext
-        UserDetailsImpl userDetails = UserDetailsImpl.build(owner);
-        Authentication authentication = Mockito.mock(Authentication.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-
         List<Book> books = Arrays.asList(book);
         when(bookService.getAllBooks()).thenReturn(books);
 
@@ -128,17 +127,7 @@ public class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "testuser")
     void testGetAllBooks_EmptyList() throws Exception {
-        // Mock SecurityContext
-        UserDetailsImpl userDetails = UserDetailsImpl.build(owner);
-        Authentication authentication = Mockito.mock(Authentication.class);
-        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
-        
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        SecurityContextHolder.setContext(securityContext);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-
         when(bookService.getAllBooks()).thenReturn(Collections.emptyList());
 
         mockMvc.perform(get("/api/books/"))
@@ -182,9 +171,10 @@ public class BookControllerTest {
     void testGetSellerListings_Success() throws Exception {
         when(bookService.getBooksByOwner(1L)).thenReturn(Arrays.asList(response));
 
-        mockMvc.perform(get("/api/books/owner/1"))
+        mockMvc.perform(get("/api/books/me/"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("title"));
     }
 
     @Test
@@ -197,10 +187,40 @@ public class BookControllerTest {
     }
 
     @Test
-    void testSearchByTextQuery_Success() throws Exception {
-        // Tests REQ-8, REQ-9, and the basic query part of REQ-16
+    void testSearchBooks_WithParams() throws Exception {
+        when(bookService.searchBooks(eq("Test"), any(), any(), any(), any())).thenReturn(Arrays.asList(book));
+
         mockMvc.perform(get("/api/books/search")
-                        .param("query", "The Great Gatsby"))
-                .andExpect(status().isOk());
+                        .param("query", "Test")
+                        .param("minPrice", "10.0")
+                        .param("maxPrice", "50.0")
+                        .param("minYear", "1990")
+                        .param("maxYear", "2023"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void testUploadCover_Success() throws Exception {
+        org.springframework.mock.web.MockMultipartFile file = new org.springframework.mock.web.MockMultipartFile(
+                "file", "cover.jpg", "image/jpeg", "image data".getBytes());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/api/books/1/cover")
+                        .file(file)
+                        .with(request -> { request.setMethod("PUT"); return request; }))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Cover uploaded."));
+    }
+
+    @Test
+    void testGetCover_Success() throws Exception {
+        book.setCoverImage("cover data".getBytes());
+        book.setCoverImageType("image/jpeg");
+        when(bookService.findBookById(1L)).thenReturn(book);
+
+        mockMvc.perform(get("/api/books/1/cover"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/jpeg"))
+                .andExpect(content().bytes("cover data".getBytes()));
     }
 }
