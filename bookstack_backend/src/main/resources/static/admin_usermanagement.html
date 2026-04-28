@@ -120,16 +120,26 @@
 
     tbody.innerHTML = users.map(user => `
         <tr>
-          <td>#${user.userId}</td>
-          <td><strong>${user.username}</strong></td>
-          <td>${user.email}</td>
-          <td>
-            <button class="btn-action approve" onclick="approveUser(${user.userId}, '${user.username}')">
-              Approve Access
-            </button>
-          </td>
+            <td>#${user.userId}</td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+                        <img src="${window.location.origin}/api/admin/users/${user.userId}/profile-picture"
+                             alt="${user.username}"
+                             style="width: 100%; height: 100%; object-fit: cover;"
+                             onerror="this.parentElement.innerHTML='👤'">
+                    </div>
+                    <strong>${user.username}</strong>
+                </div>
+            </td>
+            <td>${user.email}</td>
+            <td>
+                <button class="btn-action approve" onclick="approveUser(${user.userId}, '${user.username}')">
+                    Approve Access
+                </button>
+            </td>
         </tr>
-      `).join('');
+    `).join('');
   }
 
   async function approveUser(userId, username) {
@@ -162,7 +172,7 @@
     }
 
     try {
-      const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+      const res = await fetch(`${window.location.origin}/api/me/`, { credentials: 'include' });
       if (!res.ok) {
         document.body.classList.remove("preload");
         return;

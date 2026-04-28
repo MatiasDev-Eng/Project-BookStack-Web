@@ -2,9 +2,12 @@ package com.example.bookstack_backend.controller;
 
 import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.dto.response.UserInfoResponse;
+import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.User;
 import com.example.bookstack_backend.services.BookService;
 import com.example.bookstack_backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +31,9 @@ public class AdminController {
     @Autowired
     private BookService bookService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping("/users/")
     public ResponseEntity<?> getUnapprovedUsers() {
         List<UserInfoResponse> userList = adminService.getAllUnapprovedUsers();
@@ -38,6 +44,34 @@ public class AdminController {
     public ResponseEntity<?> approveUser(@PathVariable Long userId) {
         adminService.approveUser(userId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/users/{id}/profile-picture")
+    public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long id) {
+        try {
+            User user = userService.findById(id);
+            if (user.getProfilePicture() == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(user.getProfilePictureType()))
+                    .body(user.getProfilePicture());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/books/{id}/cover")
+    public ResponseEntity<byte[]> getBookCover(@PathVariable Long id) {
+        Book book = bookService.findBookByIdIgnoreActive(id);
+
+        if (book.getCoverImage() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(book.getCoverImageType()))
+                .body(book.getCoverImage());
     }
 
     @GetMapping("/books/")

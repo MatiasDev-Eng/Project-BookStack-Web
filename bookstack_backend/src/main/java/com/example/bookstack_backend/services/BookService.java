@@ -54,7 +54,7 @@ public class BookService {
     }
 
     public List<Book> getAllBooks() {
-        return bookRepository.findAll();
+        return bookRepository.findByIsActiveTrue();
     }
 
     public List<BookResponse> getBooksByOwner(Long ownerId) {
@@ -68,7 +68,7 @@ public class BookService {
 
 
     public Book findBookById(Long id) {
-        return bookRepository.findById(id)
+        return bookRepository.findByBookIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
     }
 
@@ -114,10 +114,7 @@ public class BookService {
     }
 
     public List<Book> searchBooks(String query, Double minPrice, Double maxPrice, Integer minYear, Integer maxYear) {
-        List<Book> baseResults =
-                bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(
-                    query, query, query
-                );
+        List<Book> baseResults = bookRepository.searchActiveBooks(query);
     
     
         return baseResults.stream()
@@ -126,6 +123,11 @@ public class BookService {
                 .filter(book -> minYear == null || book.getPublishedYear() >= minYear)
                 .filter(book -> maxYear == null || book.getPublishedYear() <= maxYear)
                 .toList();
+    }
+
+    public Book findBookByIdIgnoreActive(Long id) {
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
     }
 
     public void updateReview(Long bookId, User user, int rating) {

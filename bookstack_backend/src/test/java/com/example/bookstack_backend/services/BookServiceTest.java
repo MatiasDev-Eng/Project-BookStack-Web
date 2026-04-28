@@ -162,12 +162,14 @@ public class BookServiceTest {
         Book book1 = new Book();
         book1.setPrice(BigDecimal.valueOf(10));
         book1.setPublishedYear(2020);
+        book1.setIsActive(true);
         
         Book book2 = new Book();
         book2.setPrice(BigDecimal.valueOf(100));
         book2.setPublishedYear(2010);
+        book2.setIsActive(true);
 
-        when(bookRepository.findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCaseOrGenreContainingIgnoreCase(anyString(), anyString(), anyString()))
+        when(bookRepository.searchActiveBooks(anyString()))
                 .thenReturn(Arrays.asList(book1, book2));
 
         List<Book> result = bookService.searchBooks("query", 5.0, 50.0, 2015, 2025);
