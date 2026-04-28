@@ -70,9 +70,10 @@ public class UserController {
                 userDetails.getEmail(),
                 userDetails.getAuthorities(),
                 user.getBalance(),
-                user.getThemePreference()
+                user.getThemePreference(),
+                user.getId()
         );
-                user.getId());
+
 
         return ResponseEntity.ok(response);
 
@@ -89,13 +90,15 @@ public class UserController {
         String theme = body.get("theme");
 
         if (!theme.equals("light") && !theme.equals("dark")) {
-                return ResponseEntity.badRequest().body("Invalid theme value");
+            return ResponseEntity.badRequest().body("Invalid theme value");
         }
 
         user.setThemePreference(theme);
         userRepository.save(user);
 
         return ResponseEntity.ok("Theme updated");
+
+    }
 
     @PutMapping("/{id}/profile-picture")
     public ResponseEntity<?> uploadProfilePicture(

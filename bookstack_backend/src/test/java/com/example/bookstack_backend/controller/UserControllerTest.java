@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
@@ -64,6 +65,11 @@ public class UserControllerTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(authentication.getName()).thenReturn("testuser");
+
+        // Common mocks
+        when(userRepository.findByUsername("testuser")).thenReturn(java.util.Optional.of(user));
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
     }
 
     @Test
@@ -72,5 +78,76 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("testuser"))
                 .andExpect(jsonPath("$.email").value("test@example.com"));
+    }
+
+    @Test
+    void testUpdateTheme_Success() throws Exception {
+        mockMvc.perform(post("/api/me/theme")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"theme\": \"dark\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Theme updated"));
+    }
+
+    @Test
+    void testUpdateTheme_InvalidTheme() throws Exception {
+        mockMvc.perform(post("/api/me/theme")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"theme\": \"invalid\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Invalid theme value"));
+    }
+
+    @Test
+    void testUploadProfilePicture_Success() throws Exception {
+        org.springframework.mock.web.MockMultipartFile file = new org.springframework.mock.web.MockMultipartFile(
+                "file", "test.jpg", "image/jpeg", "test image content".getBytes());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/api/me/1/profile-picture")
+                        .file(file)
+                        .with(request -> { request.setMethod("PUT"); return request; }))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Profile picture updated."));
+    }
+
+    @Test
+    void testUploadProfilePicture_NotAnImage() throws Exception {
+        org.springframework.mock.web.MockMultipartFile file = new org.springframework.mock.web.MockMultipartFile(
+                "file", "test.txt", "text/plain", "test content".getBytes());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/api/me/1/profile-picture")
+                        .file(file)
+                        .with(request -> { request.setMethod("PUT"); return request; }))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("File must be an image."));
+    }
+
+    @Test
+    void testGetCover_Success() throws Exception {
+        user.setProfilePicture("image content".getBytes());
+        user.setProfilePictureType("image/png");
+
+        mockMvc.perform(get("/api/me/profile-picture"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/png"))
+                .andExpect(content().bytes("image content".getBytes()));
+    }
+
+    @Test
+    void testGenerateApiKey_Success() throws Exception {
+        when(userService.generateApiKey(1L)).thenReturn("new-api-key");
+
+        mockMvc.perform(post("/api/me/api-key"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("new-api-key"));
+    }
+
+    @Test
+    void testGetApiKey_Success() throws Exception {
+        user.setApiKey("existing-api-key");
+
+        mockMvc.perform(get("/api/me/api-key"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("existing-api-key"));
     }
 }

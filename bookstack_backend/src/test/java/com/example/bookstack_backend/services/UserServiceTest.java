@@ -139,4 +139,54 @@ public class UserServiceTest {
         assertEquals(encodedPassword, registeredUser.getPassword());
         verify(encoder).encode(rawPassword);
     }
+
+    @Test
+    void updateProfilePicture_ShouldUpdateUser() {
+        byte[] image = "image".getBytes();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        userService.updateProfilePicture(1L, image, "image/jpeg");
+
+        assertArrayEquals(image, user.getProfilePicture());
+        assertEquals("image/jpeg", user.getProfilePictureType());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void hasProfilePicture_ShouldReturnTrue_WhenExists() {
+        user.setProfilePicture("exists".getBytes());
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        assertTrue(userService.hasProfilePicture(1L));
+    }
+
+    @Test
+    void generateApiKey_ShouldGenerateAndSave() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        String key = userService.generateApiKey(1L);
+
+        assertNotNull(key);
+        assertEquals(key, user.getApiKey());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void findByApiKey_ShouldReturnUser() {
+        when(userRepository.findByApiKey("key")).thenReturn(Optional.of(user));
+
+        Optional<User> result = userService.findByApiKey("key");
+
+        assertTrue(result.isPresent());
+        assertEquals(user, result.get());
+    }
+
+    @Test
+    void findByUsername_ShouldReturnUser() {
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
+
+        User result = userService.findByUsername("testuser");
+
+        assertEquals(user, result);
+    }
 }
