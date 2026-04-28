@@ -70,9 +70,9 @@ public class UserController {
                 userDetails.getEmail(),
                 userDetails.getAuthorities(),
                 user.getBalance(),
-                user.getThemePreference()
+                user.getThemePreference(),
+                user.getId()
         );
-                user.getId());
 
         return ResponseEntity.ok(response);
 
@@ -96,6 +96,7 @@ public class UserController {
         userRepository.save(user);
 
         return ResponseEntity.ok("Theme updated");
+    }
 
     @PutMapping("/{id}/profile-picture")
     public ResponseEntity<?> uploadProfilePicture(
