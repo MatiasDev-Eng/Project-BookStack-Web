@@ -1803,23 +1803,44 @@ body.dark p[style*="color: #64748b"] {
    ========================================================= */
 @media (max-width: 768px) {
     .container,
-    .cart-container { margin: 20px 16px; padding: 20px; }
+    .cart-container {
+        margin: 20px 16px;
+        padding: 20px;
+    }
 
-    .nav-center { max-width: none; margin: 0 8px; }
+    .nav-center {
+        max-width: none;
+        margin: 0 8px;
+    }
 
-    .book-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+    .book-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 14px;
+    }
 
-    .form-row { grid-template-columns: 1fr; }
+    .form-row {
+        grid-template-columns: 1fr;
+    }
 
     .info-grid,
-    .order-details-summary { grid-template-columns: 1fr; }
+    .order-details-summary {
+        grid-template-columns: 1fr;
+    }
 
-    .sidebar { display: none; }
+    .sidebar {
+        display: none;
+    }
 
-    .main { padding: 24px; }
+    .main {
+        padding: 24px;
+    }
 
-    .dashboard-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
 :root {
     --toast-green: #27ae60;
     --toast-text-muted: #64748b;
