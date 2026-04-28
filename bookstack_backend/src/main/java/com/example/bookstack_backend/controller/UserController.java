@@ -97,7 +97,7 @@ public class UserController {
 
         return ResponseEntity.ok("Theme updated");
     }
-    
+
 
     @PutMapping("/{id}/profile-picture")
     public ResponseEntity<?> uploadProfilePicture(
