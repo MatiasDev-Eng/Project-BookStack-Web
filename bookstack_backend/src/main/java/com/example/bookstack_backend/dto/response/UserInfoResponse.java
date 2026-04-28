@@ -12,11 +12,16 @@ public class UserInfoResponse {
 
     private String email;
 
+    private String themePreference;
 
-    public UserInfoResponse(Long userId, String username, String email)  {
+
+
+    public UserInfoResponse(Long userId, String username, String email, String themePreference)  {
         this.userId = userId;
         this.username = username;
         this.email = email;
+        this.themePreference = themePreference;
+
     }
 
     public Long getUserId() {
@@ -29,4 +34,6 @@ public class UserInfoResponse {
 
     public String getEmail() { return email; }
     public void setEmail(String email) {this.email = email;}
+
+    public String getThemePreference() {return themePreference;}
 }

@@ -17,7 +17,7 @@ public class BookResponse {
     private Integer stock;
     private Integer publishedYear;
     private String description;
-    private ECondition condition;
+    private String condition;
     private Float totalScore;
     private Integer reviewCount;
     private Boolean isActive;
@@ -37,7 +37,7 @@ public class BookResponse {
         this.stock         = book.getStock();
         this.publishedYear = book.getPublishedYear();
         this.description   = book.getDescription();
-        this.condition     = book.getCondition();
+        this.condition     = book.getCondition()!= null ? book.getCondition().name() : null;
         this.totalScore    = book.getTotalScore();
         this.reviewCount   = book.getReviewCount();
         this.isActive      = book.getIsActive();
@@ -79,8 +79,8 @@ public class BookResponse {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public ECondition getCondition() { return condition; }
-    public void setCondition(ECondition condition) { this.condition = condition; }
+    public String getCondition() { return condition; }
+    public void setCondition(String condition) { this.condition = condition; }
 
     public Float getTotalScore() { return totalScore; }
     public void setTotalScore(Float totalScore) { this.totalScore = totalScore; }

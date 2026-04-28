@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Account | BookStore</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
     <style>
         :root {
             --primary-green: #059669;
@@ -240,17 +246,25 @@
     </style>
 </head>
 
-<body>
+<body class="preload">
 <header class="navbar">
     <div class="nav-content">
         <div class="logo" onclick="window.location.href='homepage.html'" style="cursor:pointer">BookStore</div>
     </div>
 </header>
 
+<div class="theme-toggle-wrapper">
+    <label class="theme-toggle" title="Toggle dark mode">
+        <input type="checkbox" id="theme-checkbox">
+        <span class="toggle-track">
+            <span class="toggle-thumb"></span>
+        </span>
+    </label>
+</div>
 <div id="toastContainer"></div>
 
 <div class="container">
-    <h1 style="text-align: center; color: #0f172a;">Account Settings</h1>
+    <h1 style="text-align: center; ">Account Settings</h1>
     <div id="statusMessage" style="text-align: center; margin-bottom: 1.5rem; min-height: 1.2rem; font-size: 0.9rem;"></div>
 
     <!-- ── Balance ── -->
@@ -565,6 +579,51 @@
         initPage();
         document.getElementById('retrieveBtn').addEventListener('click', handleRetrieveFunds);
     });
+
+    const themeCheckbox = document.getElementById('theme-checkbox');
+
+    // Load theme from backend
+    async function loadTheme() {
+        const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+        if (!res.ok) return;
+
+        const user = await res.json();
+        const theme = user.themePreference || 'light';
+        const isDark = theme === 'dark';
+
+        // Apply theme
+        document.body.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle('dark', isDark);
+
+        // Set checkbox
+        themeCheckbox.checked = theme === 'dark';
+        
+        localStorage.setItem('bookstack-theme', theme);
+        
+        document.body.classList.remove("preload");
+    }
+
+    // Toggle theme
+    themeCheckbox.addEventListener('change', async () => {
+        const theme = themeCheckbox.checked ? 'dark' : 'light';
+
+        // Apply instantly
+        document.body.classList.toggle('dark', theme === 'dark');
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        
+        localStorage.setItem('bookstack-theme', theme);
+
+        // Save to backend
+        await fetch(`${API_BASE}/me/theme`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme })
+        });
+    });
+
+    // Initialize
+    loadTheme();
 </script>
 </body>
 </html>

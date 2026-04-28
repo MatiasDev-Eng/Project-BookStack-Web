@@ -37,7 +37,8 @@ public class AdminService {
                     return new UserInfoResponse(
                             user.getId(),
                             user.getUsername(),
-                            user.getEmail()
+                            user.getEmail(),
+                            user.getThemePreference()
                     );
                 })
                 .collect(Collectors.toList());

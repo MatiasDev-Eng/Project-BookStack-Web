@@ -44,6 +44,10 @@ public class User {
     @Column(name = "is_banned")
     private Boolean isBanned;
 
+    @Column(name = "theme_preference")
+    private String themePreference = "light";
+
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
@@ -110,6 +114,9 @@ public class User {
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+
+    public String getThemePreference() { return themePreference; }
+    public void setThemePreference(String themePreference) {this.themePreference = themePreference;}
 
     public void setProfilePicture(byte[] profilePicture) { this.profilePicture = profilePicture; }
 

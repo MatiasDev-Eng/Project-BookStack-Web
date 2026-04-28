@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Listings | Bookstore</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // Apply theme instantly from cache to prevent white flash
+        (function() {
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
 </head>
-<body>
+<body class="preload">
 <div id="notification"></div>
 <header class="navbar">
     <div class="nav-content">
@@ -154,6 +161,25 @@
 
     // Initialize table on load
     document.addEventListener('DOMContentLoaded', fetchListings);
+
+    async function applyTheme() {
+        try {
+            const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+            if (!res.ok) return;
+
+            const user = await res.json();
+            const theme = user.themePreference || "light";
+            localStorage.setItem('bookstack-theme', theme);
+
+            document.body.classList.toggle("dark", theme === "dark");
+        } catch (err) {
+            console.error("Theme load failed", err);
+        }
+        document.body.classList.remove("preload");
+    }
+
+    applyTheme();
+
 </script>
 </body>
 </html>

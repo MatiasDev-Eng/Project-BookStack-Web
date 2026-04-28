@@ -15,15 +15,18 @@ public class UserDetailsResponse {
 
     private BigDecimal balance;
 
+    private String themePreference;
+
     private Long id;
 
     public UserDetailsResponse(String username, String email,
                                Collection<? extends GrantedAuthority> authorities,
-                               BigDecimal balance, Long id) {
+                               BigDecimal balance, String themePreference, Long id) {
         this.username = username;
         this.email = email;
         this.authorities = authorities;
         this.balance = balance;
+        this.themePreference = themePreference;
         this.id = id;
     }
 
@@ -41,6 +44,10 @@ public class UserDetailsResponse {
 
     public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+
+    public String getThemePreference() {
+        return themePreference;
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -101,10 +101,11 @@ public class DtoTest {
     
     @Test
     void testUserInfoResponse() {
-        UserInfoResponse response = new UserInfoResponse(1L, "user", "email");
+        UserInfoResponse response = new UserInfoResponse(1L, "user", "email", "light");
         assertEquals(1L, response.getUserId());
         assertEquals("user", response.getUsername());
         assertEquals("email", response.getEmail());
+        assertEquals("light", response.getThemePreference());
 
         response.setUserId(2L);
         response.setUsername("user2");

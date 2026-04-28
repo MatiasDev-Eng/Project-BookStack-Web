@@ -5,74 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Publish a Book | BookStack</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            const cached = localStorage.getItem('bookstack-theme');
+            if (cached === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
     <style>
-        :root {
-            --bg: #f8fafc;
-            --white: #ffffff;
-            --primary: #1e293b;
-            --muted: #64748b;
-            --border: #e2e8f0;
-            --accent: #2563eb;
-            --success: #059669;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--primary); line-height: 1.5; }
-
-        nav {
-            background: var(--white);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-left .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); text-decoration: none; letter-spacing: -0.5px; }
-        .nav-right { display: flex; align-items: center; gap: 16px; }
-        .nav-icon-btn { width: 42px; height: 42px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        .header-section { text-align: center; margin-bottom: 32px; }
-        .form-card { background: var(--white); padding: 32px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); }
-        .form-group { margin-bottom: 20px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
-        input, select, textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-
-        .submit-btn {
-            background: var(--accent);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            transition: opacity 0.2s;
-        }
-        .submit-btn:hover { opacity: 0.9; }
-        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        /* ── Cover image uploader ── */
+        /* Cover image uploader — uses CSS variables for dark mode */
         .cover-upload-area {
             border: 2px dashed var(--border);
-            border-radius: 10px;
+            border-radius: var(--radius);
             padding: 24px;
             text-align: center;
             cursor: pointer;
             transition: border-color 0.2s, background 0.2s;
             position: relative;
         }
-        .cover-upload-area:hover { border-color: var(--accent); background: #f0f6ff; }
+        .cover-upload-area:hover { border-color: var(--accent); background: var(--bg-subtle); }
         .cover-upload-area.has-image { border-style: solid; border-color: var(--success); padding: 0; overflow: hidden; }
 
         #coverPreview {
@@ -80,15 +30,15 @@
             width: 100%;
             max-height: 260px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
         }
-        .cover-upload-area.has-image #coverPreview { display: block; }
+        .cover-upload-area.has-image #coverPreview  { display: block; }
         .cover-upload-area.has-image .upload-placeholder { display: none; }
 
         .upload-placeholder { pointer-events: none; }
         .upload-placeholder .upload-icon { font-size: 2rem; margin-bottom: 8px; }
-        .upload-placeholder p { font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
-        .upload-placeholder span { font-size: 0.78rem; color: #94a3b8; }
+        .upload-placeholder p    { font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
+        .upload-placeholder span { font-size: 0.78rem; color: var(--muted); opacity: 0.7; }
 
         #coverFileInput { display: none; }
 
@@ -100,26 +50,10 @@
             text-align: center;
         }
         .cover-upload-area.has-image + .cover-change-hint { display: block; }
-
-        /* Notification */
-        #notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            display: none;
-            z-index: 2000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .notification-success { background: #10b981; }
-        .notification-error   { background: #ef4444; }
-        .notification-info    { background: #3b82f6; }
     </style>
 </head>
-<body>
+
+<body class="preload">
 <div id="notification"></div>
 
 <nav>
@@ -128,8 +62,8 @@
     </div>
     <div class="nav-right">
         <div class="nav-icon-btn" onclick="window.location.href='index.html'" title="Back Home">🏠</div>
-        <div class="nav-icon-btn" onclick="window.location.href='/cart.html'" title="View Cart">🛒</div>
-        <div class="nav-icon-btn" onclick="window.location.href='/account.html'" title="My Account">👤</div>
+        <div class="nav-icon-btn" onclick="window.location.href='cart.html'" title="View Cart">🛒</div>
+        <div class="nav-icon-btn" onclick="window.location.href='account.html'" title="My Account">👤</div>
     </div>
 </nav>
 
@@ -142,9 +76,9 @@
     <div class="form-card">
         <form id="publishForm">
 
-            <!-- ── Cover image ── -->
+            <!-- Cover image -->
             <div class="form-group">
-                <label>Cover Image <span style="font-weight:400; color:#94a3b8">(optional)</span></label>
+                <label>Cover Image <span style="font-weight:400; color: var(--muted);">(optional)</span></label>
                 <div class="cover-upload-area" id="coverUploadArea" onclick="document.getElementById('coverFileInput').click()">
                     <img id="coverPreview" alt="Cover preview">
                     <div class="upload-placeholder">
@@ -172,8 +106,8 @@
                 <input type="text" id="isbn" required placeholder="e.g. 978247291759">
             </div>
 
-            <div class="form-row">
-                <div class="form-group" style="grid-column: span 2;">
+            <div class="form-row" style="grid-template-columns: 2fr 1fr;">
+                <div class="form-group">
                     <label for="genre">Genre</label>
                     <input type="text" id="genre" required placeholder="Fiction, History...">
                 </div>
@@ -228,11 +162,10 @@
 <script>
     const API_BASE = `${window.location.origin}/api`;
 
-    // ── Notification helper ────────────────────────────────────────────────
     function showNotification(message, type = 'info') {
         const note = document.getElementById('notification');
-        note.innerText = message;
-        note.className = `notification-${type}`;
+        note.innerText     = message;
+        note.className     = `notification-${type}`;
         note.style.display = 'block';
         setTimeout(() => note.style.display = 'none', 3000);
     }
@@ -241,7 +174,7 @@
         return localStorage.getItem('bookstack-user-id');
     }
 
-    // ── Cover image preview ────────────────────────────────────────────────
+    // ── Cover image preview ───────────────────────────────────
     document.getElementById('coverFileInput').addEventListener('change', function () {
         const file = this.files[0];
         if (!file) return;
@@ -260,7 +193,7 @@
         reader.readAsDataURL(file);
     });
 
-    // ── Form submit ────────────────────────────────────────────────────────
+    // ── Form submit ───────────────────────────────────────────
     document.getElementById('publishForm').addEventListener('submit', async function (event) {
         event.preventDefault();
 
@@ -271,22 +204,22 @@
             return;
         }
 
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
+        const submitBtn       = document.getElementById('submitBtn');
+        submitBtn.disabled    = true;
         submitBtn.textContent = 'Posting...';
 
         const bookData = {
-            ownerId:      Number(currentUserId),
-            stock:        parseInt(document.getElementById('stock').value),
-            price:        parseFloat(document.getElementById('price').value),
-            title:        document.getElementById('title').value,
-            author:       document.getElementById('author').value,
-            genre:        document.getElementById('genre').value,
-            edition:      document.getElementById('edition').value,
-            condition:    document.getElementById('condition').value,
+            ownerId:       Number(currentUserId),
+            stock:         parseInt(document.getElementById('stock').value),
+            price:         parseFloat(document.getElementById('price').value),
+            title:         document.getElementById('title').value,
+            author:        document.getElementById('author').value,
+            genre:         document.getElementById('genre').value,
+            edition:       document.getElementById('edition').value,
+            condition:     document.getElementById('condition').value,
             publishedYear: parseInt(document.getElementById('year').value),
-            description:  document.getElementById('description').value,
-            isbn:         document.getElementById('isbn').value,
+            description:   document.getElementById('description').value,
+            isbn:          document.getElementById('isbn').value,
         };
 
         try {
@@ -306,7 +239,7 @@
 
             const savedBook = await response.json();
 
-            // Step 2: upload cover if the user selected one
+            // Step 2: upload cover if selected
             const coverFile = document.getElementById('coverFileInput').files[0];
             if (coverFile) {
                 submitBtn.textContent = 'Uploading cover...';
@@ -317,13 +250,11 @@
                     method: 'PUT',
                     credentials: 'include',
                     body: formData
-                    // No Content-Type header — browser sets it with the multipart boundary
                 });
 
                 if (!coverResponse.ok) {
-                    // Book was created fine, only cover failed — warn but don't block
-                    showNotification('Book listed, but cover upload failed. You can re-upload it from your listings.', 'info');
-                   setTimeout(() => window.location.href = 'homepage.html', 2500);
+                    showNotification('Book listed, but cover upload failed. You can re-upload from your listings.', 'info');
+                    setTimeout(() => window.location.href = 'homepage.html', 2500);
                     return;
                 }
             }
@@ -335,10 +266,29 @@
             showNotification('Connection error. Is the server running?', 'error');
             console.error(error);
         } finally {
-            submitBtn.disabled = false;
+            submitBtn.disabled    = false;
             submitBtn.textContent = 'Post Listing';
         }
     });
+
+    // ── Theme ─────────────────────────────────────────────────
+    async function applyTheme() {
+        try {
+            const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+            if (!res.ok) return;
+            const user   = await res.json();
+            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const isDark = theme === "dark";
+            localStorage.setItem('bookstack-theme', theme);
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        } catch (err) {
+            console.error("Theme load failed", err);
+        }
+        document.body.classList.remove("preload");
+    }
+
+    applyTheme();
 </script>
 </body>
 </html>
