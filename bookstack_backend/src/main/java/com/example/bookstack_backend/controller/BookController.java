@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -104,6 +105,25 @@ public class BookController {
             .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Review a book", tags = {"books", "post"})
+    @PostMapping("/{id}/review")
+    public ResponseEntity<?> reviewBook(@PathVariable Long id,
+                                        @RequestParam int rating) {
+        if (rating < 1 || rating > 5) {
+            return ResponseEntity.badRequest().body("Rating must be between 1 and 5");
+        }
+
+        bookService.updateReview(id, rating);
+
+        Book updatedBook = bookService.findBookById(id);
+
+        float avg = updatedBook.getTotalScore() / updatedBook.getReviewCount();
+        return ResponseEntity.ok(Map.of(
+                "reviewCount", updatedBook.getReviewCount(),
+                "averageRating", Math.round(avg * 10.0) / 10.0
+        ));
     }
 
     @GetMapping("/search")

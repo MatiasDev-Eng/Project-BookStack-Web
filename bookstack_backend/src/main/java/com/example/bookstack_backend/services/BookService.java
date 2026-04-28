@@ -122,4 +122,13 @@ public class BookService {
                 .toList();
     }
 
+    public void updateReview(Long id, int Rating) {
+        Book book = findBookById(id);
+
+        book.setReviewCount(book.getReviewCount() + 1);
+        book.setTotalScore(book.getTotalScore() + Rating);
+
+        bookRepository.save(book);
+    }
+
 }
