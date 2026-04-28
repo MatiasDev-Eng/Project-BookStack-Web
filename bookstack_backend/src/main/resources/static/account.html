@@ -600,7 +600,9 @@
         formData.append('file', file);
 
         try {
-            const res = await fetch(`${API_BASE}/users/${currentUserId}/profile-picture`, {
+            const url = `${API_BASE}/me/${currentUserId}/profile-picture`;
+            console.log("Uploading to:", url);
+            const res = await fetch(`${API_BASE}/me/${currentUserId}/profile-picture`, {
                 method: 'PUT',
                 credentials: 'include',
                 body: formData

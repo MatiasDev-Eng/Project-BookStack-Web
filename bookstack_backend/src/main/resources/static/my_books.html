@@ -83,10 +83,7 @@
         try {
             const response = await fetch(API_URL, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                credentials: 'include'
             });
 
             if (!response.ok) throw new Error("Could not fetch listings");
@@ -107,8 +104,8 @@
                         <td>$${book.price ? book.price.toFixed(2) : '0.00'}</td>
                         <td>${book.condition || 'N/A'}</td>
                         <td>
-                            <span class="status ${book.approved ? 'visible' : 'pending'}">
-                                ${book.approved ? 'Visible' : 'Pending Approval'}
+                            <span class="status ${book.isActive ? 'visible' : 'pending'}">
+                                ${book.isActive ? 'Visible' : 'Pending Approval'}
                             </span>
                         </td>
                         <td class="action-buttons">
