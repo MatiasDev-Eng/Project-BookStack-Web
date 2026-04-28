@@ -51,8 +51,6 @@ public class UserController {
     @Autowired
     JwtUtils jwtUtils;
 
-
-
     @Operation(
             summary = "Get user info",
             description = "Obtains information about the user and returns it to the frontend",
@@ -78,6 +76,7 @@ public class UserController {
         return ResponseEntity.ok(response);
 
     }
+
     @PostMapping("/theme")
     public ResponseEntity<?> updateTheme(@RequestBody Map<String, String> body) {
 
@@ -98,8 +97,7 @@ public class UserController {
 
         return ResponseEntity.ok("Theme updated");
     }
-
-    }
+    
 
     @PutMapping("/{id}/profile-picture")
     public ResponseEntity<?> uploadProfilePicture(
@@ -171,3 +169,5 @@ public class UserController {
         return ResponseEntity.ok(user.getApiKey());
     }
 }
+
+
