@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css">
   <script>
-    // Apply theme instantly from cache to prevent white flash
     (function() {
       const cached = localStorage.getItem('bookstack-theme');
       if (cached === 'dark') document.documentElement.classList.add('dark');
@@ -50,8 +49,8 @@
     <select id="cardSelect" class="card-select">
       <option value="">Loading saved cards...</option>
     </select>
-    <p style="font-size: 0.8rem; color: #64748b; margin-top: -10px;">
-      <a href="my_cards.html" style="color: var(--accent);">+ Add a new card in Account Settings</a>
+    <p style="font-size: 0.8rem; color: var(--muted); margin-top: -10px;">
+      <a href="my_cards.html">+ Add a new card in Account Settings</a>
     </p>
 
     <div class="address-actions">
@@ -60,6 +59,11 @@
     </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
 
 <script>
   const API_BASE = `${window.location.origin}/api`;
@@ -100,23 +104,23 @@
         const itemTotal = item.price * item.quantity;
         grandTotal += itemTotal;
         tbody.innerHTML += `
-            <tr>
-              <td><strong>${item.title}</strong></td>
-              <td>$${item.price.toFixed(2)}</td>
-              <td>
-                <input type="number" class="qty-input" value="${item.quantity}"
-                       onchange="updateQty(${item.cartItemId}, this.value)" min="1">
-              </td>
-              <td>$${itemTotal.toFixed(2)}</td>
-              <td>
-                <button class="remove-btn" id="remove-btn-${item.cartItemId}" onclick="showInlineConfirm(${item.cartItemId})">Remove</button>
-                <span id="confirm-span-${item.cartItemId}" class="inline-confirm">
-                  Sure? <button onclick="removeItem(${item.cartItemId})">Yes</button>
-                  <button onclick="hideInlineConfirm(${item.cartItemId})">No</button>
-                </span>
-              </td>
-            </tr>
-          `;
+          <tr>
+            <td><strong>${item.title}</strong></td>
+            <td>$${item.price.toFixed(2)}</td>
+            <td>
+              <input type="number" class="qty-input" value="${item.quantity}"
+                     onchange="updateQty(${item.cartItemId}, this.value)" min="1">
+            </td>
+            <td>$${itemTotal.toFixed(2)}</td>
+            <td>
+              <button class="remove-btn" id="remove-btn-${item.cartItemId}" onclick="showInlineConfirm(${item.cartItemId})">Remove</button>
+              <span id="confirm-span-${item.cartItemId}" class="inline-confirm">
+                Sure? <button onclick="removeItem(${item.cartItemId})">Yes</button>
+                <button onclick="hideInlineConfirm(${item.cartItemId})">No</button>
+              </span>
+            </td>
+          </tr>
+        `;
       });
     }
     totalSpan.innerText = `$${grandTotal.toFixed(2)}`;
@@ -138,7 +142,7 @@
           cardSelect.innerHTML = '<option value="">No saved cards found</option>';
         } else {
           cardSelect.innerHTML = '<option value="">-- Choose a Card --</option>' +
-                  cards.map(card => `<option value="${card.cardId}">${card.cardNumber} (${card.cardHolderName})</option>`).join('');
+            cards.map(card => `<option value="${card.cardId}">${card.cardNumber} (${card.cardHolderName})</option>`).join('');
         }
       } else {
         cardSelect.innerHTML = '<option value="">Error loading cards</option>';
@@ -177,7 +181,6 @@
     btn.disabled = true;
     btn.innerText = "Processing...";
 
-    // UPDATED: Sending JSON body to match Backend DTO
     const payload = {
       deliveryAddress: deliveryAddress,
       cardId: parseInt(selectedCard)
@@ -211,15 +214,18 @@
     document.getElementById(`remove-btn-${itemId}`).style.display = 'none';
     document.getElementById(`confirm-span-${itemId}`).style.display = 'inline';
   }
+
   function hideInlineConfirm(itemId) {
     document.getElementById(`remove-btn-${itemId}`).style.display = 'inline';
     document.getElementById(`confirm-span-${itemId}`).style.display = 'none';
   }
+
   async function updateQty(itemId, newQty) {
     if (newQty < 1) return;
     await fetch(`${API_BASE}/cart/update-quantity/${itemId}/?quantity=${newQty}`, { method: 'PUT', credentials: 'include' });
     fetchCart();
   }
+
   async function removeItem(itemId) {
     await fetch(`${API_BASE}/cart/remove/${itemId}/`, { method: 'DELETE', credentials: 'include' });
     fetchCart();
@@ -228,23 +234,22 @@
   document.addEventListener('DOMContentLoaded', fetchCart);
 
   async function applyTheme() {
-      try {
-          const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
-          if (!res.ok) return;
-
-          const user = await res.json();
-          const theme = user.themePreference || "light";
-          localStorage.setItem('bookstack-theme', theme);
-
-          document.body.classList.toggle("dark", theme === "dark");
-      } catch (err) {
-          console.error("Theme load failed", err);
-      }
-      document.body.classList.remove("preload");
+    try {
+      const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+      if (!res.ok) return;
+      const user = await res.json();
+      const theme = (user.themePreference || "light").toLowerCase().trim();
+      const isDark = theme === "dark";
+      localStorage.setItem('bookstack-theme', theme);
+      document.body.classList.toggle("dark", isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    } catch (err) {
+      console.error("Theme load failed", err);
+    }
+    document.body.classList.remove("preload");
   }
 
   applyTheme();
-
 </script>
 </body>
 </html>

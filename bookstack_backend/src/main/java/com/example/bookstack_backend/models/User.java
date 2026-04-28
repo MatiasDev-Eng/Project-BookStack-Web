@@ -57,6 +57,16 @@ public class User {
 
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "profile_picture")
+    private byte[] profilePicture;
+
+    @Column(name = "profile_picture_type")
+    private String profilePictureType;
+
+    @Column(name = "api_key", unique = true)
+    private String apiKey;
+
     public User() {
     }
 
@@ -108,4 +118,13 @@ public class User {
     public String getThemePreference() { return themePreference; }
     public void setThemePreference(String themePreference) {this.themePreference = themePreference;}
 
+    public void setProfilePicture(byte[] profilePicture) { this.profilePicture = profilePicture; }
+
+    public byte[] getProfilePicture() {return profilePicture; }
+
+    public void setProfilePictureType(String profilePictureType) { this.profilePictureType = profilePictureType; }
+    public String getProfilePictureType() { return profilePictureType; }
+
+    public void setApiKey(String apiKey) {this.apiKey = apiKey; }
+    public String getApiKey() {return apiKey; }
 }

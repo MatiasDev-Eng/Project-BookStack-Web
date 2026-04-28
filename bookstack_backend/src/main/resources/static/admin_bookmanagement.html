@@ -121,12 +121,12 @@
         <tr>
           <td>
             <div style="font-weight: 700;">${book.title}</div>
-            <div class="book-meta">ID: #${book.id}</div>
+            <div class="book-meta">ID: #${book.bookId}</div>
           </td>
           <td>${book.author}</td>
           <td style="font-weight: 600; color: var(--success);">$${book.price.toFixed(2)}</td>
           <td>
-            <button class="btn-action approve" onclick="approveBook(${book.id}, '${book.title.replace(/'/g, "\\'")}')">
+            <button class="btn-action approve" onclick="approveBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">
               Approve Book
             </button>
           </td>
@@ -180,5 +180,10 @@
     applyTheme();
 
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
 </body>
 </html>

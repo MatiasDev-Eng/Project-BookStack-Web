@@ -1,9 +1,5 @@
 package com.example.bookstack_backend.services;
 
-import com.example.bookstack_backend.dto.request.UpdateUserDetailsRequest;
-import com.example.bookstack_backend.dto.response.MessageResponse;
-import com.example.bookstack_backend.dto.response.UserInfoResponse;
-import com.example.bookstack_backend.exceptions.UserNotFoundException;
 import com.example.bookstack_backend.models.ERole;
 import com.example.bookstack_backend.models.Role;
 import com.example.bookstack_backend.models.User;
@@ -11,17 +7,13 @@ import com.example.bookstack_backend.repository.RoleRepository;
 import com.example.bookstack_backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
-import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -39,8 +31,14 @@ public class UserService {
     PasswordEncoder encoder;
 
     @Transactional()
-    public User getUserById(Long userId) {
+    public User findById(Long userId) {
         return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    @Transactional()
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
@@ -78,6 +76,33 @@ public class UserService {
         userRepository.save(user);
 
         return user;
+    }
+
+    public void updateProfilePicture(Long userId, byte[] imageBytes, String contentType) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setProfilePicture(imageBytes);
+        user.setProfilePictureType(contentType);
+        userRepository.save(user);
+    }
+
+    public boolean hasProfilePicture(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getProfilePicture() != null;
+    }
+
+    public String generateApiKey(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        String key = UUID.randomUUID().toString().replace("-", "");
+        user.setApiKey(key);
+        userRepository.save(user);
+        return key;
+    }
+
+    public Optional<User> findByApiKey(String apiKey) {
+        return userRepository.findByApiKey(apiKey);
     }
 
 

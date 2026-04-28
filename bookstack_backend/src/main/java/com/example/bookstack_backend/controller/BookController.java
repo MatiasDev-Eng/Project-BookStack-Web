@@ -6,6 +6,7 @@ import com.example.bookstack_backend.models.Book;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
 import com.example.bookstack_backend.services.BookService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.core.Authentication;
@@ -13,7 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -34,9 +37,9 @@ public class BookController {
             description = "(TAKES IN JWT) Creates an entry in the book table. Books won't be visible until admin approves",
             tags = { "books", "post" })
     @PostMapping("/")
-    public ResponseEntity<Book> addBookListing(@RequestBody CreateBookRequest request) {
+    public ResponseEntity<BookResponse> addBookListing(@RequestBody CreateBookRequest request) {
         Book savedBook = bookService.createBookListing(request);
-        return new ResponseEntity<>(savedBook, HttpStatus.CREATED);
+        return new ResponseEntity<>(new BookResponse(savedBook), HttpStatus.CREATED);
     }
 
     @Operation(
@@ -44,7 +47,7 @@ public class BookController {
             description = "(TAKES IN JWT) Returns metadata + download link for all pcls owned by a user",
             tags = { "pointclouds", "get" })
     @GetMapping("/")
-    public ResponseEntity<List<BookResponse>> getAllPointclouds() {
+    public ResponseEntity<List<BookResponse>> getAllBooks() {
 //        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
@@ -119,6 +122,44 @@ public class BookController {
                 .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/cover")
+    public ResponseEntity<?> uploadCover(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ResponseEntity.badRequest().body("File must be an image.");
+        }
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body("Image must be under 5 MB.");
+        }
+
+        try {
+            bookService.updateCover(id, file.getBytes(), contentType);
+            return ResponseEntity.ok("Cover uploaded.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("Failed to read file.");
+        }
+    }
+
+    @GetMapping("/{id}/cover")
+    public ResponseEntity<byte[]> getCover(@PathVariable Long id) {
+        try {
+            Book book = bookService.findBookById(id);
+            if (book.getCoverImage() == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(book.getCoverImageType()))
+                    .body(book.getCoverImage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 

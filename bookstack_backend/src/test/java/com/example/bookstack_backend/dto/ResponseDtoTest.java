@@ -23,19 +23,19 @@ public class ResponseDtoTest {
         book.setPrice(BigDecimal.TEN);
 
         BookResponse response = new BookResponse(book);
-        assertEquals(1L, response.getId());
+        assertEquals(1L, response.getBookId());
         assertEquals("Title", response.getTitle());
         assertEquals("Author", response.getAuthor());
         assertEquals("123", response.getIsbn());
         assertEquals(BigDecimal.TEN, response.getPrice());
 
         BookResponse empty = new BookResponse();
-        empty.setId(2L);
+        empty.setBookId(2L);
         empty.setTitle("T");
         empty.setAuthor("A");
         empty.setIsbn("I");
         empty.setPrice(BigDecimal.ONE);
-        assertEquals(2L, empty.getId());
+        assertEquals(2L, empty.getBookId());
         assertEquals("T", empty.getTitle());
         assertEquals("A", empty.getAuthor());
         assertEquals("I", empty.getIsbn());
@@ -111,7 +111,7 @@ public class ResponseDtoTest {
 
     @Test
     void testUserDetailsResponse() {
-        UserDetailsResponse response = new UserDetailsResponse("user", "email", Collections.emptyList(), BigDecimal.TEN, "light");
+        UserDetailsResponse response = new UserDetailsResponse("user", "email", Collections.emptyList(), BigDecimal.TEN, "light", 1L);
         assertEquals("user", response.getUsername());
         assertEquals("email", response.getEmail());
         assertNotNull(response.getAuthorities());

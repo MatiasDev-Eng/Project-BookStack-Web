@@ -31,7 +31,7 @@
 <div class="container wide">
     <div class="dashboard-header">
         <h1>Your Active Listings</h1>
-        <button class="add-new-btn" onclick="window.location.href='/list-book.html'">+ List New Book</button>
+        <button class="add-new-btn" onclick="window.location.href='/publish_book.html'">+ List New Book</button>
     </div>
 
     <table class="listings-table">
@@ -54,6 +54,13 @@
         </tbody>
     </table>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
+
 
 <script>
   // Notification function
@@ -105,8 +112,8 @@
                             </span>
                         </td>
                         <td class="action-buttons">
-                            <button class="edit-btn" onclick="editListing(${book.id})">Edit</button>
-                            <button class="delete-btn" onclick="deleteListing(${book.id})">Delete</button>
+                            <button class="edit-btn" onclick="editListing(${book.bookId})">Edit</button>
+                            <button class="delete-btn" onclick="deleteListing(${book.bookId})">Delete</button>
                         </td>
                     </tr>
                 `).join('');

@@ -17,16 +17,17 @@ public class UserDetailsResponse {
 
     private String themePreference;
 
+    private Long id;
 
     public UserDetailsResponse(String username, String email,
                                Collection<? extends GrantedAuthority> authorities,
-                               BigDecimal balance, String themePreference) {
+                               BigDecimal balance, String themePreference, Long id) {
         this.username = username;
         this.email = email;
         this.authorities = authorities;
         this.balance = balance;
         this.themePreference = themePreference;
-
+        this.id = id;
     }
 
     public String getUsername() {
@@ -48,4 +49,6 @@ public class UserDetailsResponse {
         return themePreference;
     }
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 }

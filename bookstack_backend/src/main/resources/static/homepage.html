@@ -6,12 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css">
   <script>
-    // Apply theme instantly from cache to prevent white flash
     (function() {
       const cached = localStorage.getItem('bookstack-theme');
       if (cached === 'dark') document.documentElement.classList.add('dark');
     })();
   </script>
+  <style>
+    /* Nav avatar photo support */
+    .user-profile-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: none;
+    }
+    .user-profile-btn.has-photo img        { display: block; }
+    .user-profile-btn.has-photo .nav-emoji { display: none; }
+  </style>
 </head>
 
 <body class="preload">
@@ -32,33 +43,29 @@
     <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display: none;">
       🛡️ Admin
     </a>
-
     <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
     <div class="nav-icon-btn" onclick="window.location.href='wishlist.html'">❤️</div>
     <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
-    <div class="user-profile-btn" onclick="window.location.href='account.html'">👤</div>
+    <div class="user-profile-btn" onclick="window.location.href='account.html'">
+      <img id="navAvatar" alt="Profile">
+      <span class="nav-emoji">👤</span>
+    </div>
   </div>
 </nav>
 
 <div id="filterPanel" class="filter-panel">
   <h3>Filters</h3>
-
   <label>Min Price</label>
   <input type="number" id="minPrice" placeholder="0">
-
   <label>Max Price</label>
   <input type="number" id="maxPrice" placeholder="100">
-
   <label>Min Year</label>
   <input type="number" id="minYear" placeholder="1900">
-
   <label>Max Year</label>
   <input type="number" id="maxYear" placeholder="2025">
-
   <button id="applyFiltersBtn">Apply Filters</button>
   <button id="clearFiltersBtn" class="clear-btn">Clear Filters</button>
 </div>
-
 
 <section class="featured">
   <h2 id="featuredTitle">Featured Books</h2>
@@ -69,16 +76,14 @@
   </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
+
 <script>
+  let activeFilters = { minPrice: null, maxPrice: null, minYear: null, maxYear: null };
 
-  let activeFilters = {
-    minPrice: null,
-    maxPrice: null,
-    minYear: null,
-    maxYear: null
-  };
-
-  // Notification function
   const API_BASE = `${window.location.origin}/api`;
 
   function showNotification(message, type = "info") {
@@ -89,17 +94,30 @@
     setTimeout(() => { note.style.display = "none"; }, 3000);
   }
 
+  // ── Admin check + nav avatar ──────────────────────────────
   async function checkAdminStatus() {
     const adminBtn = document.getElementById('adminBtn');
     try {
-      const response = await fetch(`${API_BASE}/auth/me/`, {
-        credentials: 'include'
-      });
-
+      const response = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
       if (response.ok) {
         const user = await response.json();
+
         if (user.roles && user.roles.includes('ROLE_ADMIN')) {
           adminBtn.style.display = 'flex';
+        }
+
+        // Load profile picture into nav avatar
+        try {
+          const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
+          if (picRes.ok) {
+            const blob       = URL.createObjectURL(await picRes.blob());
+            const navAvatar  = document.getElementById('navAvatar');
+            const profileBtn = document.querySelector('.user-profile-btn');
+            navAvatar.src    = blob;
+            navAvatar.onload = () => profileBtn.classList.add('has-photo');
+          }
+        } catch (e) {
+          // no picture — leave emoji
         }
       }
     } catch (error) {
@@ -107,18 +125,18 @@
     }
   }
 
+  // ── Qty controls ──────────────────────────────────────────
   function updateQty(event, btn, delta) {
     event.stopPropagation();
     const qtySpan = btn.parentElement.querySelector('.qty-num');
     let currentQty = parseInt(qtySpan.innerText);
-    currentQty = Math.max(1, currentQty + delta);
-    qtySpan.innerText = currentQty;
+    qtySpan.innerText = Math.max(1, currentQty + delta);
   }
 
+  // ── Add to cart ───────────────────────────────────────────
   async function addToCart(event, bookId) {
     event.stopPropagation();
     const qty = parseInt(document.getElementById(`qty-${bookId}`).innerText);
-
     try {
       const response = await fetch(`${API_BASE}/cart/add/`, {
         method: 'POST',
@@ -126,7 +144,6 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookId: bookId, quantity: qty })
       });
-
       if (response.ok) {
         showNotification("Added to cart!", "success");
       } else {
@@ -136,48 +153,54 @@
       console.error("Cart error:", error);
     }
   }
+
+  // ── Fetch books ───────────────────────────────────────────
   async function fetchFeaturedBooks(searchQuery, minPrice, maxPrice, minYear, maxYear) {
     const bookGrid = document.getElementById('bookGrid');
     if (searchQuery) document.getElementById('featuredTitle').innerText = `Results for "${searchQuery}"`;
 
     try {
-
       let url = `${API_BASE}/books/search?query=${searchQuery || ""}`;
-        
       if (minPrice) url += `&minPrice=${minPrice}`;
       if (maxPrice) url += `&maxPrice=${maxPrice}`;
-      if (minYear) url += `&minYear=${minYear}`;
-      if (maxYear) url += `&maxYear=${maxYear}`;
+      if (minYear)  url += `&minYear=${minYear}`;
+      if (maxYear)  url += `&maxYear=${maxYear}`;
 
-      const response = await fetch(url, {credentials: 'include'});
+      const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const books = await response.json();
       bookGrid.innerHTML = '';
 
       const list = searchQuery || minPrice || maxPrice || minYear || maxYear
-        ? books 
-        : books.slice(0,5);
+        ? books
+        : books.slice(0, 5);
 
       list.forEach(book => {
         const card = document.createElement('div');
         card.className = 'book-card';
-        card.onclick = () => { window.location.href = `book_details.html?id=${book.id}`; };
+        card.onclick = () => { window.location.href = `book_details.html?id=${book.bookId}`; };
 
         card.innerHTML = `
-          <div class="book-cover">📖</div>
+          <div class="book-cover" style="padding:0; overflow:hidden;">
+            ${book.hasCover
+              ? `<img src="${API_BASE}/books/${book.bookId}/cover"
+                      alt="${book.title}"
+                      style="width:100%; height:100%; object-fit:cover;"
+                      onerror="this.parentElement.innerHTML='📖'">`
+              : `📖`}
+          </div>
           <div class="book-info">
             <div class="book-title">${book.title}</div>
             <div class="book-author">by ${book.author}</div>
             <div class="book-price">$${book.price.toFixed(2)}</div>
-
             <div class="cart-controls">
               <div class="quantity-selector">
                 <button class="qty-btn" onclick="updateQty(event, this, -1)">−</button>
-                <span class="qty-num" id="qty-${book.id}">1</span>
+                <span class="qty-num" id="qty-${book.bookId}">1</span>
                 <button class="qty-btn" onclick="updateQty(event, this, 1)">+</button>
               </div>
-              <button class="add-to-cart-btn" onclick="addToCart(event, ${book.id})">Add to Cart</button>
+              <button class="add-to-cart-btn" onclick="addToCart(event, ${book.bookId})">Add to Cart</button>
             </div>
           </div>
         `;
@@ -186,44 +209,27 @@
 
       document.getElementById("minPrice").value = activeFilters.minPrice ?? "";
       document.getElementById("maxPrice").value = activeFilters.maxPrice ?? "";
-      document.getElementById("minYear").value  = activeFilters.minYear ?? "";
-      document.getElementById("maxYear").value  = activeFilters.maxYear ?? "";
+      document.getElementById("minYear").value  = activeFilters.minYear  ?? "";
+      document.getElementById("maxYear").value  = activeFilters.maxYear  ?? "";
 
     } catch (error) {
-      bookGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: red;">Failed to load books.</div>`;
+      bookGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--danger);">Failed to load books.</div>`;
     }
   }
 
-  fetch(window.location.href, { method: "HEAD" })
-  .then(res => {
-    if (!res.ok) {
-      window.location.href = "404.html";
-    }
-  })
-  .catch(() => {
-    window.location.href = "404.html";
-  });
-
-
+  // ── DOMContentLoaded ──────────────────────────────────────
   window.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
+    const params      = new URLSearchParams(window.location.search);
     const searchQuery = params.get("search");
+    const minPrice    = params.get("minPrice");
+    const maxPrice    = params.get("maxPrice");
+    const minYear     = params.get("minYear");
+    const maxYear     = params.get("maxYear");
 
-    const minPrice = params.get("minPrice");
-    const maxPrice = params.get("maxPrice");
-    const minYear  = params.get("minYear");
-    const maxYear  = params.get("maxYear");
+    activeFilters = { minPrice, maxPrice, minYear, maxYear };
 
-    activeFilters.minPrice = minPrice;
-    activeFilters.maxPrice = maxPrice;
-    activeFilters.minYear  = minYear;
-    activeFilters.maxYear  = maxYear;
-
-    const filterPanel = document.getElementById("filterPanel");
-    const filterBtn = document.getElementById("filterBtn");
-
-    filterBtn.addEventListener("click", () => {
-      filterPanel.classList.toggle("open");
+    document.getElementById("filterBtn").addEventListener("click", () => {
+      document.getElementById("filterPanel").classList.toggle("open");
     });
 
     document.getElementById("searchBtn").addEventListener("click", () => {
@@ -231,59 +237,57 @@
       window.location.href = `homepage.html?search=${encodeURIComponent(query)}`;
     });
 
+    document.getElementById("searchInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const query = document.getElementById("searchInput").value.trim();
+        window.location.href = `homepage.html?search=${encodeURIComponent(query)}`;
+      }
+    });
+
     document.getElementById("applyFiltersBtn").addEventListener("click", () => {
       const query = document.getElementById("searchInput").value.trim();
-
       activeFilters.minPrice = document.getElementById("minPrice").value || null;
       activeFilters.maxPrice = document.getElementById("maxPrice").value || null;
-      activeFilters.minYear  = document.getElementById("minYear").value || null;
-      activeFilters.maxYear  = document.getElementById("maxYear").value || null;
+      activeFilters.minYear  = document.getElementById("minYear").value  || null;
+      activeFilters.maxYear  = document.getElementById("maxYear").value  || null;
 
       let url = `homepage.html?search=${encodeURIComponent(query)}`;
-
       if (activeFilters.minPrice) url += `&minPrice=${activeFilters.minPrice}`;
       if (activeFilters.maxPrice) url += `&maxPrice=${activeFilters.maxPrice}`;
       if (activeFilters.minYear)  url += `&minYear=${activeFilters.minYear}`;
       if (activeFilters.maxYear)  url += `&maxYear=${activeFilters.maxYear}`;
-
       window.location.href = url;
     });
 
     document.getElementById("clearFiltersBtn").addEventListener("click", () => {
-      activeFilters = {
-        minPrice: null,
-        maxPrice: null,
-        minYear: null,
-        maxYear: null
-      };
-
+      activeFilters = { minPrice: null, maxPrice: null, minYear: null, maxYear: null };
       document.getElementById("minPrice").value = "";
       document.getElementById("maxPrice").value = "";
-      document.getElementById("minYear").value = "";
-      document.getElementById("maxYear").value = "";
-
+      document.getElementById("minYear").value  = "";
+      document.getElementById("maxYear").value  = "";
       const query = document.getElementById("searchInput").value.trim();
       window.location.href = `homepage.html?search=${encodeURIComponent(query)}`;
     });
 
-    // Run both checks
     checkAdminStatus();
     fetchFeaturedBooks(searchQuery, minPrice, maxPrice, minYear, maxYear);
   });
+
+  // ── Theme ─────────────────────────────────────────────────
   async function applyTheme() {
-      try {
-          const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
-          if (!res.ok) return;
-
-          const user = await res.json();
-          const theme = user.themePreference || "light";
-          localStorage.setItem('bookstack-theme', theme);
-
-          document.body.classList.toggle("dark", theme === "dark");
-      } catch (err) {
-          console.error("Theme load failed", err);
-      }
-      document.body.classList.remove("preload");
+    try {
+      const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+      if (!res.ok) return;
+      const user = await res.json();
+      const theme  = (user.themePreference || "light").toLowerCase().trim();
+      const isDark = theme === "dark";
+      localStorage.setItem('bookstack-theme', theme);
+      document.body.classList.toggle("dark", isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    } catch (err) {
+      console.error("Theme load failed", err);
+    }
+    document.body.classList.remove("preload");
   }
 
   applyTheme();

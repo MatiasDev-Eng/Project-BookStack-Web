@@ -4,6 +4,7 @@ import com.example.bookstack_backend.dto.response.OrderDetailsResponse;
 import com.example.bookstack_backend.dto.response.OrderResponse;
 import com.example.bookstack_backend.models.*;
 import com.example.bookstack_backend.repository.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
     @Autowired
@@ -31,6 +33,8 @@ public class OrderService {
 
     @Autowired
     private UserRepository userRepository;
+
+    private final SaleNotificationService saleNotificationService;
 
     @Transactional
     public Order checkout(User user, String address, Long cardId) {
@@ -82,6 +86,11 @@ public class OrderService {
         });
 
         Order savedOrder = orderRepository.save(order);
+
+        savedOrder.getOrderItems().forEach(item -> {
+            User seller = item.getBook().getOwner();
+            saleNotificationService.notifySeller(seller, item, address);
+        });
 
         cartItemRepository.deleteAllByCart(cart);
 

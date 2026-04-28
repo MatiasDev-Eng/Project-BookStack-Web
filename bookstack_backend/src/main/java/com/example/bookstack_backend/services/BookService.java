@@ -57,25 +57,20 @@ public class BookService {
 
         List<Book> books = bookRepository.findByOwner(owner);
 
-        return books.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return books.stream().map(BookResponse::new).collect(Collectors.toList());
     }
 
-    private BookResponse mapToResponse(Book book) {
-        BookResponse response = new BookResponse();
-        response.setId(book.getBookId());
-        response.setTitle(book.getTitle());
-        response.setAuthor(book.getAuthor());
-        response.setIsbn(book.getIsbn());
-        response.setGenre(book.getGenre());
-        response.setPrice(book.getPrice());
-        return response;
-    }
 
     public Book findBookById(Long id) {
         return bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
+    }
+
+    public void updateCover(Long id, byte[] imageBytes, String contentType) {
+        Book book = findBookById(id);
+        book.setCoverImage(imageBytes);
+        book.setCoverImageType(contentType);
+        bookRepository.save(book);
     }
     
     public Book updateBookListing(Long bookId, CreateBookRequest updateRequest) {
