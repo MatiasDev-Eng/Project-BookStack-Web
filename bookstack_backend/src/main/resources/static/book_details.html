@@ -78,6 +78,9 @@
     const params = new URLSearchParams(window.location.search);
     const bookId = params.get("id");
 
+    let selectedRating = 0;
+    const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
     // ── Notification ──────────────────────────────────────────
     function showNotification(message, type = "info") {
         const note = document.getElementById("notification");
@@ -115,6 +118,59 @@
         return map[condition.toUpperCase()] || condition;
     }
 
+    // ── Star rating helpers ───────────────────────────────────
+    function selectStar(val) {
+        selectedRating = val;
+        document.querySelectorAll('#starSelector span').forEach(star => {
+            const starVal = parseInt(star.dataset.val);
+            star.style.color     = starVal <= val ? 'var(--accent)' : 'var(--border)';
+            star.style.transform = starVal === val ? 'scale(1.2)' : 'scale(1)';
+        });
+        document.getElementById('ratingLabel').textContent =
+            `${val} star${val !== 1 ? 's' : ''} — ${ratingLabels[val]}`;
+        document.getElementById('submitReviewBtn').disabled = false;
+    }
+
+    async function submitReview() {
+        const btn    = document.getElementById('submitReviewBtn');
+        const result = document.getElementById('reviewResult');
+        btn.disabled    = true;
+        btn.textContent = 'Submitting...';
+
+        try {
+            const res = await fetch(`${API_BASE}/books/${bookId}/review?rating=${selectedRating}`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                result.style.color   = 'var(--success)';
+                result.textContent   = `Thanks! New average: ${data.averageRating} / 5 (${data.reviewCount} review${data.reviewCount !== 1 ? 's' : ''})`;
+                btn.textContent      = '✓ Submitted';
+            } else if (res.status === 401) {
+                result.style.color   = 'var(--danger)';
+                result.textContent   = 'Please log in to submit a review.';
+                btn.disabled         = false;
+                btn.textContent      = 'Submit Rating';
+            } else if (res.status === 409) {
+                result.style.color = 'var(--danger)';
+                result.textContent = 'You have already reviewed this book.';
+                btn.textContent = 'Already Reviewed';
+            } else {
+                result.style.color   = 'var(--danger)';
+                result.textContent   = 'Failed to submit. Please try again.';
+                btn.disabled         = false;
+                btn.textContent      = 'Submit Rating';
+            }
+        } catch (err) {
+            result.style.color   = 'var(--danger)';
+            result.textContent   = 'Network error. Please try again.';
+            btn.disabled         = false;
+            btn.textContent      = 'Submit Rating';
+        }
+    }
+
     // ── Load main book ────────────────────────────────────────
     async function loadBook() {
         if (!bookId) {
@@ -139,7 +195,18 @@
 
             document.title = `${title} | BookStack`;
 
-            // Cover: real image if hasCover, otherwise emoji placeholder
+            // ── Average rating display ────────────────────────
+            const avgRating = book.reviewCount > 0
+                ? (book.totalScore / book.reviewCount).toFixed(1)
+                : null;
+
+            const filledStars = avgRating ? Math.round(parseFloat(avgRating)) : 0;
+            const starsDisplay = avgRating
+                ? `<span style="color: var(--accent); font-size: 1.2rem; letter-spacing: 2px;">${'★'.repeat(filledStars)}${'☆'.repeat(5 - filledStars)}</span>
+                   <span style="color: var(--muted); font-size: 0.9rem;">${avgRating} / 5 &nbsp;·&nbsp; ${book.reviewCount} review${book.reviewCount !== 1 ? 's' : ''}</span>`
+                : `<span style="color: var(--muted); font-size: 0.9rem;">No reviews yet</span>`;
+
+            // ── Cover HTML ────────────────────────────────────
             const coverHTML = book.hasCover
                 ? `<img src="${API_BASE}/books/${bookId}/cover"
                         alt="${title}"
@@ -152,7 +219,7 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 32px; margin-top: 8px;">
 
-                    <!-- Cover -->
+                    <!-- Cover + actions -->
                     <div>
                         ${coverHTML}
                         <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
@@ -169,7 +236,14 @@
                     <!-- Info -->
                     <div>
                         <h1 style="margin-bottom: 6px;">${title}</h1>
-                        <p style="font-size: 1.05rem; color: var(--muted); margin-bottom: 20px;">by <strong style="color: var(--primary);">${author}</strong></p>
+                        <p style="font-size: 1.05rem; color: var(--muted); margin-bottom: 10px;">
+                            by <strong style="color: var(--primary);">${author}</strong>
+                        </p>
+
+                        <!-- Star rating display -->
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                            ${starsDisplay}
+                        </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
                             <div class="card" style="margin:0; padding: 16px;">
@@ -205,6 +279,34 @@
                     </div>
                 </div>
 
+                <!-- ── Review widget ── -->
+                <div style="margin-top: 32px; padding: 24px; background: var(--bg-subtle); border-radius: var(--radius); border: 1px solid var(--border);">
+                    <h2 style="margin-bottom: 6px;">Rate This Book</h2>
+                    <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 16px;">Click a star to leave your rating</p>
+                    <div id="starSelector" style="display: flex; gap: 6px; margin-bottom: 12px;">
+                        ${[1,2,3,4,5].map(n => `
+                            <span
+                                data-val="${n}"
+                                onclick="selectStar(${n})"
+                                onmouseover="hoverStar(${n})"
+                                onmouseout="unhoverStar()"
+                                style="font-size: 2.2rem; cursor: pointer; transition: transform 0.1s, color 0.1s; color: var(--border); user-select: none;">★</span>
+                        `).join('')}
+                    </div>
+                    <p id="ratingLabel" style="color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; min-height: 1.2em;">
+                        Select a star rating above
+                    </p>
+                    <button id="submitReviewBtn"
+                            class="submit-btn"
+                            style="width: auto; padding: 10px 28px;"
+                            disabled
+                            onclick="submitReview()">
+                        Submit Rating
+                    </button>
+                    <p id="reviewResult" style="margin-top: 12px; font-size: 0.9rem; min-height: 1.2em;"></p>
+                </div>
+
+                <!-- ── Similar books ── -->
                 <div style="margin-top: 40px;">
                     <h2 style="margin-bottom: 16px;">More Like This</h2>
                     <div id="similar-books" class="similar-books-container">
@@ -220,6 +322,21 @@
             document.getElementById("bookDetailsContainer").innerHTML =
                 `<p style="text-align:center; color: var(--danger);">Failed to load book details. Please try again.</p>`;
         }
+    }
+
+    // ── Star hover effects ────────────────────────────────────
+    function hoverStar(val) {
+        document.querySelectorAll('#starSelector span').forEach(star => {
+            const starVal = parseInt(star.dataset.val);
+            star.style.color = starVal <= val ? 'var(--accent)' : 'var(--border)';
+        });
+    }
+
+    function unhoverStar() {
+        document.querySelectorAll('#starSelector span').forEach(star => {
+            const starVal = parseInt(star.dataset.val);
+            star.style.color = starVal <= selectedRating ? 'var(--accent)' : 'var(--border)';
+        });
     }
 
     // ── Similar books ─────────────────────────────────────────
@@ -343,7 +460,6 @@
 
     // ── Theme ─────────────────────────────────────────────────
     async function applyTheme() {
-        // Don't attempt if no JWT cookie present
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) {
             document.body.classList.remove("preload");
@@ -359,6 +475,7 @@
             const user = await res.json();
             const theme = user.themePreference || "light";
             localStorage.setItem('bookstack-theme', theme);
+            document.documentElement.classList.toggle("dark", theme === "dark");
             document.body.classList.toggle("dark", theme === "dark");
         } catch (err) {
             console.error("Theme load failed", err);

@@ -3,8 +3,11 @@ package com.example.bookstack_backend.controller;
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
 import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.User;
+import com.example.bookstack_backend.repository.UserRepository;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
 import com.example.bookstack_backend.services.BookService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -27,6 +31,9 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public BookController(BookService bookService) {
         this.bookService = bookService;
@@ -104,6 +111,34 @@ public class BookController {
             .toList();
 
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Review a book", tags = {"books", "post"})
+    @PostMapping("/{bookId}/review")
+    public ResponseEntity<?> reviewBook(@PathVariable Long bookId,
+                                        @RequestParam int rating) {
+        if (rating < 1 || rating > 5) {
+            return ResponseEntity.badRequest().body("Rating must be between 1 and 5");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        try {
+            bookService.updateReview(bookId, user, rating);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+
+        Book updatedBook = bookService.findBookById(bookId);
+        float avg = updatedBook.getTotalScore() / updatedBook.getReviewCount();
+        return ResponseEntity.ok(Map.of(
+                "reviewCount", updatedBook.getReviewCount(),
+                "averageRating", Math.round(avg * 10.0) / 10.0
+        ));
     }
 
     @GetMapping("/search")
