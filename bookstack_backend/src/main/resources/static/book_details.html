@@ -153,6 +153,10 @@
                 result.textContent   = 'Please log in to submit a review.';
                 btn.disabled         = false;
                 btn.textContent      = 'Submit Rating';
+            } else if (res.status === 409) {
+                result.style.color = 'var(--danger)';
+                result.textContent = 'You have already reviewed this book.';
+                btn.textContent = 'Already Reviewed';
             } else {
                 result.style.color   = 'var(--danger)';
                 result.textContent   = 'Failed to submit. Please try again.';

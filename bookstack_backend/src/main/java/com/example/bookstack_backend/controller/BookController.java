@@ -3,8 +3,11 @@ package com.example.bookstack_backend.controller;
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
 import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.User;
+import com.example.bookstack_backend.repository.UserRepository;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
 import com.example.bookstack_backend.services.BookService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +31,9 @@ import java.util.Map;
 public class BookController {
 
     private final BookService bookService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public BookController(BookService bookService) {
         this.bookService = bookService;
@@ -108,17 +114,26 @@ public class BookController {
     }
 
     @Operation(summary = "Review a book", tags = {"books", "post"})
-    @PostMapping("/{id}/review")
-    public ResponseEntity<?> reviewBook(@PathVariable Long id,
+    @PostMapping("/{bookId}/review")
+    public ResponseEntity<?> reviewBook(@PathVariable Long bookId,
                                         @RequestParam int rating) {
         if (rating < 1 || rating > 5) {
             return ResponseEntity.badRequest().body("Rating must be between 1 and 5");
         }
 
-        bookService.updateReview(id, rating);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        Book updatedBook = bookService.findBookById(id);
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        try {
+            bookService.updateReview(bookId, user, rating);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+
+        Book updatedBook = bookService.findBookById(bookId);
         float avg = updatedBook.getTotalScore() / updatedBook.getReviewCount();
         return ResponseEntity.ok(Map.of(
                 "reviewCount", updatedBook.getReviewCount(),

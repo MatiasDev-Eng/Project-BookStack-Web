@@ -3,9 +3,12 @@ package com.example.bookstack_backend.services;
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
 import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.Review;
 import com.example.bookstack_backend.models.User;
 import com.example.bookstack_backend.repository.BookRepository;
+import com.example.bookstack_backend.repository.ReviewRepository;
 import com.example.bookstack_backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 
@@ -18,6 +21,9 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     public BookService(BookRepository bookRepository, UserRepository userRepository) {
         this.bookRepository = bookRepository;
@@ -122,12 +128,16 @@ public class BookService {
                 .toList();
     }
 
-    public void updateReview(Long id, int Rating) {
-        Book book = findBookById(id);
+    public void updateReview(Long bookId, User user, int rating) {
+        Book book = findBookById(bookId);
 
+        if (reviewRepository.existsByUserAndBook(user, book)) {
+            throw new IllegalStateException("You have already reviewed this book");
+        }
+
+        reviewRepository.save(new Review(user, book, rating));
         book.setReviewCount(book.getReviewCount() + 1);
-        book.setTotalScore(book.getTotalScore() + Rating);
-
+        book.setTotalScore(book.getTotalScore() + rating);
         bookRepository.save(book);
     }
 
