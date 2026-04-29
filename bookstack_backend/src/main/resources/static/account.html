@@ -523,7 +523,9 @@
     }
 
     async function loadIntegrationInfo(userId) {
-        document.getElementById('wsUrlDisplay').value   = `${window.location.origin}/ws`;
+        let origin = window.location.origin;
+        const nativeWsUrl = window.location.origin.replace(/^http(s)?/, 'wss') + '/ws-native';
+        document.getElementById('wsUrlDisplay').value = nativeWsUrl;
         document.getElementById('wsTopicDisplay').value = `/topic/seller.${userId}`;
 
         try {
