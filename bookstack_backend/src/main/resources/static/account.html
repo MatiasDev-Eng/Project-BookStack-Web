@@ -421,6 +421,14 @@
         <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp">
     </div>
 
+    <div class="profile-section">
+        <span class="avatar-hint">Click to change profile picture</span>
+
+        <button id="logoutBtn" class="logout-btn">Log Out</button>
+
+        <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp">
+    </div>
+
     <div class="form-group">
         <label><strong>Username</strong></label>
         <input type="text" id="usernameInput" readonly>
@@ -538,6 +546,28 @@
             // leave placeholder
         }
     }
+
+    async function handleLogout() {
+        try {
+            const response = await fetch(`${API_BASE}/auth/signout/`, {
+                method: 'POST',
+                credentials: 'include' // Important for clearing HttpOnly cookies
+            });
+
+            if (response.ok) {
+                // Clear local theme or notification settings if desired
+                localStorage.removeItem(NOTIF_KEY);
+                window.location.href = 'login.html';
+            } else {
+                updateStatus("Logout failed. Please try again.", "error");
+            }
+        } catch (e) {
+            updateStatus("Network error during logout.", "error");
+        }
+    }
+
+    // Add the listener inside your DOMContentLoaded or with the other listeners
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
     document.getElementById('generateKeyBtn').addEventListener('click', async () => {
         const btn = document.getElementById('generateKeyBtn');
