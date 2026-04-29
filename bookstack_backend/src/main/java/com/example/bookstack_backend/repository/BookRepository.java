@@ -28,6 +28,13 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> searchActiveBooks(@Param("query") String query);    List<Book> findByIsActiveTrue();
     Optional<Book> findByBookIdAndIsActiveTrue(Long bookId);
 
+    @Query("SELECT b FROM Book b WHERE " +
+            "(LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(b.author) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(b.genre) LIKE LOWER(CONCAT('%', :query, '%')))")
+    List<Book> searchAllBooks(@Param("query") String query);
+
+
     @Modifying
     @Transactional
     @Query("UPDATE Book u SET u.isActive = true WHERE u.id = :bookId")

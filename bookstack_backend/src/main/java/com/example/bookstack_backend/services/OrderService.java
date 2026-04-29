@@ -34,6 +34,9 @@ public class OrderService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private BookRepository bookRepository;
+
     private final SaleNotificationService saleNotificationService;
 
     @Transactional
@@ -56,11 +59,29 @@ public class OrderService {
         order.setCreditCard(card);
 
         List<OrderItem> orderItems = cart.getItems().stream().map(cartItem -> {
+            Book book = cartItem.getBook();
+            int requestedQty = cartItem.getQuantity();
+
+            // Check stock availability
+            if (book.getStock() == null || book.getStock() < requestedQty) {
+                throw new RuntimeException("Not enough stock for \"" + book.getTitle() + "\". Only " + (book.getStock() == null ? 0 : book.getStock()) + " left.");
+            }
+
+            // Decrement stock
+            book.setStock(book.getStock() - requestedQty);
+
+            // If stock hits 0, deactivate the book so it doesn't show on homepage
+            if (book.getStock() == 0) {
+                book.setIsActive(false);
+            }
+
+            bookRepository.save(book);
+
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
-            orderItem.setBook(cartItem.getBook());
-            orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setPriceAtPurchase(cartItem.getBook().getPrice());
+            orderItem.setBook(book);
+            orderItem.setQuantity(requestedQty);
+            orderItem.setPriceAtPurchase(book.getPrice());
             return orderItem;
         }).collect(Collectors.toList());
 

@@ -63,7 +63,8 @@ public class CartService {
                                 item.getBook().getBookId(),
                                 item.getBook().getTitle(),
                                 item.getBook().getPrice(),
-                                item.getQuantity()
+                                item.getQuantity(),
+                                item.getBook().getStock()
                         )).toList())
                 .orElse(Collections.emptyList());
     }
@@ -82,9 +83,14 @@ public class CartService {
         CartItem item = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
-        // Ensure quantity doesn't go below 1
         if (quantity < 1) {
             throw new IllegalArgumentException("Quantity must be at least 1");
+        }
+
+        // Check against stock
+        int availableStock = item.getBook().getStock();
+        if (quantity > availableStock) {
+            throw new IllegalArgumentException("Only " + availableStock + " in stock");
         }
 
         item.setQuantity(quantity);

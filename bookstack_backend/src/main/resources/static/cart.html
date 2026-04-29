@@ -164,7 +164,9 @@
             <td>$${item.price.toFixed(2)}</td>
             <td>
               <input type="number" class="qty-input" value="${item.quantity}"
-                     onchange="updateQty(${item.cartItemId}, this.value)" min="1">
+                    min="1" max="${item.stock ?? 999}"
+                    onchange="updateQty(${item.cartItemId}, this.value, ${item.stock ?? 999})"
+                    min="1">
             </td>
             <td>$${itemTotal.toFixed(2)}</td>
             <td>
@@ -275,10 +277,13 @@
     document.getElementById(`confirm-span-${itemId}`).style.display = 'none';
   }
 
-  async function updateQty(itemId, newQty) {
-    if (newQty < 1) return;
-    await fetch(`${API_BASE}/cart/update-quantity/${itemId}/?quantity=${newQty}`, { method: 'PUT', credentials: 'include' });
-    fetchCart();
+  async function updateQty(itemId, newQty, maxStock) {
+      const qty = Math.max(1, Math.min(parseInt(newQty), maxStock));
+      await fetch(`${API_BASE}/cart/update-quantity/${itemId}/?quantity=${qty}`, { 
+          method: 'PUT', 
+          credentials: 'include' 
+      });
+      fetchCart();
   }
 
   async function removeItem(itemId) {
