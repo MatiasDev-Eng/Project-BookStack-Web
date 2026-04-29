@@ -32,10 +32,12 @@ services:
     restart: always
 
   localtunnel:
-    image: node:18-alpine
-    command: npx localtunnel --port 9091 --local-host app --subdomain bookstack-page
-    depends_on:
-      - app
+    image: ngrok/ngrok:latest
+    command: http app:9091
+    environment:
+      NGROK_AUTHTOKEN: 3D2cH3Tr5gefpifjD5usPF4jwEy_3GMjn1GNL9PSymTq67ivE
+    ports:
+      - "4040:4040"
 
 volumes:
   postgres_data:
