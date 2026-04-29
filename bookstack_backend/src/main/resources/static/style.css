@@ -1886,3 +1886,26 @@ body.dark p[style*="color: #64748b"] {
     from { opacity: 1; transform: translateX(0); }
     to { opacity: 0; transform: translateX(100%); }
 }
+
+.logout-btn {
+    margin-top: 8px;
+    background: none;
+    border: 1px solid var(--danger-red);
+    color: var(--danger-red);
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: var(--fef2f2); /* Light red tint */
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+}
+
+/* Optional: Dark mode adjustment for the hover tint */
+body.dark .logout-btn:hover {
+    background-color: rgba(220, 38, 38, 0.1);
+}do
