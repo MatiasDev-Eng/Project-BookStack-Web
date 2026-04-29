@@ -40,12 +40,18 @@ public class BookController {
     }
 
     @Operation(
-            summary = "Create book listing",
-            description = "(TAKES IN JWT) Creates an entry in the book table. Books won't be visible until admin approves",
+            summary = "Create book listing with cover",
+            description = "(TAKES IN JWT) Creates book and uploads cover in one transaction.",
             tags = { "books", "post" })
-    @PostMapping("/")
-    public ResponseEntity<BookResponse> addBookListing(@RequestBody CreateBookRequest request) {
-        Book savedBook = bookService.createBookListing(request);
+    @PostMapping(value = "/", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<BookResponse> addBookListing(
+            @RequestPart("book") CreateBookRequest request,
+            @RequestPart(value = "cover", required = false) MultipartFile cover) {
+
+        // 1. Pass both the request and the file to your service
+        // 2. The service should save the book, upload the file, then update the book's image URL
+        Book savedBook = bookService.createBookWithCover(request, cover);
+
         return new ResponseEntity<>(new BookResponse(savedBook), HttpStatus.CREATED);
     }
 
