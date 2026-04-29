@@ -94,7 +94,7 @@ public class ResponseDtoTest {
 
     @Test
     void testCartItemResponse() {
-        CartItemResponse response = new CartItemResponse(1L, 2L, "Title", BigDecimal.TEN, 3);
+        CartItemResponse response = new CartItemResponse(1L, 2L, "Title", BigDecimal.TEN, 3, 10);
         assertEquals(1L, response.getCartItemId());
         assertEquals(2L, response.getBookId());
         assertEquals("Title", response.getTitle());

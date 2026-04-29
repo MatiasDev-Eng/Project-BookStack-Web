@@ -157,7 +157,7 @@ public class BookService {
     }
 
     public List<Book> searchBooks(String query, Double minPrice, Double maxPrice, Integer minYear, Integer maxYear) {
-        List<Book> baseResults = bookRepository.searchActiveBooks(query);
+        List<Book> baseResults = bookRepository.searchAllBooks(query);
     
     
         return baseResults.stream()

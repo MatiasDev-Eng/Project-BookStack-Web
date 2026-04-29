@@ -80,7 +80,7 @@ public class CartControllerTest {
 
     @Test
     void testGetCart_Success() throws Exception {
-        CartItemResponse item = new CartItemResponse(1L, 1L, "Test Book", new BigDecimal("10.00"), 2);
+        CartItemResponse item = new CartItemResponse(1L, 1L, "Test Book", new BigDecimal("10.00"), 2, 10);
         List<CartItemResponse> items = Arrays.asList(item);
 
         when(cartService.getCartItemsByUserId(anyLong())).thenReturn(items);

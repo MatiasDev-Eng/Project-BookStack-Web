@@ -85,8 +85,7 @@ public class BookController {
 
     @GetMapping("/{bookId}")
     public ResponseEntity<BookResponse> getSingleBook(@PathVariable Long bookId) {
-        Book book = bookService.findBookById(bookId);
-        // Convert the Entity to a clean Response object
+        Book book = bookService.findBookByIdIgnoreActive(bookId);  // ← changed from findBookById
         return ResponseEntity.ok(new BookResponse(book));
     }
 
@@ -191,7 +190,7 @@ public class BookController {
     @GetMapping("/{id}/cover")
     public ResponseEntity<byte[]> getCover(@PathVariable Long id) {
         try {
-            Book book = bookService.findBookById(id);
+            Book book = bookService.findBookByIdIgnoreActive(id);  // ← changed from findBookById
             if (book.getCoverImage() == null) {
                 return ResponseEntity.notFound().build();
             }

@@ -126,11 +126,12 @@
   }
 
   // ── Qty controls ──────────────────────────────────────────
-  function updateQty(event, btn, delta) {
-    event.stopPropagation();
-    const qtySpan = btn.parentElement.querySelector('.qty-num');
-    let currentQty = parseInt(qtySpan.innerText);
-    qtySpan.innerText = Math.max(1, currentQty + delta);
+  function updateQty(event, btn, delta, maxStock) {
+      event.stopPropagation();
+      const qtySpan = btn.parentElement.querySelector('.qty-num');
+      let currentQty = parseInt(qtySpan.innerText);
+      currentQty = Math.max(1, Math.min(maxStock, currentQty + delta));
+      qtySpan.innerText = currentQty;
   }
 
   // ── Add to cart ───────────────────────────────────────────
@@ -160,11 +161,19 @@
     if (searchQuery) document.getElementById('featuredTitle').innerText = `Results for "${searchQuery}"`;
 
     try {
-      let url = `${API_BASE}/books/search?query=${searchQuery || ""}`;
-      if (minPrice) url += `&minPrice=${minPrice}`;
-      if (maxPrice) url += `&maxPrice=${maxPrice}`;
-      if (minYear)  url += `&minYear=${minYear}`;
-      if (maxYear)  url += `&maxYear=${maxYear}`;
+      let url;
+      const hasFilters = searchQuery || minPrice || maxPrice || minYear || maxYear;
+
+      if (hasFilters) {
+        url = `${API_BASE}/books/search?query=${searchQuery || ""}`;
+        if (minPrice) url += `&minPrice=${minPrice}`;
+        if (maxPrice) url += `&maxPrice=${maxPrice}`;
+        if (minYear)  url += `&minYear=${minYear}`;
+        if (maxYear)  url += `&maxYear=${maxYear}`;
+      } else {
+        // Default homepage — only active books
+        url = `${API_BASE}/books/`;
+      }
 
       const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -172,11 +181,10 @@
       const books = await response.json();
       bookGrid.innerHTML = '';
 
-      const list = searchQuery || minPrice || maxPrice || minYear || maxYear
-        ? books
-        : books.slice(0, 16);
+      const list = hasFilters ? books : books.slice(0, 16);
 
       list.forEach(book => {
+        const stockNum = book.stock ?? 0;  // ← inside forEach now
         const card = document.createElement('div');
         card.className = 'book-card';
         card.onclick = () => { window.location.href = `book_details.html?id=${book.bookId}`; };
@@ -195,12 +203,21 @@
             <div class="book-author">by ${book.author}</div>
             <div class="book-price">$${book.price.toFixed(2)}</div>
             <div class="cart-controls">
-              <div class="quantity-selector">
-                <button class="qty-btn" onclick="updateQty(event, this, -1)">−</button>
-                <span class="qty-num" id="qty-${book.bookId}">1</span>
-                <button class="qty-btn" onclick="updateQty(event, this, 1)">+</button>
-              </div>
-              <button class="add-to-cart-btn" onclick="addToCart(event, ${book.bookId})">Add to Cart</button>
+              ${stockNum > 0 ? `
+                  <div style="font-size: 0.8rem; font-weight: 700; color: var(--success); margin-bottom: 4px;">
+                      In Stock: ${stockNum}
+                  </div>
+                  <div class="quantity-selector">
+                      <button class="qty-btn" onclick="updateQty(event, this, -1, ${stockNum})">−</button>
+                      <span class="qty-num" id="qty-${book.bookId}">1</span>
+                      <button class="qty-btn" onclick="updateQty(event, this, 1, ${stockNum})">+</button>
+                  </div>
+                  <button class="add-to-cart-btn" onclick="addToCart(event, ${book.bookId})">Add to Cart</button>
+              ` : `
+                  <div style="padding:8px; background:var(--danger-bg); border-radius:var(--radius-sm); color:var(--danger); font-weight:700; font-size:0.85rem; text-align:center;">
+                      Out of Stock
+                  </div>
+              `}
             </div>
           </div>
         `;
