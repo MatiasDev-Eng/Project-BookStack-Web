@@ -1900,6 +1900,93 @@ body.dark p[style*="color: #64748b"] {
     transition: all 0.2s;
 }
 
+.btn-refund {
+    background-color: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-refund:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Modal Backdrop */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: none; /* Hidden by default */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+/* Modal Box */
+.modal-content {
+    background: var(--bg-card, #fff); /* Uses your theme variables */
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.dark .modal-content {
+    background: #1e1e1e;
+    color: #fff;
+    border: 1px solid #333;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Buttons inside Modal */
+.btn-secondary {
+    background: #e0e0e0;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.dark .btn-secondary { background: #333; color: #ccc; }
+
+.btn-confirm-refund {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Add a badge style for RETURNED if not already present */
+.badge-default { background: #6c757d; color: white; }
+.badge-ordered { background: #007bff; color: white; }
+.badge-transit { background: #ffc107; color: #212529; }
+.badge-delivered { background: #28a745; color: white; }
+
 .logout-btn:hover {
     background-color: var(--fef2f2); /* Light red tint */
     box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);

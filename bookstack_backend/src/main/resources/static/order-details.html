@@ -5,11 +5,121 @@
     <title>Order Details | BookStack</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* --- Refund Button & Status --- */
+        .btn-refund {
+            background-color: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .btn-refund:hover {
+            background-color: #dc3545;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        }
+
+        .badge-returned {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        /* --- Custom Modal Styling --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: none; /* Controlled by JS */
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Dark mode support for modal */
+        .dark .modal-content {
+            background: #1e1e1e;
+            color: #eeeeee;
+            border: 1px solid #333;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #dc3545;
+        }
+
+        .modal-content p {
+            color: var(--muted, #666);
+            line-height: 1.5;
+            margin: 1rem 0 2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .modal-actions button:hover {
+            opacity: 0.9;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #333;
+        }
+
+        .dark .btn-cancel {
+            background: #333;
+            color: #ccc;
+        }
+
+        .btn-confirm {
+            background: #dc3545;
+            color: white;
+        }
+
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
     <script>
-        // Apply theme instantly from cache to prevent white flash
         (function() {
-        const cached = localStorage.getItem('bookstack-theme');
-        if (cached === 'dark') document.documentElement.classList.add('dark');
+            const cached = localStorage.getItem('bookstack-theme');
+            if (cached === 'dark') document.documentElement.classList.add('dark');
         })();
     </script>
 </head>
@@ -23,15 +133,25 @@
     </div>
 </div>
 
+<div id="refundModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Request Refund?</h3>
+        <p>Are you sure you want to return this order? This will update the status to <strong>RETURNED</strong>.</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeRefundModal()">No, Keep it</button>
+            <button class="btn-confirm" id="confirmRefundBtn">Yes, Refund</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
-
 <script src="notifications.js"></script>
 <script src="global-init.js"></script>
 
-
 <script>
     const API_BASE = `${window.location.origin}/api`;
+    let pendingOrderId = null;
 
     function getStatusClass(status) {
         if (!status) return 'badge-default';
@@ -39,10 +159,52 @@
             case 'ORDERED': return 'badge-ordered';
             case 'IN_TRANSIT': return 'badge-transit';
             case 'DELIVERED': return 'badge-delivered';
+            case 'RETURNED': return 'badge-returned';
             default: return 'badge-default';
         }
     }
 
+    /* Modal Logic */
+    function openRefundModal(orderId) {
+        pendingOrderId = orderId;
+        document.getElementById('refundModal').style.display = 'flex';
+    }
+
+    function closeRefundModal() {
+        document.getElementById('refundModal').style.display = 'none';
+        pendingOrderId = null;
+    }
+
+    async function processRefund() {
+        if (!pendingOrderId) return;
+
+        const btn = document.getElementById('confirmRefundBtn');
+        const originalText = btn.innerText;
+
+        try {
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            const response = await fetch(`${API_BASE}/orders/${pendingOrderId}/status/?status=RETURNED`, {
+                method: 'PUT',
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error("Update failed.");
+
+            closeRefundModal();
+            await fetchOrderDetails(); // Refresh UI
+        } catch (err) {
+            alert("Error updating order: " + err.message);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    document.getElementById('confirmRefundBtn').onclick = processRefund;
+
+    /* Main Fetch Logic */
     async function fetchOrderDetails() {
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('id');
@@ -62,7 +224,6 @@
             if (!response.ok) throw new Error("Could not find order details.");
 
             const order = await response.json();
-
             const displayAddress = order.deliveryAddress || 'No address provided';
             const displayCard = order.cardNumber || 'N/A';
             const displayHolder = order.cardHolderName || 'Unknown Holder';
@@ -75,9 +236,16 @@
                             Placed on ${new Date(order.orderDate).toLocaleDateString()}
                         </p>
                     </div>
-                    <span class="badge ${getStatusClass(order.status)}">
-                        ${order.status.replace(/_/g, ' ')}
-                    </span>
+                    <div style="text-align: right;">
+                        <span class="badge ${getStatusClass(order.status)}">
+                            ${order.status.replace(/_/g, ' ')}
+                        </span>
+                        ${order.status !== 'RETURNED' ? `
+                            <div>
+                                <button class="btn-refund" onclick="openRefundModal(${order.id})">Request Refund</button>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
 
                 <div class="info-grid">
@@ -125,14 +293,12 @@
             `;
         } catch (err) {
             contentDiv.innerHTML = `<div class="error-msg">${err.message}</div>`;
-            console.error("Order Details Error:", err);
         }
     }
 
     document.addEventListener('DOMContentLoaded', fetchOrderDetails);
 
     async function applyTheme() {
-        // Don't attempt if no JWT cookie present
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) {
             document.body.classList.remove("preload");
@@ -141,14 +307,12 @@
 
         try {
             const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
-            if (!res.ok) {
-                document.body.classList.remove("preload");
-                return;
+            if (res.ok) {
+                const user = await res.json();
+                const theme = user.themePreference || "light";
+                localStorage.setItem('bookstack-theme', theme);
+                document.body.classList.toggle("dark", theme === "dark");
             }
-            const user = await res.json();
-            const theme = user.themePreference || "light";
-            localStorage.setItem('bookstack-theme', theme);
-            document.body.classList.toggle("dark", theme === "dark");
         } catch (err) {
             console.error("Theme load failed", err);
         }
@@ -156,7 +320,6 @@
     }
 
     applyTheme();
-
 </script>
 </body>
 </html>
