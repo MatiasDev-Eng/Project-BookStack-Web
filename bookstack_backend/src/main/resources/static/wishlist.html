@@ -3,82 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wishlist | Bookstore</title>
+    <title>Wishlist | BookStack</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            const cached = localStorage.getItem('bookstack-theme');
+            if (cached === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <style>
+        .user-profile-btn img {
+            width: 100%; height: 100%;
+            object-fit: cover; border-radius: 50%; display: none;
+        }
+        .user-profile-btn.has-photo img        { display: block; }
+        .user-profile-btn.has-photo .nav-emoji { display: none; }
+    </style>
 </head>
 
-<body>
-    <header class="navbar">
-        <div class="nav-content">
-            <div class="logo" onclick="window.location.href='homepage.html'" style="cursor:pointer">BookStore</div>
+<body class="preload">
+<div id="notification"></div>
 
-            <div class="search-container">
-                <input type="text" placeholder="Search for books, authors, or ISBN...">
-                <button class="search-btn">&#128269;</button>
-                <button class="add-new-btn" id="filterBtn">Filter</button>
-            </div>
-
-            <div class="nav-icons" style="display: flex; align-items: center; gap: 1rem;">
-                <a href="wishlist.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#10084;</a>
-                <a href="cart.html" class="cart-btn" style="font-size: 1.4rem; text-decoration: none;">&#128722;</a>
-                <div class="profile-container">
-                    <div class="profile-circle"></div>
-                </div>
-            </div>
+<nav>
+    <div class="nav-left">
+        <a href="homepage.html" class="logo">BookStack</a>
+    </div>
+    <div class="nav-right" style="margin-left: auto;">
+        <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display: none;">
+            🛡️ Admin
+        </a>
+        <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
+        <div class="nav-icon-btn" onclick="window.location.href='wishlist.html'">❤️</div>
+        <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
+        <div class="user-profile-btn" onclick="window.location.href='account.html'">
+            <img id="navAvatar" alt="Profile">
+            <span class="nav-emoji">👤</span>
         </div>
-    </header>
+    </div>
+</nav>
 
-    <div class="container wide">
-        <h1>Your Wishlist</h1>
+<div class="cart-container">
+    <a href="homepage.html" class="nav-link">← Continue Shopping</a>
 
-        <table class="listings-table" style="margin-top: 1.5rem;">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Price</th>
-                    <th>Availability</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td>The Great Gatsby</td>
-                    <td>F. Scott Fitzgerald</td>
-                    <td>$12.99</td>
-                    <td>In Stock</td>
-                    <td>
-                        <button class="submit-btn">Move to Cart</button>
-                        <button class="cancel-btn" style="margin-left: 8px;">Remove</button>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>1984</td>
-                    <td>George Orwell</td>
-                    <td>$10.00</td>
-                    <td>In Stock</td>
-                    <td>
-                        <button class="submit-btn">Move to Cart</button>
-                        <button class="cancel-btn" style="margin-left: 8px;">Remove</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div class="cart-title">Your Wishlist</div>
+        <button id="moveAllBtn" class="add-new-btn" onclick="moveAllToCart()" style="display:none;">
+            🛒 Add All to Cart
+        </button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+    <table>
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Author</th>
+                <th>Price</th>
+                <th>Availability</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="wishlistTableBody">
+        </tbody>
+    </table>
+</div>
 
-    <script src="notifications.js"></script>
-    <script src="global-init.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
 
+<script>
+    const API_BASE = `${window.location.origin}/api`;
 
-    <script>
-        document.getElementById("filterBtn").addEventListener("click", () => {
-            console.log("Filter options coming soon!");
-        });
-    </script>
+    // ── Admin check + nav avatar ──────────────────────────────
+    async function checkAdminStatus() {
+        try {
+            const res = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
+            if (res.ok) {
+                const user = await res.json();
+                if (user.roles && user.roles.includes('ROLE_ADMIN')) {
+                    document.getElementById('adminBtn').style.display = 'flex';
+                }
+                try {
+                    const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
+                    if (picRes.ok) {
+                        const blob       = URL.createObjectURL(await picRes.blob());
+                        const navAvatar  = document.getElementById('navAvatar');
+                        const profileBtn = document.querySelector('.user-profile-btn');
+                        navAvatar.src    = blob;
+                        navAvatar.onload = () => profileBtn.classList.add('has-photo');
+                    }
+                } catch (e) { /* no picture */ }
+            }
+        } catch (e) {
+            console.warn("Admin check failed:", e);
+        }
+    }
+
+    function showNotification(message, type = "info") {
+        const note = document.getElementById("notification");
+        note.innerText = message;
+        note.className = `notification-${type}`;
+        note.style.display = "block";
+        setTimeout(() => { note.style.display = "none"; }, 3000);
+    }
+
+    // ── Fetch wishlist ────────────────────────────────────────
+    async function fetchWishlist() {
+        const tbody = document.getElementById('wishlistTableBody');
+        try {
+            const response = await fetch(`${API_BASE}/wishlist/`, { credentials: 'include' });
+            if (!response.ok) throw new Error("Failed to load wishlist");
+            const items = await response.json();
+            renderWishlist(items);
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--danger);">Failed to load wishlist.</td></tr>`;
+        }
+    }
+
+    function renderWishlist(items) {
+        const tbody       = document.getElementById('wishlistTableBody');
+        const moveAllBtn  = document.getElementById('moveAllBtn');
+
+        if (!items || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--muted);">Your wishlist is empty.</td></tr>`;
+            moveAllBtn.style.display = 'none';
+            return;
+        }
+
+        moveAllBtn.style.display = 'block';
+
+        tbody.innerHTML = items.map(item => {
+            const inStock  = item.stock > 0;
+            const stockBadge = inStock
+                ? `<span style="color:var(--success); font-weight:700;">In Stock (${item.stock})</span>`
+                : `<span style="color:var(--danger); font-weight:700;">Out of Stock</span>`;
+
+            return `
+                <tr>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            ${item.hasCover
+                                ? `<img src="${API_BASE}/books/${item.bookId}/cover"
+                                        alt="${item.title}"
+                                        style="width:40px; height:54px; object-fit:cover; border-radius:4px; border:1px solid var(--border);"
+                                        onerror="this.style.display='none'">`
+                                : `<span style="font-size:1.8rem;">📖</span>`
+                            }
+                            <a href="book_details.html?id=${item.bookId}" style="font-weight:700; color:var(--primary);">${item.title}</a>
+                        </div>
+                    </td>
+                    <td>${item.author}</td>
+                    <td style="font-weight:700; color:var(--price);">$${parseFloat(item.price).toFixed(2)}</td>
+                    <td>${stockBadge}</td>
+                    <td>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button class="submit-btn"
+                                style="padding:7px 14px; font-size:0.82rem; ${!inStock ? 'opacity:0.5; cursor:not-allowed;' : ''}"
+                                ${!inStock ? 'disabled' : ''}
+                                onclick="moveToCart(${item.wishlistItemId})">
+                                🛒 Add to Cart
+                            </button>
+                            <button class="delete-btn"
+                                style="padding:7px 14px; font-size:0.82rem;"
+                                onclick="removeFromWishlist(${item.wishlistItemId})">
+                                Remove
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // ── Move single item to cart ──────────────────────────────
+    async function moveToCart(wishlistItemId) {
+        try {
+            const response = await fetch(`${API_BASE}/wishlist/move-to-cart/${wishlistItemId}/`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                showNotification("Added to cart!", "success");
+                fetchWishlist();
+            } else {
+                showNotification("Failed to add to cart.", "error");
+            }
+        } catch (err) {
+            showNotification("Network error.", "error");
+        }
+    }
+
+    // ── Move all to cart ──────────────────────────────────────
+    async function moveAllToCart() {
+        try {
+            const response = await fetch(`${API_BASE}/wishlist/move-all-to-cart/`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                showNotification("All items added to cart!", "success");
+                fetchWishlist();
+            } else {
+                showNotification("Failed to add all to cart.", "error");
+            }
+        } catch (err) {
+            showNotification("Network error.", "error");
+        }
+    }
+
+    // ── Remove from wishlist ──────────────────────────────────
+    async function removeFromWishlist(wishlistItemId) {
+        try {
+            const response = await fetch(`${API_BASE}/wishlist/remove/${wishlistItemId}/`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                showNotification("Removed from wishlist.", "info");
+                fetchWishlist();
+            } else {
+                showNotification("Failed to remove item.", "error");
+            }
+        } catch (err) {
+            showNotification("Network error.", "error");
+        }
+    }
+
+    // ── Theme ─────────────────────────────────────────────────
+    async function applyTheme() {
+        const hasCookie = document.cookie.includes('bookstack-jwt');
+        if (!hasCookie) {
+            document.body.classList.remove("preload");
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+            if (!res.ok) { document.body.classList.remove("preload"); return; }
+            const user   = await res.json();
+            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const isDark = theme === "dark";
+            localStorage.setItem('bookstack-theme', theme);
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        } catch (err) {
+            console.error("Theme load failed", err);
+        }
+        document.body.classList.remove("preload");
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAdminStatus();
+        fetchWishlist();
+    });
+
+    applyTheme();
+</script>
 </body>
 </html>
