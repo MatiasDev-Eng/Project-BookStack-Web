@@ -69,16 +69,16 @@
             if (response.ok) {
                 const userData = await response.json();
                 localStorage.setItem('bookstack-user-id', userData.userId);
-
                 messageDiv.textContent = "Login Successful! Welcome back.";
                 messageDiv.className = "success";
-
                 setTimeout(() => {
                     window.location.href = 'homepage.html';
                 }, 1000);
                 loginForm.reset();
+            } else if (response.status === 403) {
+                messageDiv.textContent = "Your account is pending admin approval.";
+                messageDiv.className = "error";
             } else {
-                // Try to get error message from backend if available
                 const errorData = await response.text();
                 messageDiv.textContent = "Login Failed: " + (errorData || "Invalid credentials");
                 messageDiv.className = "error";

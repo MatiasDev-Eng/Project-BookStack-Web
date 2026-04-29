@@ -70,6 +70,11 @@ public class AuthController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         User user = userRepository.findById(userDetails.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getIsBanned()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Your account is pending admin approval.");
+        }
         
         ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
 
