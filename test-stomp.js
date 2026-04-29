@@ -5,15 +5,19 @@ Object.assign(global, { WebSocket });
 
 const client = new Client({
     brokerURL: 'wss://antivirus-giant-duress.ngrok-free.dev/ws-native',
-    // brokerURL: 'ws://localhost:9091/ws-native',
     reconnectDelay: 0,
     onConnect: () => {
         console.log('Connected!');
-        client.subscribe('/topic/seller.2', (message) => {
-            console.log('Sale received:');
+
+        // Define the topic in one place
+        const topic = '/topic/seller.8';
+
+        client.subscribe(topic, (message) => {
+            console.log(`Sale received on ${topic}:`);
             console.log(JSON.parse(message.body));
         });
-        console.log('Subscribed to /topic/seller.5 — waiting for messages...');
+
+        console.log(`Subscribed to ${topic} — waiting for messages...`);
     },
     onStompError: (frame) => {
         console.error('STOMP error:', frame);
