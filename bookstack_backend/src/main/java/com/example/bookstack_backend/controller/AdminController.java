@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+
+import com.example.bookstack_backend.services.AdminUserService;
+import com.example.bookstack_backend.services.AdminBookService;
 import com.example.bookstack_backend.dto.request.AdminLoginRequest;
 import com.example.bookstack_backend.dto.response.MessageResponse;
 import com.example.bookstack_backend.services.AdminService;
@@ -29,6 +32,12 @@ public class AdminController {
     private AdminService adminService;
 
     @Autowired
+    private AdminBookService adminBookService;
+
+    @Autowired
+    private AdminUserService adminUserService;
+
+    @Autowired
     private BookService bookService;
 
     @Autowired
@@ -44,6 +53,18 @@ public class AdminController {
     public ResponseEntity<?> approveUser(@PathVariable Long userId) {
         adminService.approveUser(userId);
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/users/{userId}/reject/")
+    public ResponseEntity<?> rejectUser(@PathVariable Long userId) {
+        try {
+            adminUserService.deleteUser(userId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.out.println("Error rejecting user: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 
     @GetMapping("/users/{id}/profile-picture")
@@ -86,5 +107,10 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/books/{bookId}/reject/")
+    public ResponseEntity<?> rejectBook(@PathVariable Long bookId) {
+        adminBookService.deleteBook(bookId);
+        return ResponseEntity.ok().build();
+    }
 
 }

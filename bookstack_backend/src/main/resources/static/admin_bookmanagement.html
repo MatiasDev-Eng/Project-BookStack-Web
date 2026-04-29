@@ -136,6 +136,9 @@
                 <button class="btn-action approve" onclick="approveBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">
                     Approve Book
                 </button>
+                <button class="btn-action delete-btn" onclick="rejectBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">
+                    Reject Book
+                </button>
             </td>
         </tr>
     `).join('');
@@ -159,6 +162,27 @@
             showNotification("Server error during approval.", "error");
         }
     }
+
+    async function rejectBook(bookId, bookTitle) {
+        if (!confirm(`Are you sure you want to reject "${bookTitle}"?`)) return;
+ 
+        try {
+            const response = await fetch(`${API_BASE}/${bookId}/reject/`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                showNotification(`"${bookTitle}" has been rejected and removed.`, "info");
+                fetchUnapprovedBooks();
+            } else {
+                showNotification("Failed to reject book.", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showNotification("Server error during rejection.", "error");
+        }
+    }
+
 
     document.addEventListener('DOMContentLoaded', fetchUnapprovedBooks);
 

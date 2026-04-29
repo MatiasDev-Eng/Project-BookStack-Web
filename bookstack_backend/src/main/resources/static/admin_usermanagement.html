@@ -137,6 +137,9 @@
                 <button class="btn-action approve" onclick="approveUser(${user.userId}, '${user.username}')">
                     Approve Access
                 </button>
+                <button class="btn-action delete-btn" onclick="rejectUser(${user.userId}, '${user.username}')">
+                    Reject Access
+                </button>
             </td>
         </tr>
     `).join('');
@@ -158,6 +161,26 @@
     } catch (err) {
       console.error(err);
       showNotification("Server error during approval.", "error");
+    }
+  }
+
+  async function rejectUser(userId, username) {
+    if (!confirm(`Are you sure you want to reject "${username}"?`)) return;
+ 
+    try {
+      const response = await fetch(`${API_BASE}/users/${userId}/reject/`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (response.ok) {
+        showNotification(`User "${username}" has been rejected and removed.`, "info");
+        fetchUnapprovedUsers();
+      } else {
+        showNotification("Failed to reject user.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Server error during rejection.", "error");
     }
   }
 
