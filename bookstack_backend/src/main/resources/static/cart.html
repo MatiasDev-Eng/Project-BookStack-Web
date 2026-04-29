@@ -11,10 +11,41 @@
       if (cached === 'dark') document.documentElement.classList.add('dark');
     })();
   </script>
+  <style>
+    /* Nav avatar photo support */
+    .user-profile-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      display: none;
+    }
+    .user-profile-btn.has-photo img        { display: block; }
+    .user-profile-btn.has-photo .nav-emoji { display: none; }
+  </style>
 </head>
 
 <body class="preload">
 <div id="notification"></div>
+
+<nav>
+  <div class="nav-left">
+    <a href="homepage.html" class="logo">BookStack</a>
+  </div>
+ 
+  <div class="nav-right" style="margin-left: auto;">
+    <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display: none;">
+      🛡️ Admin
+    </a>
+    <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
+    <div class="nav-icon-btn" onclick="window.location.href='wishlist.html'">❤️</div>
+    <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
+    <div class="user-profile-btn" onclick="window.location.href='account.html'">
+      <img id="navAvatar" alt="Profile">
+      <span class="nav-emoji">👤</span>
+    </div>
+  </div>
+</nav>
 
 <div class="cart-container">
   <a href="homepage.html" class="nav-link">← Continue Shopping</a>
@@ -67,6 +98,30 @@
 
 <script>
   const API_BASE = `${window.location.origin}/api`;
+
+  async function checkAdminStatus() {
+    try {
+      const res = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
+      if (res.ok) {
+        const user = await res.json();
+        if (user.roles && user.roles.includes('ROLE_ADMIN')) {
+          document.getElementById('adminBtn').style.display = 'flex';
+        }
+        try {
+          const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
+          if (picRes.ok) {
+            const blob       = URL.createObjectURL(await picRes.blob());
+            const navAvatar  = document.getElementById('navAvatar');
+            const profileBtn = document.querySelector('.user-profile-btn');
+            navAvatar.src    = blob;
+            navAvatar.onload = () => profileBtn.classList.add('has-photo');
+          }
+        } catch (e) { /* no picture */ }
+      }
+    } catch (e) {
+      console.warn("Admin check failed:", e);
+    }
+  }
 
   function showNotification(message, type = "info") {
     const note = document.getElementById("notification");
@@ -231,7 +286,10 @@
     fetchCart();
   }
 
-  document.addEventListener('DOMContentLoaded', fetchCart);
+  document.addEventListener('DOMContentLoaded', () => {
+    checkAdminStatus();
+    fetchCart();
+  });
 
   async function applyTheme() {
     // Don't attempt if no JWT cookie present
