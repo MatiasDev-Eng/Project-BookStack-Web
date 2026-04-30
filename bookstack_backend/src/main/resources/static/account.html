@@ -535,6 +535,13 @@
                 document.getElementById('emailInput').value           = user.email    || "";
                 document.getElementById('balanceDisplay').textContent = usd.format(user.balance || 0);
 
+                try {
+                    const addrRes = await fetch(`${API_BASE}/me/address`, { credentials: 'include' });
+                    if (addrRes.ok) {
+                        const addr = await addrRes.text();
+                        document.getElementById('addressInput').value = addr;
+                    }
+                } catch (e) { /* leave blank */ }
                 loadAvatar();
                 loadIntegrationInfo(user.id);
 
@@ -623,6 +630,24 @@
     document.addEventListener('DOMContentLoaded', () => {
         initPage();
         document.getElementById('retrieveBtn').addEventListener('click', handleRetrieveFunds);
+        document.getElementById('updateProfileBtn').addEventListener('click', async () => {
+            const address = document.getElementById('addressInput').value.trim();
+            try {
+                const res = await fetch(`${API_BASE}/me/address`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ address })
+                });
+                if (res.ok) {
+                    updateStatus('Address saved!');
+                } else {
+                    updateStatus('Failed to save address.', 'error');
+                }
+            } catch (e) {
+                updateStatus('Network error.', 'error');
+            }
+        });
     });
 
     loadTheme();

@@ -22,9 +22,11 @@
   <div class="sidebar-title">BookStack</div>
 
   <nav class="nav">
-    <a href="admin_usermanagement.html" class="nav-item active">User Approval</a>
-    <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
-    <a href="homepage.html" class="nav-item">Back to Store</a>
+      <a href="admin_usermanagement.html" class="nav-item active">User Approval</a>
+      <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
+      <a href="admin_viewusers.html" class="nav-item">Active Users</a>
+      <a href="admin_viewbooks.html" class="nav-item">Active Books</a>
+      <a href="homepage.html" class="nav-item">Back to Store</a>
   </nav>
 </aside>
 
@@ -54,7 +56,7 @@
 </main>
 
 <script>
-  fetch(`${window.location.origin}/api/auth/me/`, {
+  fetch("http://localhost:9091/api/auth/me/", {
       credentials: "include"
   })
   .then(res => {
@@ -73,7 +75,7 @@
       window.location.href = "index.html";
   });
 
-  const API_BASE = `${window.location.origin}/api/admin`;
+  const API_BASE = "http://localhost:9091/api/admin";
 
   function showNotification(message, type = "info") {
     const note = document.getElementById("notification");
@@ -201,7 +203,7 @@
       }
 
       try {
-          const res = await fetch(`${window.location.origin}/api/me/`, { credentials: 'include' });
+          const res = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
           if (!res.ok) { document.body.classList.remove("preload"); return; }
           const user   = await res.json();
           const theme  = (user.themePreference || "light").toLowerCase().trim();

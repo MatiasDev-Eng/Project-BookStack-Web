@@ -168,6 +168,28 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(user.getApiKey());
     }
+
+    @PutMapping("/address")
+    public ResponseEntity<?> updateAddress(@RequestBody Map<String, String> body) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setAddress(body.get("address"));
+        userRepository.save(user);
+        return ResponseEntity.ok("Address updated");
+    }
+
+    @GetMapping("/address")
+    public ResponseEntity<String> getAddress() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user.getAddress() != null ? user.getAddress() : "");
+    }
 }
 
 

@@ -25,6 +25,9 @@ public class BookResponse {
     private boolean hasCover;
     private Long ownerId;
     private String ownerUsername;
+    private Boolean isFrozen;
+    private Boolean isDeleted;
+
 
     public BookResponse(Book book) {
         this.bookId        = book.getBookId();
@@ -45,6 +48,8 @@ public class BookResponse {
         this.hasCover      = book.getCoverImage() != null;
         this.ownerId       = book.getOwner().getId();
         this.ownerUsername = book.getOwner().getUsername();
+        this.isFrozen      = book.getIsFrozen();
+        this.isDeleted = book.getIsDeleted();
     }
 
     public BookResponse() {}
@@ -102,4 +107,10 @@ public class BookResponse {
 
     public String getOwnerUsername() { return ownerUsername; }
     public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
+
+    public Boolean getIsFrozen() { return isFrozen; }
+    public void setIsFrozen(Boolean isFrozen) { this.isFrozen = isFrozen; }
+
+    public Boolean getIsDeleted() { return isDeleted; }
+    public void setIsDeleted(Boolean isDeleted) { this.isDeleted = isDeleted; }
 }

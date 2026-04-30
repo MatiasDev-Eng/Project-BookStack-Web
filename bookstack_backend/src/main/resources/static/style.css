@@ -173,7 +173,7 @@ a:hover { opacity: 0.75; }
    NAVBAR — Homepage style (nav tag)
    Used by: homepage.html, publish_book.html
    ========================================================= */
-nav {
+body > nav {
     background: var(--white);
     border-bottom: 1px solid var(--border);
     padding: 0 5%;
@@ -1995,4 +1995,4 @@ body.dark p[style*="color: #64748b"] {
 /* Optional: Dark mode adjustment for the hover tint */
 body.dark .logout-btn:hover {
     background-color: rgba(220, 38, 38, 0.1);
-}do
+}

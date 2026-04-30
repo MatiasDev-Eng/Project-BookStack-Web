@@ -19,7 +19,7 @@ public class AdminBookService {
 
     // Get all books
     public List<Book> getAllBooks() {
-        return bookRepository.findByIsActiveTrue();
+        return bookRepository.findByIsActiveTrueAndIsDeletedFalse();
     }
 
     // Get books by owner

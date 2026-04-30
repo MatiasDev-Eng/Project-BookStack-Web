@@ -28,6 +28,9 @@ public class AdminService {
     @Autowired
     private BookRepository bookRepository;
 
+    @Autowired
+    private AdminUserService adminUserService;
+
     public List<UserInfoResponse> getAllUnapprovedUsers() {
         List<User> users = userRepository.findAllByIsBanned();
 
@@ -61,5 +64,63 @@ public class AdminService {
 
     public void approveBook(Long bookId) {
         bookRepository.approveBook(bookId);
+    }
+
+    public List<UserInfoResponse> getAllActiveUsers() {
+        return userRepository.findByIsBannedFalse().stream()
+                .map(user -> new UserInfoResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getThemePreference()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<UserInfoResponse> getAllFrozenUsers() {
+        return userRepository.findByIsBannedTrue().stream()
+                .map(user -> new UserInfoResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getThemePreference()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<BookResponse> getAllActiveBooks() {
+        return bookRepository.findByIsActiveTrueAndIsDeletedFalse().stream()
+                .filter(book -> !Boolean.TRUE.equals(book.getIsFrozen()))
+                .filter(book -> !Boolean.TRUE.equals(book.getIsDeleted()))
+                .map(BookResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    public List<BookResponse> getAllFrozenBooks() {
+        return bookRepository.findByIsFrozenTrue().stream()
+                .map(BookResponse::new)
+                .collect(Collectors.toList());
+    }
+
+    public void freezeUser(Long userId) {
+        adminUserService.banUser(userId);
+    }
+
+    public void unfreezeUser(Long userId) {
+        adminUserService.unbanUser(userId);
+    }
+
+    public void freezeBook(Long bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        book.setIsFrozen(true);
+        bookRepository.save(book);
+    }
+
+    public void unfreezeBook(Long bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        book.setIsFrozen(false);
+        bookRepository.save(book);
     }
 }

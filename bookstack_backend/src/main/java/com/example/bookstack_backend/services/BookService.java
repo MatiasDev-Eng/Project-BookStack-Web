@@ -97,9 +97,9 @@ public class BookService {
     }
 
     public List<Book> getAllBooks() {
-        return bookRepository.findByIsActiveTrue();
+        return bookRepository.findByIsActiveTrueAndIsFrozenFalseAndIsDeletedFalse();
     }
-
+    
     public List<BookResponse> getBooksByOwner(Long ownerId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + ownerId));
@@ -144,9 +144,11 @@ public class BookService {
     }
 
     public void deleteBookListing(Long bookId) {
-        Book existingBook = findBookById(bookId);
-
-        bookRepository.delete(existingBook);
+        Book existingBook = findBookByIdIgnoreActive(bookId);
+        existingBook.setIsDeleted(true);
+        existingBook.setIsActive(false);
+        existingBook.setStock(0);
+        bookRepository.save(existingBook);
     }
 
     public List<Book> getSimilarBooks(Long bookId) {
