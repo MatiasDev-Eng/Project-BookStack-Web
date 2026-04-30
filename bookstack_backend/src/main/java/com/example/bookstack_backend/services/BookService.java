@@ -116,14 +116,14 @@ public class BookService {
     }
 
     public void updateCover(Long id, byte[] imageBytes, String contentType) {
-        Book book = findBookById(id);
+        Book book = findBookByIdIgnoreActive(id);
         book.setCoverImage(imageBytes);
         book.setCoverImageType(contentType);
         bookRepository.save(book);
     }
     
     public Book updateBookListing(Long bookId, CreateBookRequest updateRequest) {
-        Book existingBook = findBookById(bookId);
+        Book existingBook = findBookByIdIgnoreActive(bookId);
 
         existingBook.setTitle(updateRequest.getTitle());
         existingBook.setAuthor(updateRequest.getAuthor());
@@ -139,7 +139,7 @@ public class BookService {
         if (updateRequest.getCoverImageUrl() != null && !updateRequest.getCoverImageUrl().isEmpty()) {
             existingBook.setCoverImageUrl(updateRequest.getCoverImageUrl());
         }
-
+        existingBook.setIsActive(false);
         return bookRepository.save(existingBook);
     }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Book Listing | Bookstore</title>
+    <title>Edit Book Listing | BookStack</title>
     <link rel="stylesheet" href="style.css">
     <script>
         (function() {
@@ -12,7 +12,6 @@
         })();
     </script>
     <style>
-        /* Cover uploader — uses CSS variables for dark mode compatibility */
         .cover-upload-area {
             border: 2px dashed var(--border);
             border-radius: var(--radius);
@@ -36,7 +35,7 @@
             display: none;
             border-radius: var(--radius-sm);
         }
-        .cover-upload-area.has-image #coverPreview { display: block; }
+        .cover-upload-area.has-image #coverPreview  { display: block; }
         .cover-upload-area.has-image .upload-placeholder { display: none; }
 
         .upload-placeholder { pointer-events: none; padding: 24px; }
@@ -44,42 +43,73 @@
         .upload-placeholder p { font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
         .upload-placeholder span { font-size: 0.78rem; color: var(--muted); opacity: 0.7; }
 
-        .cover-change-hint {
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-top: 6px;
-            text-align: center;
-            display: none;
-        }
+        .cover-change-hint { font-size: 0.78rem; color: var(--muted); margin-top: 6px; text-align: center; display: none; }
         .cover-upload-area.has-image ~ .cover-change-hint { display: block; }
         #coverFileInput { display: none; }
+
+        /* Nav avatar */
+        .user-profile-btn img {
+            width: 100%; height: 100%;
+            object-fit: cover; border-radius: 50%; display: none;
+        }
+        .user-profile-btn.has-photo img        { display: block; }
+        .user-profile-btn.has-photo .nav-emoji { display: none; }
+
+        /* Pending approval banner */
+        .pending-banner {
+            display: none;
+            background: var(--warning-bg);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: var(--warning);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
 <body class="preload">
 <div id="notification"></div>
-<header class="navbar">
-    <div class="nav-content">
-        <div class="logo" onclick="window.location.href='homepage.html'" style="cursor:pointer">BookStore</div>
-        <div class="profile-container">
-            <div class="profile-circle"></div>
+
+<nav>
+    <div class="nav-left">
+        <a href="homepage.html" class="logo">BookStack</a>
+    </div>
+    <div class="nav-right" style="margin-left: auto;">
+        <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display:none;">
+            🛡️ Admin
+        </a>
+        <div class="nav-icon-btn" onclick="window.location.href='wishlist.html'">❤️</div>
+        <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
+        <div class="user-profile-btn" onclick="window.location.href='account.html'">
+            <img id="navAvatar" alt="Profile">
+            <span class="nav-emoji">👤</span>
         </div>
     </div>
-</header>
+</nav>
 
 <div class="container small">
+    <a href="my_books.html" class="nav-link">← Back to My Books</a>
+
     <div class="dashboard-header">
         <h1>Edit Book Listing</h1>
-        <button class="delete-btn" onclick="window.location.href='homepage.html'">Cancel</button>
+        <button class="cancel-btn" onclick="window.location.href='my_books.html'">Cancel</button>
     </div>
 
-    <div class="form-container">
+    <!-- Pending approval banner -->
+    <div class="pending-banner" id="pendingBanner">
+        ⏳ This book is currently pending admin approval and is not visible to buyers.
+    </div>
+
+    <div class="form-card">
         <form id="editBookForm">
 
-            <!-- Cover image -->
             <div class="form-group">
                 <label>Cover Image</label>
-                <div class="cover-upload-area" id="coverUploadArea" onclick="document.getElementById('coverFileInput').click()">
+                <div class="cover-upload-area" id="coverUploadArea"
+                     onclick="document.getElementById('coverFileInput').click()">
                     <img id="coverPreview" alt="Cover preview">
                     <div class="upload-placeholder">
                         <div class="upload-icon">📷</div>
@@ -93,34 +123,49 @@
 
             <div class="form-group">
                 <label for="title">Book Title</label>
-                <input type="text" id="title" name="title" required>
+                <input type="text" id="title" required>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="author">Author</label>
-                    <input type="text" id="author" name="author" required>
+                    <input type="text" id="author" required>
                 </div>
                 <div class="form-group">
                     <label for="year">Publication Year</label>
-                    <input type="number" id="year" name="year" required>
+                    <input type="number" id="year" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="genre">Genre</label>
+                    <input type="text" id="genre">
+                </div>
+                <div class="form-group">
+                    <label for="edition">Edition</label>
+                    <input type="text" id="edition">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label for="isbn">ISBN</label>
-                    <input type="text" id="isbn" name="isbn" required>
+                    <input type="text" id="isbn" required>
                 </div>
                 <div class="form-group">
                     <label for="price">Price ($)</label>
-                    <input type="number" id="price" name="price" step="0.01" required>
+                    <input type="number" id="price" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="stock">Stock</label>
+                    <input type="number" id="stock" min="0" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="condition">Condition</label>
-                <select id="condition" name="condition">
+                <select id="condition">
                     <option value="NEW">New</option>
                     <option value="LIKE_NEW">Like New</option>
                     <option value="VERY_GOOD">Very Good</option>
@@ -131,12 +176,16 @@
 
             <div class="form-group">
                 <label for="description">Description</label>
-                <textarea id="description" name="description" rows="5"></textarea>
+                <textarea id="description" rows="5"></textarea>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="add-new-btn" id="submitBtn" style="width: 100%; margin-top: 20px;">Update Listing</button>
+            <div style="background: var(--warning-bg); border: 1px solid var(--warning); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px; font-size: 0.85rem; color: var(--warning);">
+                ⚠️ Saving changes will send your book back for admin approval. It will be hidden from buyers until approved.
             </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn" style="width: 100%;">
+                Save Changes
+            </button>
         </form>
     </div>
 </div>
@@ -152,8 +201,7 @@
     const bookId    = urlParams.get('id');
 
     if (!bookId) {
-        showNotification("No Book ID provided!", "error");
-        window.location.href = 'homepage.html';
+        window.location.href = 'my_books.html';
     }
 
     function showNotification(message, type = "info") {
@@ -164,17 +212,40 @@
         setTimeout(() => note.style.display = "none", 3000);
     }
 
+    // ── Admin check + nav avatar ──────────────────────────────
+    async function checkAdminStatus() {
+        try {
+            const res = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
+            if (res.ok) {
+                const user = await res.json();
+                if (user.roles && user.roles.includes('ROLE_ADMIN')) {
+                    document.getElementById('adminBtn').style.display = 'flex';
+                }
+                try {
+                    const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
+                    if (picRes.ok) {
+                        const blob       = URL.createObjectURL(await picRes.blob());
+                        const navAvatar  = document.getElementById('navAvatar');
+                        const profileBtn = document.querySelector('.user-profile-btn');
+                        navAvatar.src    = blob;
+                        navAvatar.onload = () => profileBtn.classList.add('has-photo');
+                    }
+                } catch (e) { /* no picture */ }
+            }
+        } catch (e) {
+            console.warn("Admin check failed:", e);
+        }
+    }
+
     // ── Cover file picker & preview ───────────────────────────
     document.getElementById('coverFileInput').addEventListener('change', function () {
         const file = this.files[0];
         if (!file) return;
-
         if (file.size > 5 * 1024 * 1024) {
             showNotification('Image must be under 5 MB.', 'error');
             this.value = '';
             return;
         }
-
         const reader = new FileReader();
         reader.onload = (e) => {
             document.getElementById('coverPreview').src = e.target.result;
@@ -194,10 +265,18 @@
             document.getElementById('title').value       = book.title        || '';
             document.getElementById('author').value      = book.author       || '';
             document.getElementById('year').value        = book.publishedYear || '';
+            document.getElementById('genre').value       = book.genre        || '';
+            document.getElementById('edition').value     = book.edition      || '';
             document.getElementById('isbn').value        = book.isbn         || '';
             document.getElementById('price').value       = book.price        || '';
+            document.getElementById('stock').value       = book.stock        ?? 0;
             document.getElementById('condition').value   = book.condition    || 'GOOD';
             document.getElementById('description').value = book.description  || '';
+
+            // Show pending banner if book is not active
+            if (!book.isActive) {
+                document.getElementById('pendingBanner').style.display = 'block';
+            }
 
             if (book.hasCover) {
                 const preview    = document.getElementById('coverPreview');
@@ -225,8 +304,11 @@
             title:         document.getElementById('title').value,
             author:        document.getElementById('author').value,
             publishedYear: parseInt(document.getElementById('year').value),
+            genre:         document.getElementById('genre').value,
+            edition:       document.getElementById('edition').value,
             isbn:          document.getElementById('isbn').value,
             price:         parseFloat(document.getElementById('price').value),
+            stock:         parseInt(document.getElementById('stock').value),
             condition:     document.getElementById('condition').value,
             description:   document.getElementById('description').value
         };
@@ -245,6 +327,7 @@
                 return;
             }
 
+            // Upload new cover if selected
             const coverFile = document.getElementById('coverFileInput').files[0];
             if (coverFile) {
                 submitBtn.textContent = 'Uploading cover...';
@@ -258,27 +341,32 @@
                 });
 
                 if (!coverResponse.ok) {
-                    showNotification('Details saved, but cover upload failed. Try again.', 'info');
+                    showNotification('Details saved but cover upload failed. Try again.', 'info');
                     return;
                 }
             }
 
-            showNotification("Listing updated successfully!", "success");
-            setTimeout(() => window.location.href = 'homepage.html', 1500);
+            showNotification("Changes saved! Your book is now pending admin approval.", "success");
+            setTimeout(() => window.location.href = 'my_books.html', 2000);
 
         } catch (error) {
             console.error("Error:", error);
             showNotification("An error occurred while saving.", "error");
         } finally {
             submitBtn.disabled    = false;
-            submitBtn.textContent = 'Update Listing';
+            submitBtn.textContent = 'Save Changes';
         }
     });
 
-    document.addEventListener('DOMContentLoaded', loadBookData);
-
+    // ── Theme ─────────────────────────────────────────────────
     async function applyTheme() {
-        // Don't attempt if no JWT cookie present
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached) {
+            const isDark = cached === 'dark';
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        }
+
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) {
             document.body.classList.remove("preload");
@@ -287,19 +375,24 @@
 
         try {
             const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
-            if (!res.ok) {
-                document.body.classList.remove("preload");
-                return;
-            }
-            const user = await res.json();
-            const theme = user.themePreference || "light";
+            if (!res.ok) { document.body.classList.remove("preload"); return; }
+            const user   = await res.json();
+            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const isDark = theme === "dark";
             localStorage.setItem('bookstack-theme', theme);
-            document.body.classList.toggle("dark", theme === "dark");
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
         } catch (err) {
             console.error("Theme load failed", err);
         }
         document.body.classList.remove("preload");
     }
+
+    // ── Init ──────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAdminStatus();
+        loadBookData();
+    });
 
     applyTheme();
 </script>

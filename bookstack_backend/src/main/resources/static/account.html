@@ -12,67 +12,7 @@
         })();
     </script>
     <style>
-        :root {
-            --primary-green: #059669;
-            --hover-green: #047857;
-            --danger-red: #dc2626;
-            --muted-text: #64748b;
-            --bg-gray: #f8fafc;
-        }
-
-        body { background-color: var(--bg-gray); margin: 0; font-family: system-ui, sans-serif; }
-
-        .balance-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 24px;
-            text-align: center;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .balance-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            color: var(--muted-text);
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        .balance-amount {
-            font-size: 2.8rem;
-            font-weight: 800;
-            color: var(--primary-green);
-            margin: 10px 0;
-            transition: all 0.3s ease;
-        }
-
-        .retrieve-btn {
-            background-color: var(--primary-green);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
-            box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
-        }
-
-        .retrieve-btn:hover { background-color: var(--hover-green); }
-        .retrieve-btn:active { transform: scale(0.98); }
-        .retrieve-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
-
         /* ── Avatar ── */
-        .profile-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 2rem;
-            gap: 12px;
-        }
-
         .avatar-wrapper {
             position: relative;
             width: 100px;
@@ -84,14 +24,13 @@
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            background-color: #cbd5e1;
+            background: var(--bg-subtle);
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 3rem;
-            color: white;
-            border: 4px solid white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 4px solid var(--border);
+            box-shadow: var(--shadow);
             overflow: hidden;
             transition: filter 0.2s;
         }
@@ -105,7 +44,7 @@
             display: none;
         }
 
-        .avatar-circle.has-photo img          { display: block; }
+        .avatar-circle.has-photo img           { display: block; }
         .avatar-circle.has-photo .avatar-emoji { display: none; }
 
         .avatar-edit-badge {
@@ -114,8 +53,8 @@
             right: 2px;
             width: 28px;
             height: 28px;
-            background: #1e293b;
-            border: 2px solid white;
+            background: var(--primary);
+            border: 2px solid var(--white);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -124,31 +63,27 @@
             pointer-events: none;
         }
 
-        .avatar-hint { font-size: 0.78rem; color: var(--muted-text); }
+        .avatar-hint { font-size: 0.78rem; color: var(--muted); }
         #avatarFileInput { display: none; }
 
-        .container { max-width: 600px; margin: 40px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: #1e293b; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
-        .form-group input[readonly] { background-color: #f1f5f9; color: #64748b; }
-
-        .submit-btn { width: 100%; background: #1e293b; color: white; padding: 12px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-
-        /* ── Cards ── */
+        /* ── Notifications card ── */
         .notifications-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 20px 24px;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--shadow);
         }
 
-        .notifications-card h3 { margin: 0 0 4px; font-size: 1rem; color: #0f172a; }
-        .notifications-card p  { margin: 0 0 14px; font-size: 0.85rem; color: var(--muted-text); }
+        .notifications-card h3 {
+            margin: 0 0 4px;
+            font-size: 1rem;
+            color: var(--primary);
+            font-family: var(--font-display);
+        }
+        .notifications-card p { margin: 0 0 14px; font-size: 0.85rem; color: var(--muted); }
 
-        /* Status pill */
         .notif-status {
             display: inline-flex;
             align-items: center;
@@ -159,8 +94,8 @@
             border-radius: 99px;
             margin-bottom: 14px;
         }
-        .notif-status.off { background: #f1f5f9; color: #64748b; }
-        .notif-status.on  { background: #dcfce7; color: #15803d; }
+        .notif-status.off { background: var(--bg-subtle); color: var(--muted); }
+        .notif-status.on  { background: var(--success-bg); color: var(--success); }
         .notif-status .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
         .notif-status.on .dot { animation: pulse 1.5s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
@@ -169,170 +104,135 @@
             width: 100%;
             padding: 11px;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             font-weight: 700;
             font-size: 0.9rem;
+            font-family: var(--font-body);
             cursor: pointer;
             transition: background 0.2s, transform 0.1s;
         }
-        #notifToggleBtn.subscribe   { background: #1e293b; color: white; }
-        #notifToggleBtn.unsubscribe { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        #notifToggleBtn.subscribe   { background: var(--accent); color: white; }
+        #notifToggleBtn.unsubscribe { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
         #notifToggleBtn:active      { transform: scale(0.98); }
 
-        /* Integration card fields */
-        .integration-field {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
+        /* ── Integration fields ── */
+        .integration-field { display: flex; gap: 8px; margin-bottom: 12px; }
 
         .integration-field input {
             flex: 1;
             padding: 8px 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             font-family: monospace;
             font-size: 0.82rem;
-            background: #f8fafc;
-            color: #1e293b;
+            background: var(--bg-subtle);
+            color: var(--primary);
         }
 
         .copy-btn {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             padding: 8px 12px;
             font-size: 0.8rem;
             font-weight: 600;
+            font-family: var(--font-body);
             cursor: pointer;
             white-space: nowrap;
+            color: var(--primary);
             transition: background 0.15s;
         }
-        .copy-btn:hover { background: #e2e8f0; }
+        .copy-btn:hover { background: var(--border); }
 
         .integration-label {
             display: block;
             font-size: 0.78rem;
             font-weight: 600;
-            color: var(--muted-text);
+            color: var(--muted);
             margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
-        .danger-note {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin-top: 8px;
-            margin-bottom: 0;
-        }
+        .danger-note { font-size: 0.75rem; color: var(--muted); margin-top: 8px; margin-bottom: 0; }
 
-        /* ── Toast ── */
+        /* ── Sale toast ── */
         #toastContainer {
             position: fixed; bottom: 24px; right: 24px;
             display: flex; flex-direction: column; gap: 10px; z-index: 9999;
         }
         .toast {
-            background: white; border: 1px solid #e2e8f0;
-            border-left: 4px solid var(--primary-green);
-            border-radius: 10px; padding: 14px 18px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: var(--radius);
+            padding: 14px 18px;
+            box-shadow: var(--shadow-md);
             min-width: 280px; max-width: 340px;
-            animation: slideIn 0.3s ease;
+            animation: toastIn 0.3s ease;
         }
-        .toast-title  { font-weight: 700; font-size: 0.9rem; color: #0f172a; margin-bottom: 4px; }
-        .toast-body   { font-size: 0.82rem; color: var(--muted-text); }
-        .toast-amount { font-weight: 700; color: var(--primary-green); }
-        @keyframes slideIn  { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes slideOut { from { opacity: 1; transform: translateX(0); }    to { opacity: 0; transform: translateX(40px); } }
+        .toast-title  { font-weight: 700; font-size: 0.9rem; color: var(--primary); margin-bottom: 4px; }
+        .toast-body   { font-size: 0.82rem; color: var(--muted); }
+        .toast-amount { font-weight: 700; color: var(--accent); }
+        @keyframes toastIn  { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateX(0); }    to { opacity: 0; transform: translateX(40px); } }
 
-        /* ── Theme Toggle Pill ── */
-        .theme-toggle-wrapper {
-            position: fixed;
-            top: 14px;
-            right: 16px;
-            z-index: 200;
-        }
-
+        /* ── Theme pill ── */
         .theme-pill {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
+            background: var(--white);
+            border: 1px solid var(--border);
             border-radius: 99px;
             padding: 6px 14px 6px 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow);
             cursor: pointer;
             user-select: none;
             transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
-
-        .theme-pill:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-        }
-
+        .theme-pill:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
         .theme-pill input { display: none; }
 
         .toggle-track {
-            width: 36px;
-            height: 20px;
-            background: #e2e8f0;
+            width: 36px; height: 20px;
+            background: var(--border);
             border-radius: 999px;
             position: relative;
             transition: background 0.25s;
             flex-shrink: 0;
         }
-
         .toggle-thumb {
             position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 16px;
-            height: 16px;
+            top: 2px; left: 2px;
+            width: 16px; height: 16px;
             background: white;
             border-radius: 50%;
             transition: transform 0.25s;
             box-shadow: 0 1px 4px rgba(0,0,0,0.2);
         }
+        #theme-checkbox:checked + .toggle-track { background: var(--accent); }
+        #theme-checkbox:checked + .toggle-track .toggle-thumb { transform: translateX(16px); }
 
-        #theme-checkbox:checked + .toggle-track {
-            background: #f59e0b;
-        }
+        .theme-pill-icon  { font-size: 1rem; line-height: 1; }
+        .theme-pill-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; white-space: nowrap; }
 
-        #theme-checkbox:checked + .toggle-track .toggle-thumb {
-            transform: translateX(16px);
+        /* ── Logout button ── */
+        .logout-btn {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid var(--danger);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--danger);
+            font-weight: 700;
+            font-size: 0.9rem;
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
         }
-
-        .theme-pill-icon {
-            font-size: 1rem;
-            line-height: 1;
-            transition: transform 0.3s;
-        }
-
-        .theme-pill-label {
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: #64748b;
-            letter-spacing: 0.02em;
-            white-space: nowrap;
-            transition: color 0.2s;
-        }
-
-        /* Dark mode pill styles */
-        body.dark .theme-pill {
-            background: #221f1c;
-            border-color: #2e2925;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-
-        body.dark .theme-pill:hover {
-            border-color: #3d3530;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        }
-
-        body.dark .theme-pill-label {
-            color: #a89f96;
-        }
+        .logout-btn:hover { background: var(--danger-bg); }
     </style>
 </head>
 
@@ -343,7 +243,6 @@
     </div>
 </header>
 
-<!-- ── Theme Toggle Pill ── -->
 <div class="theme-toggle-wrapper">
     <label class="theme-pill theme-toggle" title="Toggle dark mode">
         <span class="theme-pill-icon" id="themeIcon">☀️</span>
@@ -358,17 +257,17 @@
 <div id="toastContainer"></div>
 
 <div class="container">
-    <h1 style="text-align: center; ">Account Settings</h1>
+    <h1 style="text-align: center;">Account Settings</h1>
     <div id="statusMessage" style="text-align: center; margin-bottom: 1.5rem; min-height: 1.2rem; font-size: 0.9rem;"></div>
 
-    <!-- ── Balance ── -->
+    <!-- Balance -->
     <div class="balance-card">
         <div class="balance-label">Your Wallet Balance</div>
         <div id="balanceDisplay" class="balance-amount">$0.00</div>
         <button id="retrieveBtn" class="retrieve-btn">Retrieve Funds</button>
     </div>
 
-    <!-- ── Sale notifications ── -->
+    <!-- Sale notifications -->
     <div class="notifications-card">
         <h3>Sale Notifications</h3>
         <p>Subscribe to receive a real-time alert whenever one of your books is purchased.</p>
@@ -379,7 +278,7 @@
         <button id="notifToggleBtn" class="subscribe">🔔 Subscribe to sale alerts</button>
     </div>
 
-    <!-- ── External integrations ── -->
+    <!-- External integrations -->
     <div class="notifications-card">
         <h3>External Integrations</h3>
         <p>Connect your own inventory system or platform to your real-time sale feed using these credentials.</p>
@@ -408,7 +307,7 @@
         <p class="danger-note">⚠️ Generating a new key will immediately invalidate the old one.</p>
     </div>
 
-    <!-- ── Profile picture ── -->
+    <!-- Profile picture -->
     <div class="profile-section">
         <div class="avatar-wrapper" onclick="document.getElementById('avatarFileInput').click()" title="Change profile picture">
             <div class="avatar-circle" id="avatarCircle">
@@ -418,14 +317,6 @@
             <div class="avatar-edit-badge">📷</div>
         </div>
         <span class="avatar-hint">Click to change profile picture</span>
-        <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp">
-    </div>
-
-    <div class="profile-section">
-        <span class="avatar-hint">Click to change profile picture</span>
-
-        <button id="logoutBtn" class="logout-btn">Log Out</button>
-
         <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp">
     </div>
 
@@ -444,12 +335,13 @@
         <input type="text" id="addressInput" placeholder="Enter your full address">
     </div>
 
-    <button class="submit-btn">Update Profile</button>
+    <button class="submit-btn" id="updateProfileBtn">Update Profile</button>
 
     <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
         <button class="submit-btn" onclick="window.location.href='orders.html'">View Orders</button>
         <button class="submit-btn" onclick="window.location.href='my_cards.html'">My Saved Cards</button>
         <button class="submit-btn" onclick="window.location.href='my_books.html'">My Books</button>
+        <button class="logout-btn" id="logoutBtn">Log Out</button>
     </div>
 </div>
 
@@ -463,17 +355,18 @@
     const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
     let currentUserId = null;
-    const NOTIF_KEY = 'saleNotificationsEnabled';
+    const NOTIF_KEY   = 'saleNotificationsEnabled';
+    const themeCheckbox = document.getElementById('theme-checkbox');
 
-    // ── Status message ─────────────────────────────────────────────────────
+    // ── Status message ────────────────────────────────────────
     function updateStatus(text, type = 'success') {
         const el = document.getElementById('statusMessage');
         el.textContent = text;
-        el.style.color = type === 'error' ? '#dc2626' : '#059669';
+        el.style.color = type === 'error' ? 'var(--danger)' : 'var(--success)';
         setTimeout(() => el.textContent = "", 5000);
     }
 
-    // ── Toast ──────────────────────────────────────────────────────────────
+    // ── Sale toast ────────────────────────────────────────────
     function showSaleToast(sale) {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -486,12 +379,12 @@
             </div>`;
         container.appendChild(toast);
         setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease forwards';
+            toast.style.animation = 'toastOut 0.3s ease forwards';
             toast.addEventListener('animationend', () => toast.remove());
         }, 6000);
     }
 
-    // ── Notification UI ────────────────────────────────────────────────────
+    // ── Notification UI ───────────────────────────────────────
     function updateNotifUI(subscribed) {
         const pill  = document.getElementById('notifStatus');
         const label = document.getElementById('notifStatusText');
@@ -522,7 +415,7 @@
         }
     });
 
-    // ── Integration card ───────────────────────────────────────────────────
+    // ── Integration card ──────────────────────────────────────
     function copyField(id) {
         const val = document.getElementById(id).value;
         if (!val) return;
@@ -531,53 +424,24 @@
     }
 
     async function loadIntegrationInfo(userId) {
-        let origin = window.location.origin;
         const nativeWsUrl = window.location.origin.replace(/^http(s)?/, 'wss') + '/ws-native';
-        document.getElementById('wsUrlDisplay').value = nativeWsUrl;
+        document.getElementById('wsUrlDisplay').value   = nativeWsUrl;
         document.getElementById('wsTopicDisplay').value = `/topic/seller.${userId}`;
-
         try {
             const res = await fetch(`${API_BASE}/me/api-key`, { credentials: 'include' });
             if (res.ok) {
                 const key = await res.text();
                 document.getElementById('apiKeyDisplay').value = key || '';
             }
-        } catch (e) {
-            // leave placeholder
-        }
+        } catch (e) { /* leave placeholder */ }
     }
-
-    async function handleLogout() {
-        try {
-            const response = await fetch(`${API_BASE}/auth/signout/`, {
-                method: 'POST',
-                credentials: 'include' // Important for clearing HttpOnly cookies
-            });
-
-            if (response.ok) {
-                // Clear local theme or notification settings if desired
-                localStorage.removeItem(NOTIF_KEY);
-                window.location.href = 'login.html';
-            } else {
-                updateStatus("Logout failed. Please try again.", "error");
-            }
-        } catch (e) {
-            updateStatus("Network error during logout.", "error");
-        }
-    }
-
-    // Add the listener inside your DOMContentLoaded or with the other listeners
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
 
     document.getElementById('generateKeyBtn').addEventListener('click', async () => {
         const btn = document.getElementById('generateKeyBtn');
         btn.disabled    = true;
         btn.textContent = 'Generating...';
         try {
-            const res = await fetch(`${API_BASE}/me/api-key`, {
-                method: 'POST',
-                credentials: 'include'
-            });
+            const res = await fetch(`${API_BASE}/me/api-key`, { method: 'POST', credentials: 'include' });
             if (res.ok) {
                 const key = await res.text();
                 document.getElementById('apiKeyDisplay').value = key;
@@ -593,33 +457,28 @@
         }
     });
 
-    // ── Avatar ─────────────────────────────────────────────────────────────
+    // ── Avatar ────────────────────────────────────────────────
     async function loadAvatar() {
         try {
             const res = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
             if (res.ok) {
-                const blob = URL.createObjectURL(await res.blob());
+                const blob   = URL.createObjectURL(await res.blob());
                 const img    = document.getElementById('avatarImg');
                 const circle = document.getElementById('avatarCircle');
                 img.src    = blob;
                 img.onload = () => circle.classList.add('has-photo');
             }
-        } catch (e) {
-            // no picture — emoji stays
-        }
+        } catch (e) { /* no picture */ }
     }
 
     document.getElementById('avatarFileInput').addEventListener('change', async function () {
         const file = this.files[0];
         if (!file) return;
-
         if (file.size > 5 * 1024 * 1024) {
             updateStatus('Image must be under 5 MB.', 'error');
             this.value = '';
             return;
         }
-
-        // Optimistic local preview
         const reader = new FileReader();
         reader.onload = (e) => {
             document.getElementById('avatarImg').src = e.target.result;
@@ -627,13 +486,9 @@
         };
         reader.readAsDataURL(file);
 
-        // Upload
         const formData = new FormData();
         formData.append('file', file);
-
         try {
-            const url = `${API_BASE}/me/${currentUserId}/profile-picture`;
-            console.log("Uploading to:", url);
             const res = await fetch(`${API_BASE}/me/${currentUserId}/profile-picture`, {
                 method: 'PUT',
                 credentials: 'include',
@@ -643,18 +498,35 @@
                 updateStatus('Profile picture updated!');
             } else {
                 updateStatus('Failed to upload picture.', 'error');
-                loadAvatar(); // revert
+                loadAvatar();
             }
         } catch (e) {
             updateStatus('Network error uploading picture.', 'error');
         }
     });
 
-    // ── Page init ──────────────────────────────────────────────────────────
+    // ── Logout ────────────────────────────────────────────────
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        try {
+            const response = await fetch(`${API_BASE}/auth/signout/`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (response.ok) {
+                localStorage.removeItem(NOTIF_KEY);
+                window.location.href = 'login.html';
+            } else {
+                updateStatus("Logout failed. Please try again.", "error");
+            }
+        } catch (e) {
+            updateStatus("Network error during logout.", "error");
+        }
+    });
+
+    // ── Page init ─────────────────────────────────────────────
     async function initPage() {
         try {
             const response = await fetch(`${API_BASE}/me/`, { method: 'GET', credentials: 'include' });
-
             if (response.ok) {
                 const user    = await response.json();
                 currentUserId = user.id;
@@ -678,7 +550,7 @@
         }
     }
 
-    // ── Retrieve funds ─────────────────────────────────────────────────────
+    // ── Retrieve funds ────────────────────────────────────────
     async function handleRetrieveFunds() {
         const btn       = document.getElementById('retrieveBtn');
         btn.disabled    = true;
@@ -703,48 +575,42 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        initPage();
-        document.getElementById('retrieveBtn').addEventListener('click', handleRetrieveFunds);
-    });
-
-    // ── Theme pill helpers ─────────────────────────────────────────────────
+    // ── Theme ─────────────────────────────────────────────────
     function applyThemeUI(isDark) {
         document.getElementById('themeIcon').textContent      = isDark ? '🌙' : '☀️';
         document.getElementById('themePillLabel').textContent = isDark ? 'Dark mode' : 'Light mode';
-        document.getElementById('theme-checkbox').checked     = isDark;
+        themeCheckbox.checked = isDark;
         document.body.classList.toggle('dark', isDark);
         document.documentElement.classList.toggle('dark', isDark);
     }
 
-    const themeCheckbox = document.getElementById('theme-checkbox');
-
-    // Load theme from backend
     async function loadTheme() {
-        const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
-        if (!res.ok) {
-            document.body.classList.remove("preload");
-            return;
+        // Apply cached theme instantly — works on localhost too
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached) applyThemeUI(cached === 'dark');
+
+        try {
+            const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+            if (!res.ok) {
+                document.body.classList.remove("preload");
+                return;
+            }
+            const user   = await res.json();
+            const theme  = user.themePreference || 'light';
+            const isDark = theme === 'dark';
+            applyThemeUI(isDark);
+            localStorage.setItem('bookstack-theme', theme);
+        } catch (e) {
+            console.error("Theme load failed", e);
         }
-
-        const user = await res.json();
-        const theme = user.themePreference || 'light';
-        const isDark = theme === 'dark';
-
-        applyThemeUI(isDark);
-        localStorage.setItem('bookstack-theme', theme);
         document.body.classList.remove("preload");
     }
 
-    // Toggle theme
     themeCheckbox.addEventListener('change', async () => {
         const isDark = themeCheckbox.checked;
         const theme  = isDark ? 'dark' : 'light';
-
         applyThemeUI(isDark);
         localStorage.setItem('bookstack-theme', theme);
-
-        // Save to backend
         await fetch(`${API_BASE}/me/theme`, {
             method: 'POST',
             credentials: 'include',
@@ -753,7 +619,12 @@
         });
     });
 
-    // Initialize
+    // ── Init ──────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        initPage();
+        document.getElementById('retrieveBtn').addEventListener('click', handleRetrieveFunds);
+    });
+
     loadTheme();
 </script>
 </body>

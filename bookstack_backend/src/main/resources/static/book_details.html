@@ -494,29 +494,34 @@
 
     // ── Theme ─────────────────────────────────────────────────
     async function applyTheme() {
+        // Apply cached theme instantly
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached) {
+            const isDark = cached === 'dark';
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        }
+
+        // Then verify from server if cookie present
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) {
             document.body.classList.remove("preload");
             return;
         }
-
         try {
             const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
-            if (!res.ok) {
-                document.body.classList.remove("preload");
-                return;
-            }
-            const user = await res.json();
-            const theme = user.themePreference || "light";
+            if (!res.ok) { document.body.classList.remove("preload"); return; }
+            const user   = await res.json();
+            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const isDark = theme === "dark";
             localStorage.setItem('bookstack-theme', theme);
-            document.documentElement.classList.toggle("dark", theme === "dark");
-            document.body.classList.toggle("dark", theme === "dark");
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
         } catch (err) {
             console.error("Theme load failed", err);
         }
         document.body.classList.remove("preload");
     }
-
     // ── Init ──────────────────────────────────────────────────
     applyTheme();
     checkAdminStatus();
