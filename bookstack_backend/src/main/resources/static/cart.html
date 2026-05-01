@@ -49,8 +49,12 @@
 
 <div class="cart-container">
   <a href="homepage.html" class="nav-link">← Continue Shopping</a>
-  <div class="cart-title">Your Shopping Cart</div>
-
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+      <div class="cart-title">Your Shopping Cart</div>
+      <button id="clearCartBtn" class="delete-btn" onclick="clearCart()" style="display:none;">
+          🗑️ Empty Cart
+      </button>
+  </div>
   <table>
     <thead>
     <tr>
@@ -180,6 +184,8 @@
         `;
       });
     }
+    document.getElementById('clearCartBtn').style.display = 
+        (!items || items.length === 0) ? 'none' : 'inline-flex';
     totalSpan.innerText = `$${grandTotal.toFixed(2)}`;
   }
 
@@ -306,6 +312,24 @@
     checkAdminStatus();
     fetchCart();
   });
+
+  async function clearCart() {
+      if (!confirm("Empty your entire cart?")) return;
+      try {
+          const res = await fetch(`${API_BASE}/cart/clear/`, {
+              method: 'DELETE',
+              credentials: 'include'
+          });
+          if (res.ok) {
+              showNotification("Cart cleared.", "info");
+              fetchCart();
+          } else {
+              showNotification("Failed to clear cart.", "error");
+          }
+      } catch (err) {
+          showNotification("Network error.", "error");
+      }
+  }
 
     async function applyTheme() {
         // Apply cached theme instantly

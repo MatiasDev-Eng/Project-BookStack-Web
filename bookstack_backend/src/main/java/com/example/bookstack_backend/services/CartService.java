@@ -96,4 +96,12 @@ public class CartService {
         item.setQuantity(quantity);
         cartItemRepository.save(item);
     }
+
+    @Transactional
+    public void clearCart(Long userId) {
+        Cart cart = cartRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        cart.getItems().clear();
+        cartRepository.save(cart);
+    }
 }

@@ -51,4 +51,12 @@ public class CartController {
         cartService.updateQuantity(itemId, quantity);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/clear/")
+    public ResponseEntity<?> clearCart() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        cartService.clearCart(userDetails.getId());
+        return ResponseEntity.ok().build();
+    }
 }
