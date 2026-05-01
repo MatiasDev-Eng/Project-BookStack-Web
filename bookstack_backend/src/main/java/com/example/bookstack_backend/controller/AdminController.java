@@ -67,6 +67,28 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/users/active/")
+    public ResponseEntity<?> getActiveUsers() {
+        return ResponseEntity.ok(adminService.getAllActiveUsers());
+    }
+
+    @GetMapping("/users/frozen/")
+    public ResponseEntity<?> getFrozenUsers() {
+        return ResponseEntity.ok(adminService.getAllFrozenUsers());
+    }
+
+    @PutMapping("/users/{userId}/freeze/")
+    public ResponseEntity<?> freezeUser(@PathVariable Long userId) {
+        adminService.freezeUser(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/users/{userId}/unfreeze/")
+    public ResponseEntity<?> unfreezeUser(@PathVariable Long userId) {
+        adminService.unfreezeUser(userId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/users/{id}/profile-picture")
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long id) {
         try {
@@ -110,6 +132,28 @@ public class AdminController {
     @DeleteMapping("/books/{bookId}/reject/")
     public ResponseEntity<?> rejectBook(@PathVariable Long bookId) {
         adminBookService.deleteBook(bookId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/books/active/")
+    public ResponseEntity<?> getActiveBooks() {
+        return ResponseEntity.ok(adminService.getAllActiveBooks());
+    }
+
+    @GetMapping("/books/frozen/")
+    public ResponseEntity<?> getFrozenBooks() {
+        return ResponseEntity.ok(adminService.getAllFrozenBooks());
+    }
+
+    @PutMapping("/books/{bookId}/freeze/")
+    public ResponseEntity<?> freezeBook(@PathVariable Long bookId) {
+        adminService.freezeBook(bookId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/books/{bookId}/unfreeze/")
+    public ResponseEntity<?> unfreezeBook(@PathVariable Long bookId) {
+        adminService.unfreezeBook(bookId);
         return ResponseEntity.ok().build();
     }
 

@@ -80,7 +80,7 @@
     <select id="cardSelect" class="card-select">
       <option value="">Loading saved cards...</option>
     </select>
-    <p style="font-size: 0.8rem; color: var(--muted); margin-top: -10px;">
+    <p style="font-size: 0.8rem; color: var(--muted); margin-top: 6px;">
       <a href="my_cards.html">+ Add a new card in Account Settings</a>
     </p>
 
@@ -213,7 +213,18 @@
     document.getElementById('addressSection').style.display = 'block';
     document.getElementById('checkoutBtn').style.display = 'none';
     fetchSavedCards();
+    loadSavedAddress();
     document.getElementById('addressSection').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function loadSavedAddress() {
+    try {
+        const res = await fetch(`${API_BASE}/me/address`, { credentials: 'include' });
+        if (res.ok) {
+            const addr = await res.text();
+            if (addr) document.getElementById('deliveryAddress').value = addr;
+        }
+    } catch (e) { /* leave blank */ }
   }
 
   function hideCheckoutSection() {

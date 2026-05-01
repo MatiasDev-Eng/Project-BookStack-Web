@@ -23,6 +23,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.isBanned = true")
     List<User> findAllByIsBanned();
 
+    List<User> findByIsBannedFalse();
+    List<User> findByIsBannedTrue();
+
     @Modifying
     @Transactional
     @Query("UPDATE User u SET u.isBanned = false WHERE u.id = :userId")

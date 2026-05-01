@@ -3,124 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Listings | Bookstore</title>
+    <title>My Listings | BookStack</title>
     <link rel="stylesheet" href="style.css">
     <script>
-        // Apply theme instantly from cache to prevent white flash
         (function() {
-        const cached = localStorage.getItem('bookstack-theme');
-        if (cached === 'dark') document.documentElement.classList.add('dark');
+            const cached = localStorage.getItem('bookstack-theme');
+            if (cached === 'dark') document.documentElement.classList.add('dark');
         })();
     </script>
     <style>
-    /* Nav avatar photo support */
-    .user-profile-btn img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-      display: none;
-    }
-    .user-profile-btn.has-photo img        { display: block; }
-    .user-profile-btn.has-photo .nav-emoji { display: none; }
-  </style>
+        .user-profile-btn img {
+            width: 100%; height: 100%;
+            object-fit: cover; border-radius: 50%; display: none;
+        }
+        .user-profile-btn.has-photo img        { display: block; }
+        .user-profile-btn.has-photo .nav-emoji { display: none; }
+
+        .badge-frozen {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--info-bg);
+            color: var(--info);
+        }
+    </style>
 </head>
+
 <body class="preload">
 <div id="notification"></div>
+
 <nav>
-  <div class="nav-left">
-    <a href="homepage.html" class="logo">BookStack</a>
-  </div>
- 
-  <div class="nav-right" style="margin-left: auto;">
-    <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display: none;">
-      🛡️ Admin
-    </a>
-    <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
-    <div class="nav-icon-btn" onclick="window.location.href='wishlist.html'">❤️</div>
-    <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
-    <div class="user-profile-btn" onclick="window.location.href='account.html'">
-      <img id="navAvatar" alt="Profile">
-      <span class="nav-emoji">👤</span>
+    <div class="nav-left">
+        <a href="homepage.html" class="logo">BookStack</a>
     </div>
-  </div>
+    <div class="nav-right" style="margin-left: auto;">
+        <a href="admin_usermanagement.html" id="adminBtn" class="publish-btn admin-btn" style="display: none;">
+            🛡️ Admin
+        </a>
+        <a href="publish_book.html" class="publish-btn"><span>+</span> Publish Book</a>
+        <div class="nav-icon-btn" onclick="window.location.href='wishlist.html'">❤️</div>
+        <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
+        <div class="user-profile-btn" onclick="window.location.href='account.html'">
+            <img id="navAvatar" alt="Profile">
+            <span class="nav-emoji">👤</span>
+        </div>
+    </div>
 </nav>
 
 <div class="container wide">
     <div class="dashboard-header">
-        <h1>Your Active Listings</h1>
-        <button class="add-new-btn" onclick="window.location.href='/publish_book.html'">+ List New Book</button>
+        <h1>Your Listings</h1>
+        <a href="publish_book.html" class="add-new-btn">+ List New Book</a>
     </div>
 
     <table class="listings-table">
         <thead>
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Year</th>
-            <th>ISBN</th>
-            <th>Price</th>
-            <th>Condition</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Year</th>
+                <th>ISBN</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Condition</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody id="listings-tbody">
-        <tr>
-            <td colspan="8" style="text-align: center; padding: 20px;">Loading your books...</td>
-        </tr>
+            <tr>
+                <td colspan="9" style="text-align:center; padding:20px;">Loading your books...</td>
+            </tr>
         </tbody>
     </table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
-
 <script src="notifications.js"></script>
 <script src="global-init.js"></script>
 
-
 <script>
+    const API_BASE = "http://localhost:9091/api";
+    const API_URL  = `${API_BASE}/books/me/`;
+    const token    = localStorage.getItem('token');
+
+    function showNotification(message, type = "info") {
+        const note = document.getElementById("notification");
+        note.innerText     = message;
+        note.className     = `notification-${type}`;
+        note.style.display = "block";
+        setTimeout(() => { note.style.display = "none"; }, 3000);
+    }
+
     async function checkAdminStatus() {
         try {
-        const res = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
-        if (res.ok) {
-            const user = await res.json();
-            if (user.roles && user.roles.includes('ROLE_ADMIN')) {
-            document.getElementById('adminBtn').style.display = 'flex';
+            const res = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
+            if (res.ok) {
+                const user = await res.json();
+                if (user.roles && user.roles.includes('ROLE_ADMIN')) {
+                    document.getElementById('adminBtn').style.display = 'flex';
+                }
+                try {
+                    const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
+                    if (picRes.ok) {
+                        const blob       = URL.createObjectURL(await picRes.blob());
+                        const navAvatar  = document.getElementById('navAvatar');
+                        const profileBtn = document.querySelector('.user-profile-btn');
+                        navAvatar.src    = blob;
+                        navAvatar.onload = () => profileBtn.classList.add('has-photo');
+                    }
+                } catch (e) { /* no picture */ }
             }
-            try {
-            const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
-            if (picRes.ok) {
-                const blob       = URL.createObjectURL(await picRes.blob());
-                const navAvatar  = document.getElementById('navAvatar');
-                const profileBtn = document.querySelector('.user-profile-btn');
-                navAvatar.src    = blob;
-                navAvatar.onload = () => profileBtn.classList.add('has-photo');
-            }
-            } catch (e) { /* no picture */ }
-        }
         } catch (e) {
-        console.warn("Admin check failed:", e);
+            console.warn("Admin check failed:", e);
         }
     }
-  // Notification function
-  function showNotification(message, type = "info") {
-    const note = document.getElementById("notification");
-    note.innerText = message;
-    note.className = `notification-${type}`;
-    note.style.display = "block";
-    setTimeout(() => {
-      note.style.display = "none";
-    }, 3000);
-  }
-    const API_BASE = `${window.location.origin}/api`;
-    const API_URL = `${API_BASE}/books/me/`;
-    const token = localStorage.getItem('token');
+
+    function getStatusBadge(book) {
+        if (book.isFrozen) {
+            return `<span class="badge-frozen">❄️ Frozen</span>`;
+        }
+        if (!book.isActive) {
+            return `<span class="status pending">Pending Approval</span>`;
+        }
+        if (book.stock === 0) {
+            return `<span class="status pending">Out of Stock</span>`;
+        }
+        return `<span class="status visible">Visible</span>`;
+    }
+
+    function getActionButtons(book) {
+        if (book.isFrozen) {
+            return `<span style="font-size:0.82rem; color:var(--muted);">Frozen by admin</span>`;
+        }
+        return `
+            <button class="btn-action approve" onclick="editListing(${book.bookId})">Edit</button>
+            <button class="btn-action delete-btn" id="del-${book.bookId}" onclick="deleteListing(${book.bookId})">Delete</button>
+        `;
+    }
 
     async function fetchListings() {
         const tbody = document.getElementById('listings-tbody');
-
         try {
             const response = await fetch(API_URL, {
                 method: 'GET',
@@ -130,111 +158,104 @@
             if (!response.ok) throw new Error("Could not fetch listings");
 
             const books = await response.json();
-
-            if (books.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No books found.</td></tr>';
+            const visibleBooks = books.filter(book => !book.isDeleted);
+            
+            if (visibleBooks.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-state">You haven't listed any books yet.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = books.map(book => `
-                    <tr>
-                        <td>${book.title}</td>
-                        <td>${book.author || 'N/A'}</td>
-                        <td>${book.year || 'N/A'}</td>
-                        <td>${book.isbn || 'N/A'}</td>
-                        <td>$${book.price ? book.price.toFixed(2) : '0.00'}</td>
-                        <td>${book.condition || 'N/A'}</td>
-                        <td>
-                            <span class="status ${book.isActive ? 'visible' : 'pending'}">
-                                ${book.isActive ? 'Visible' : 'Pending Approval'}
-                            </span>
-                        </td>
-                        <td class="action-buttons">
-                            <button class="edit-btn" onclick="editListing(${book.bookId})">Edit</button>
-                            <button class="delete-btn" onclick="deleteListing(${book.bookId})">Delete</button>
-                        </td>
-                    </tr>
-                `).join('');
+            tbody.innerHTML = visibleBooks.map(book => `
+                <tr>
+                    <td><strong>${book.title}</strong></td>
+                    <td>${book.author || 'N/A'}</td>
+                    <td>${book.publishedYear || 'N/A'}</td>
+                    <td style="font-family:monospace; font-size:0.85rem;">${book.isbn || 'N/A'}</td>
+                    <td style="color:var(--price); font-weight:700;">$${book.price ? parseFloat(book.price).toFixed(2) : '0.00'}</td>
+                    <td>${book.stock ?? 0}</td>
+                    <td>${book.condition || 'N/A'}</td>
+                    <td>${getStatusBadge(book)}</td>
+                    <td>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            ${getActionButtons(book)}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
 
         } catch (error) {
             console.error("Error:", error);
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Failed to load data. Ensure you are logged in.</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--danger);">Failed to load listings. Make sure you are logged in.</td></tr>`;
         }
     }
 
     async function deleteListing(id) {
-        const btn = event.target;
+        const btn = document.getElementById(`del-${id}`);
         if (btn.innerText === "Delete") {
             btn.innerText = "Sure?";
-            btn.style.backgroundColor = "#ef4444";
+            btn.style.backgroundColor = "var(--danger)";
             btn.style.color = "white";
             setTimeout(() => {
-                btn.innerText = "Delete";
-                btn.style.backgroundColor = "";
-                btn.style.color = "";
+                if (btn.innerText === "Sure?") {
+                    btn.innerText = "Delete";
+                    btn.style.backgroundColor = "";
+                    btn.style.color = "";
+                }
             }, 3000);
             return;
         }
 
         try {
-            const response = await fetch(`${API_URL}${id}`, {
+            const response = await fetch(`${API_BASE}/books/${id}`, {
                 method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+                credentials: 'include'
             });
-
             if (response.ok) {
-                fetchListings(); // Refresh the list
+                showNotification("Book deleted.", "info");
+                fetchListings();
             } else {
                 showNotification("Delete failed.", "error");
             }
         } catch (err) {
             console.error(err);
+            showNotification("Network error.", "error");
         }
     }
 
     function editListing(id) {
-        // Logic to redirect to your edit form with the book ID
-        window.location.href = `edit-book.html?id=${id}`;
+        window.location.href = `edit_book.html?id=${id}`;
     }
 
-    // Initialize table on load
-    document.addEventListener('DOMContentLoaded', ()=> {
+    document.addEventListener('DOMContentLoaded', () => {
         checkAdminStatus();
         fetchListings();
     });
 
     async function applyTheme() {
-      // Apply cached theme instantly
-      const cached = localStorage.getItem('bookstack-theme');
-      if (cached) {
-          const isDark = cached === 'dark';
-          document.body.classList.toggle("dark", isDark);
-          document.documentElement.classList.toggle("dark", isDark);
-      }
-
-      // Then verify from server if cookie present
-      const hasCookie = document.cookie.includes('bookstack-jwt');
-      if (!hasCookie) {
-          document.body.classList.remove("preload");
-          return;
-      }
-      try {
-          const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
-          if (!res.ok) { document.body.classList.remove("preload"); return; }
-          const user   = await res.json();
-          const theme  = (user.themePreference || "light").toLowerCase().trim();
-          const isDark = theme === "dark";
-          localStorage.setItem('bookstack-theme', theme);
-          document.body.classList.toggle("dark", isDark);
-          document.documentElement.classList.toggle("dark", isDark);
-      } catch (err) {
-          console.error("Theme load failed", err);
-      }
-      document.body.classList.remove("preload");
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached) {
+            const isDark = cached === 'dark';
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        }
+        const hasCookie = document.cookie.includes('bookstack-jwt');
+        if (!hasCookie) { document.body.classList.remove("preload"); return; }
+        try {
+            const res = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
+            if (!res.ok) { document.body.classList.remove("preload"); return; }
+            const user   = await res.json();
+            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const isDark = theme === "dark";
+            localStorage.setItem('bookstack-theme', theme);
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        } catch (err) {
+            console.error("Theme load failed", err);
+        }
+        document.body.classList.remove("preload");
     }
 
     applyTheme();
-
 </script>
 </body>
 </html>

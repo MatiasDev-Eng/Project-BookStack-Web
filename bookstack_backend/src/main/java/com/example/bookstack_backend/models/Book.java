@@ -51,6 +51,12 @@ public class Book {
     @Column(name = "cover_image_type")
     private String coverImageType;
 
+    @Column(name = "is_frozen", nullable = false)
+    private Boolean isFrozen = false;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
     public Book() {
     }
 
@@ -210,4 +216,11 @@ public class Book {
 
     public void setCoverImageType(String coverImageType) { this.coverImageType = coverImageType; }
     public String getCoverImageType() { return coverImageType; }
+
+    public Boolean getIsFrozen() { return isFrozen; }
+    public void setIsFrozen(Boolean isFrozen) { this.isFrozen = isFrozen; }
+
+    public Boolean getIsDeleted() { return isDeleted; }
+    public void setIsDeleted(Boolean isDeleted) { this.isDeleted = isDeleted; }
+
 }

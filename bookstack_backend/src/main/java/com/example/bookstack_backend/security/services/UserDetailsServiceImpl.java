@@ -22,6 +22,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
 
+        if (Boolean.TRUE.equals(user.getIsBanned())) {
+            throw new UsernameNotFoundException("Account is frozen. Contact support.");
+        }
+
         return UserDetailsImpl.build(user);
     }
 
