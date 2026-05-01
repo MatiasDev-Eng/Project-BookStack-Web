@@ -31,6 +31,24 @@
         }
         .user-profile-btn.has-photo img        { display: block; }
         .user-profile-btn.has-photo .nav-emoji { display: none; }
+
+        /* Style for the report button */
+        .report-btn {
+            width: 100%;
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 5px;
+        }
+        .report-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
     </style>
 </head>
 
@@ -56,8 +74,8 @@
         <div class="nav-icon-btn" onclick="window.location.href='wishlist.html'">❤️</div>
         <div class="nav-icon-btn" onclick="window.location.href='cart.html'">🛒</div>
         <div class="user-profile-btn" onclick="window.location.href='account.html'">
-           <img id="navAvatar" alt="Profile">
-           <span class="nav-emoji">👤</span>
+            <img id="navAvatar" alt="Profile">
+            <span class="nav-emoji">👤</span>
         </div>
     </div>
 </nav>
@@ -104,25 +122,25 @@
 
     async function checkAdminStatus() {
         try {
-        const res = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
-        if (res.ok) {
-            const user = await res.json();
-            if (user.roles && user.roles.includes('ROLE_ADMIN')) {
-            document.getElementById('adminBtn').style.display = 'flex';
+            const res = await fetch(`${API_BASE}/auth/me/`, { credentials: 'include' });
+            if (res.ok) {
+                const user = await res.json();
+                if (user.roles && user.roles.includes('ROLE_ADMIN')) {
+                    document.getElementById('adminBtn').style.display = 'flex';
+                }
+                try {
+                    const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
+                    if (picRes.ok) {
+                        const blob       = URL.createObjectURL(await picRes.blob());
+                        const navAvatar  = document.getElementById('navAvatar');
+                        const profileBtn = document.querySelector('.user-profile-btn');
+                        navAvatar.src    = blob;
+                        navAvatar.onload = () => profileBtn.classList.add('has-photo');
+                    }
+                } catch (e) { /* no picture */ }
             }
-            try {
-            const picRes = await fetch(`${API_BASE}/me/profile-picture`, { credentials: 'include' });
-            if (picRes.ok) {
-                const blob       = URL.createObjectURL(await picRes.blob());
-                const navAvatar  = document.getElementById('navAvatar');
-                const profileBtn = document.querySelector('.user-profile-btn');
-                navAvatar.src    = blob;
-                navAvatar.onload = () => profileBtn.classList.add('has-photo');
-            }
-            } catch (e) { /* no picture */ }
-        }
         } catch (e) {
-        console.warn("Admin check failed:", e);
+            console.warn("Admin check failed:", e);
         }
     }
 
@@ -218,7 +236,6 @@
 
             document.title = `${title} | BookStack`;
 
-            // ── Average rating display ────────────────────────
             const avgRating = book.reviewCount > 0
                 ? (book.totalScore / book.reviewCount).toFixed(1)
                 : null;
@@ -229,7 +246,6 @@
                    <span style="color: var(--muted); font-size: 0.9rem;">${avgRating} / 5 &nbsp;·&nbsp; ${book.reviewCount} review${book.reviewCount !== 1 ? 's' : ''}</span>`
                 : `<span style="color: var(--muted); font-size: 0.9rem;">No reviews yet</span>`;
 
-            // ── Cover HTML ────────────────────────────────────
             const coverHTML = book.hasCover
                 ? `<img src="${API_BASE}/books/${bookId}/cover"
                         alt="${title}"
@@ -262,6 +278,9 @@
                                 </div>
                             `}
                             <button class="add-new-btn" style="width:100%; background:var(--bg-subtle); color:var(--primary); border:1px solid var(--border);" onclick="addToWishlist()">❤️ Add to Wishlist</button>
+
+                            <!-- Report Button -->
+                            <button class="report-btn" onclick="reportBook()">🚩 Report Inappropriate</button>
                         </div>
                     </div>
 
@@ -272,7 +291,6 @@
                             by <strong style="color: var(--primary);">${author}</strong>
                         </p>
 
-                        <!-- Star rating display -->
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
                             ${starsDisplay}
                         </div>
@@ -311,7 +329,7 @@
                     </div>
                 </div>
 
-                <!-- ── Review widget ── -->
+                <!-- Review widget -->
                 <div style="margin-top: 32px; padding: 24px; background: var(--bg-subtle); border-radius: var(--radius); border: 1px solid var(--border);">
                     <h2 style="margin-bottom: 6px;">Rate This Book</h2>
                     <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 16px;">Click a star to leave your rating</p>
@@ -338,7 +356,7 @@
                     <p id="reviewResult" style="margin-top: 12px; font-size: 0.9rem; min-height: 1.2em;"></p>
                 </div>
 
-                <!-- ── Similar books ── -->
+                <!-- Similar books -->
                 <div style="margin-top: 40px;">
                     <h2 style="margin-bottom: 16px;">More Like This</h2>
                     <div id="similar-books" class="similar-books-container">
@@ -356,7 +374,28 @@
         }
     }
 
-    // ── Star hover effects ────────────────────────────────────
+    // ── Report Logic ──────────────────────────────────────────
+    async function reportBook() {
+        if (!confirm("Are you sure you want to report this book for inappropriate content?")) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/report/book/${bookId}`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                showNotification("Report submitted successfully.", "success");
+            } else if (res.status === 401) {
+                showNotification("Please log in to report content.", "error");
+            } else {
+                showNotification("Failed to submit report.", "error");
+            }
+        } catch (err) {
+            showNotification("Network error. Please try again.", "error");
+        }
+    }
+
     function hoverStar(val) {
         document.querySelectorAll('#starSelector span').forEach(star => {
             const starVal = parseInt(star.dataset.val);
@@ -371,7 +410,6 @@
         });
     }
 
-    // ── Similar books ─────────────────────────────────────────
     async function loadSimilarBooks() {
         try {
             const res = await fetch(`${API_BASE}/books/${bookId}/similar`, { credentials: 'include' });
@@ -403,16 +441,14 @@
         }
     }
 
-    // ── Qty controls ──────────────────────────────────────────
     function updateQty(btn, delta) {
         const qtySpan = document.getElementById('qty-detail');
-        const stock   = bookStockGlobal; // we'll set this below
+        const stock   = bookStockGlobal;
         let qty = parseInt(qtySpan.innerText);
         qty = Math.max(1, Math.min(stock, qty + delta));
         qtySpan.innerText = qty;
     }
 
-    // ── Add to cart ───────────────────────────────────────────
     async function addToCart() {
         const qty = parseInt(document.getElementById('qty-detail').innerText);
         try {
@@ -434,7 +470,6 @@
         }
     }
 
-    // ── Add to wishlist ───────────────────────────────────────
     async function addToWishlist() {
         try {
             const res = await fetch(`${API_BASE}/wishlist/add/`, {
@@ -455,7 +490,6 @@
         }
     }
 
-    // ── Search ────────────────────────────────────────────────
     document.getElementById("searchBtn").addEventListener("click", () => {
         const query = document.getElementById("searchInput").value.trim();
         window.location.href = `homepage.html?search=${encodeURIComponent(query)}`;
@@ -468,7 +502,6 @@
         }
     });
 
-    // ── Filter panel ──────────────────────────────────────────
     document.getElementById("filterBtn").addEventListener("click", () => {
         document.getElementById("filterPanel").classList.toggle("open");
     });
@@ -492,9 +525,7 @@
         window.location.href = `homepage.html`;
     });
 
-    // ── Theme ─────────────────────────────────────────────────
     async function applyTheme() {
-        // Apply cached theme instantly
         const cached = localStorage.getItem('bookstack-theme');
         if (cached) {
             const isDark = cached === 'dark';
@@ -502,7 +533,6 @@
             document.documentElement.classList.toggle("dark", isDark);
         }
 
-        // Then verify from server if cookie present
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) {
             document.body.classList.remove("preload");
@@ -522,7 +552,7 @@
         }
         document.body.classList.remove("preload");
     }
-    // ── Init ──────────────────────────────────────────────────
+
     applyTheme();
     checkAdminStatus();
     loadBook();

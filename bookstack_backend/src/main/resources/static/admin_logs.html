@@ -24,6 +24,8 @@
         .log-login       { background: #dbeafe; color: #1d4ed8; }
         .log-purchase    { background: #dcfce7; color: #15803d; }
         .log-book_posted { background: #fef9c3; color: #854d0e; }
+        /* Added styling for the Report badge */
+        .log-report      { background: #fee2e2; color: #b91c1c; }
 
         .filter-bar {
             display: flex;
@@ -99,6 +101,7 @@
                     <option value="LOGIN">LOGIN</option>
                     <option value="PURCHASE">PURCHASE</option>
                     <option value="BOOK_POSTED">BOOK_POSTED</option>
+                    <option value="REPORT">REPORT</option> <!-- Added Report Option -->
                 </select>
             </div>
 
@@ -195,13 +198,14 @@
 
     // ── Summary badges ─────────────────────────────────────────────────────
     function renderSummary() {
-        const counts = { LOGIN: 0, PURCHASE: 0, BOOK_POSTED: 0 };
+        const counts = { LOGIN: 0, PURCHASE: 0, BOOK_POSTED: 0, REPORT: 0 };
         allLogs.forEach(l => { if (counts[l.action] !== undefined) counts[l.action]++; });
 
         document.getElementById('logSummary').innerHTML = `
       <span class="log-badge log-login">LOGIN &nbsp;${counts.LOGIN}</span>
       <span class="log-badge log-purchase">PURCHASE &nbsp;${counts.PURCHASE}</span>
       <span class="log-badge log-book_posted">BOOK_POSTED &nbsp;${counts.BOOK_POSTED}</span>
+      <span class="log-badge log-report">REPORT &nbsp;${counts.REPORT}</span>
       <span style="font-size:0.82rem; color: var(--muted,#64748b); align-self:center;">
         ${allLogs.length} total
       </span>
