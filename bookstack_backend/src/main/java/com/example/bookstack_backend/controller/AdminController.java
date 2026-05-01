@@ -132,7 +132,7 @@ public class AdminController {
 
     @DeleteMapping("/books/{bookId}/reject/")
     public ResponseEntity<?> rejectBook(@PathVariable Long bookId) {
-        adminBookService.deleteBook(bookId);
+        adminService.deleteBook(bookId);
         return ResponseEntity.ok().build();
     }
 

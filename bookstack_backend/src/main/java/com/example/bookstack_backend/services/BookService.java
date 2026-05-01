@@ -111,7 +111,7 @@ public class BookService {
 
 
     public Book findBookById(Long id) {
-        return bookRepository.findByBookIdAndIsActiveTrue(id)
+        return bookRepository.findByBookIdAndIsActiveTrueAndIsDeletedFalse(id)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
     }
 

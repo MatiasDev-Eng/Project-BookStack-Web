@@ -49,13 +49,10 @@ public class AdminService {
     }
 
     public List<BookResponse> getAllUnapprovedBooks() {
-        List<Book> books = bookRepository.findByIsActiveFalse();
-
-        // convert into UserInfoResponse
-        return books.stream()
+        return bookRepository.findByIsActiveFalse().stream()
+                .filter(book -> !Boolean.TRUE.equals(book.getIsDeleted()))
                 .map(BookResponse::new)
                 .collect(Collectors.toList());
-        // return
     }
 
     public void approveUser(Long userId) {
@@ -91,13 +88,12 @@ public class AdminService {
     public List<BookResponse> getAllActiveBooks() {
         return bookRepository.findByIsActiveTrueAndIsDeletedFalse().stream()
                 .filter(book -> !Boolean.TRUE.equals(book.getIsFrozen()))
-                .filter(book -> !Boolean.TRUE.equals(book.getIsDeleted()))
                 .map(BookResponse::new)
                 .collect(Collectors.toList());
     }
 
     public List<BookResponse> getAllFrozenBooks() {
-        return bookRepository.findByIsFrozenTrue().stream()
+        return bookRepository.findByIsFrozenTrueAndIsDeletedFalse().stream()
                 .map(BookResponse::new)
                 .collect(Collectors.toList());
     }
@@ -121,6 +117,14 @@ public class AdminService {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
         book.setIsFrozen(false);
+        bookRepository.save(book);
+    }
+
+    public void deleteBook(Long bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        book.setIsDeleted(true);
+        book.setIsActive(false);
         bookRepository.save(book);
     }
 }
