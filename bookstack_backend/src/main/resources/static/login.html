@@ -69,6 +69,7 @@
             if (response.ok) {
                 const userData = await response.json();
                 localStorage.setItem('bookstack-user-id', userData.userId);
+                localStorage.setItem('bookstack-theme', userData.themePreference || 'light');
                 messageDiv.textContent = "Login Successful! Welcome back.";
                 messageDiv.className = "success";
                 setTimeout(() => {
