@@ -3,9 +3,11 @@ package com.example.bookstack_backend.controller;
 import com.example.bookstack_backend.dto.request.CreateBookRequest;
 import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.EActionType;
 import com.example.bookstack_backend.models.User;
 import com.example.bookstack_backend.repository.UserRepository;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
+import com.example.bookstack_backend.services.AuditLogService;
 import com.example.bookstack_backend.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,9 @@ public class BookController {
     private final BookService bookService;
 
     @Autowired
+    AuditLogService logService;
+
+    @Autowired
     private UserRepository userRepository;
 
     public BookController(BookService bookService) {
@@ -51,6 +56,8 @@ public class BookController {
         // 1. Pass both the request and the file to your service
         // 2. The service should save the book, upload the file, then update the book's image URL
         Book savedBook = bookService.createBookWithCover(request, cover);
+
+        logService.log(savedBook.getOwner().getId(), EActionType.BOOK_POSTED, "Book: " + savedBook.getTitle());
 
         return new ResponseEntity<>(new BookResponse(savedBook), HttpStatus.CREATED);
     }

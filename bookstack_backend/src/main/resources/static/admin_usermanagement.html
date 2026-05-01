@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css">
   <script>
-    // Apply theme instantly from cache to prevent white flash
     (function() {
       const cached = localStorage.getItem('bookstack-theme');
       if (cached === 'dark') document.documentElement.classList.add('dark');
@@ -20,23 +19,21 @@
 
 <aside class="sidebar">
   <div class="sidebar-title">BookStack</div>
-
   <nav class="nav">
-      <a href="admin_usermanagement.html" class="nav-item active">User Approval</a>
-      <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
-      <a href="admin_viewusers.html" class="nav-item">Active Users</a>
-      <a href="admin_viewbooks.html" class="nav-item">Active Books</a>
-      <a href="homepage.html" class="nav-item">Back to Store</a>
+    <a href="admin_usermanagement.html" class="nav-item active">User Approval</a>
+    <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
+    <a href="admin_viewusers.html" class="nav-item">Active Users</a>
+    <a href="admin_viewbooks.html" class="nav-item">Active Books</a>
+    <a href="admin_logs.html" class="nav-item">Audit Logs</a>
+    <a href="homepage.html" class="nav-item">Back to Store</a>
   </nav>
 </aside>
-
 
 <main class="main">
   <div class="header">User Approval</div>
 
   <div class="card">
     <div class="card-title">Pending Account Approvals</div>
-
     <table class="table">
       <thead>
       <tr>
@@ -47,33 +44,17 @@
       </tr>
       </thead>
       <tbody id="userTableBody">
-      <tr>
-        <td colspan="4" class="empty-state">Fetching pending users...</td>
-      </tr>
+      <tr><td colspan="4" class="empty-state">Fetching pending users...</td></tr>
       </tbody>
     </table>
   </div>
 </main>
 
 <script>
-  fetch("http://localhost:9091/api/auth/me/", {
-      credentials: "include"
-  })
-  .then(res => {
-      if (!res.ok) {
-          window.location.href = "index.html";
-          return;
-      }
-      return res.json();
-  })
-  .then(user => {
-      if (!user.roles.includes("ROLE_ADMIN")) {
-          window.location.href = "404.html";
-      }
-  })
-  .catch(() => {
-      window.location.href = "index.html";
-  });
+  fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+          .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
+          .then(user => { if (!user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
+          .catch(() => { window.location.href = "index.html"; });
 
   const API_BASE = "http://localhost:9091/api/admin";
 
@@ -82,143 +63,91 @@
     note.innerText = message;
     note.className = `notification-${type}`;
     note.style.display = "block";
-
-    setTimeout(() => {
-      note.style.display = "none";
-    }, 3000);
+    setTimeout(() => note.style.display = "none", 3000);
   }
 
   async function fetchUnapprovedUsers() {
     const tbody = document.getElementById('userTableBody');
-
     try {
-      const response = await fetch(`${API_BASE}/users/`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (response.status === 403) {
-        showNotification("Access Denied: Admin role required.", "error");
-        return;
-      }
-
+      const response = await fetch(`${API_BASE}/users/`, { method: 'GET', credentials: 'include' });
+      if (response.status === 403) { showNotification("Access Denied: Admin role required.", "error"); return; }
       if (!response.ok) throw new Error("Failed to load users.");
-
-      const users = await response.json();
-      renderUsers(users);
+      renderUsers(await response.json());
     } catch (err) {
-      console.error(err);
       tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color: var(--error);">Error: ${err.message}</td></tr>`;
     }
   }
 
   function renderUsers(users) {
     const tbody = document.getElementById('userTableBody');
-
     if (!users || users.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No users awaiting approval.</td></tr>';
       return;
     }
-
     tbody.innerHTML = users.map(user => `
-        <tr>
-            <td>#${user.userId}</td>
-            <td>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                        <img src="${window.location.origin}/api/admin/users/${user.userId}/profile-picture"
-                             alt="${user.username}"
-                             style="width: 100%; height: 100%; object-fit: cover;"
-                             onerror="this.parentElement.innerHTML='👤'">
-                    </div>
-                    <strong>${user.username}</strong>
-                </div>
-            </td>
-            <td>${user.email}</td>
-            <td>
-                <button class="btn-action approve" onclick="approveUser(${user.userId}, '${user.username}')">
-                    Approve Access
-                </button>
-                <button class="btn-action delete-btn" onclick="rejectUser(${user.userId}, '${user.username}')">
-                    Reject Access
-                </button>
-            </td>
-        </tr>
+      <tr>
+        <td>#${user.userId}</td>
+        <td>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; background: var(--bg-subtle); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
+              <img src="${window.location.origin}/api/admin/users/${user.userId}/profile-picture"
+                   alt="${user.username}"
+                   style="width: 100%; height: 100%; object-fit: cover;"
+                   onerror="this.parentElement.innerHTML='👤'">
+            </div>
+            <strong>${user.username}</strong>
+          </div>
+        </td>
+        <td>${user.email}</td>
+        <td>
+          <button class="btn-action approve" onclick="approveUser(${user.userId}, '${user.username}')">Approve Access</button>
+          <button class="btn-action delete-btn" onclick="rejectUser(${user.userId}, '${user.username}')">Reject Access</button>
+        </td>
+      </tr>
     `).join('');
   }
 
   async function approveUser(userId, username) {
     try {
-      const response = await fetch(`${API_BASE}/users/${userId}/approve/`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        showNotification(`User "${username}" approved!`, "success");
-        fetchUnapprovedUsers();
-      } else {
-        showNotification("Approval failed. Please try again.", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showNotification("Server error during approval.", "error");
-    }
+      const response = await fetch(`${API_BASE}/users/${userId}/approve/`, { method: 'PUT', credentials: 'include' });
+      if (response.ok) { showNotification(`User "${username}" approved!`, "success"); fetchUnapprovedUsers(); }
+      else showNotification("Approval failed. Please try again.", "error");
+    } catch (err) { showNotification("Server error during approval.", "error"); }
   }
 
   async function rejectUser(userId, username) {
     if (!confirm(`Are you sure you want to reject "${username}"?`)) return;
- 
     try {
-      const response = await fetch(`${API_BASE}/users/${userId}/reject/`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (response.ok) {
-        showNotification(`User "${username}" has been rejected and removed.`, "info");
-        fetchUnapprovedUsers();
-      } else {
-        showNotification("Failed to reject user.", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showNotification("Server error during rejection.", "error");
+      const response = await fetch(`${API_BASE}/users/${userId}/reject/`, { method: 'DELETE', credentials: 'include' });
+      if (response.ok) { showNotification(`User "${username}" has been rejected and removed.`, "info"); fetchUnapprovedUsers(); }
+      else showNotification("Failed to reject user.", "error");
+    } catch (err) { showNotification("Server error during rejection.", "error"); }
+  }
+
+  async function applyTheme() {
+    const cached = localStorage.getItem('bookstack-theme');
+    if (cached) {
+      const isDark = cached === 'dark';
+      document.body.classList.toggle("dark", isDark);
+      document.documentElement.classList.toggle("dark", isDark);
     }
+    const hasCookie = document.cookie.includes('bookstack-jwt');
+    if (!hasCookie) { document.body.classList.remove("preload"); return; }
+    try {
+      const res = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+      if (!res.ok) { document.body.classList.remove("preload"); return; }
+      const user  = await res.json();
+      const theme = (user.themePreference || "light").toLowerCase().trim();
+      const isDark = theme === "dark";
+      localStorage.setItem('bookstack-theme', theme);
+      document.body.classList.toggle("dark", isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    } catch (err) { console.error("Theme load failed", err); }
+    document.body.classList.remove("preload");
   }
 
   document.addEventListener('DOMContentLoaded', fetchUnapprovedUsers);
-
-  async function applyTheme() {
-      const cached = localStorage.getItem('bookstack-theme');
-      if (cached) {
-          const isDark = cached === 'dark';
-          document.body.classList.toggle("dark", isDark);
-          document.documentElement.classList.toggle("dark", isDark);
-      }
-
-      const hasCookie = document.cookie.includes('bookstack-jwt');
-      if (!hasCookie) {
-          document.body.classList.remove("preload");
-          return;
-      }
-
-      try {
-          const res = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
-          if (!res.ok) { document.body.classList.remove("preload"); return; }
-          const user   = await res.json();
-          const theme  = (user.themePreference || "light").toLowerCase().trim();
-          const isDark = theme === "dark";
-          localStorage.setItem('bookstack-theme', theme);
-          document.body.classList.toggle("dark", isDark);
-          document.documentElement.classList.toggle("dark", isDark);
-      } catch (err) {
-          console.error("Theme load failed", err);
-      }
-      document.body.classList.remove("preload");
-  }
-
   applyTheme();
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>

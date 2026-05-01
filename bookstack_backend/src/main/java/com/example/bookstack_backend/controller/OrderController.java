@@ -40,6 +40,7 @@ public class OrderController {
     public ResponseEntity<?> checkoutCart(@RequestBody CheckoutRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
+
         return userRepository.findByUsername(username)
                 .map(user -> {
                     try {

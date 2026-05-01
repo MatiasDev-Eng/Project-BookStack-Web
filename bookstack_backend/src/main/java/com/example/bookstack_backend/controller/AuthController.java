@@ -10,8 +10,10 @@ import com.example.bookstack_backend.dto.response.MessageResponse;
 import com.example.bookstack_backend.dto.response.UserDetailsResponse;
 import com.example.bookstack_backend.dto.response.UserInfoResponse;
 import com.example.bookstack_backend.exceptions.TokenRefreshException;
+import com.example.bookstack_backend.models.EActionType;
 import com.example.bookstack_backend.models.RefreshToken;
 import com.example.bookstack_backend.security.services.RefreshTokenService;
+import com.example.bookstack_backend.services.AuditLogService;
 import com.example.bookstack_backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,6 +46,9 @@ public class AuthController {
     AuthenticationManager authenticationManager;
 
     @Autowired
+    AuditLogService logService;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -70,6 +75,8 @@ public class AuthController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         User user = userRepository.findById(userDetails.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+
+        logService.log(user.getId(), EActionType.LOGIN, "Login from " + user.getUsername());
 
         if (user.getIsBanned()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
