@@ -62,15 +62,12 @@ public class OrderService {
             Book book = cartItem.getBook();
             int requestedQty = cartItem.getQuantity();
 
-            // Check stock availability
             if (book.getStock() == null || book.getStock() < requestedQty) {
                 throw new RuntimeException("Not enough stock for \"" + book.getTitle() + "\". Only " + (book.getStock() == null ? 0 : book.getStock()) + " left.");
             }
 
-            // Decrement stock
             book.setStock(book.getStock() - requestedQty);
 
-            // If stock hits 0, deactivate the book so it doesn't show on homepage
             if (book.getStock() == 0) {
                 book.setIsActive(false);
             }
@@ -140,6 +137,7 @@ public class OrderService {
         return new OrderDetailsResponse(order);
     }
 
+    @Transactional
     public Order updateStatus(Long orderId, String username, OrderStatus status) throws AccessDeniedException {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
@@ -152,8 +150,37 @@ public class OrderService {
             throw new RuntimeException("Only administrators can set this status.");
         }
 
+        // ── Handle return ─────────────────────────────────────
+        if (status == OrderStatus.RETURNED && order.getStatus() != OrderStatus.RETURNED) {
+            Map<User, BigDecimal> ownerDeductions = new HashMap<>();
+
+            order.getOrderItems().forEach(item -> {
+                Book book = item.getBook();
+                int qty    = item.getQuantity();
+
+                if (book != null) {
+                    book.setStock(book.getStock() + qty);
+                    if (!Boolean.TRUE.equals(book.getIsFrozen()) && !Boolean.TRUE.equals(book.getIsDeleted())) {
+                        book.setIsActive(true);
+                    }
+                    bookRepository.save(book);
+
+                    User seller = book.getOwner();
+                    BigDecimal deduction = item.getPriceAtPurchase().multiply(new BigDecimal(qty));
+                    ownerDeductions.merge(seller, deduction, BigDecimal::add);
+                }
+            });
+
+            ownerDeductions.forEach((seller, deduction) -> {
+                BigDecimal newBalance = seller.getBalance().subtract(deduction);
+
+                seller.setBalance(newBalance.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : newBalance);
+                userRepository.save(seller);
+            });
+        }
+
         order.setStatus(status);
         return orderRepository.save(order);
-
     }
+
 }
