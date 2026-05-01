@@ -342,6 +342,23 @@
         <button class="submit-btn" onclick="window.location.href='my_cards.html'">My Saved Cards</button>
         <button class="submit-btn" onclick="window.location.href='my_books.html'">My Books</button>
         <button class="logout-btn" id="logoutBtn">Log Out</button>
+        <button class="logout-btn" id="deleteAccountBtn" style="border-color: var(--danger); margin-top: 4px;">
+            Delete My Account
+        </button>
+        <!-- Delete account modal -->
+        <div id="deleteModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; backdrop-filter:blur(2px); align-items:center; justify-content:center;">
+            <div style="background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:32px; max-width:400px; width:90%; box-shadow:var(--shadow-lg); text-align:center;">
+                <div style="font-size:2.5rem; margin-bottom:12px;">⚠️</div>
+                <h2 style="font-family:var(--font-display); color:var(--danger); margin-bottom:12px;">Delete Account?</h2>
+                <p style="color:var(--muted); font-size:0.9rem; margin-bottom:24px; line-height:1.6;">
+                    Are you sure you want to delete your account? This will permanently remove all your information, listings, and data from the database. This cannot be undone.
+                </p>
+                <div style="display:flex; gap:12px;">
+                    <button id="cancelDeleteBtn" class="cancel-btn" style="flex:1; padding:12px;">No, Keep It</button>
+                    <button id="confirmDeleteBtn" class="delete-btn" style="flex:1; padding:12px;">Yes, Delete</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -648,8 +665,39 @@
                 updateStatus('Network error.', 'error');
             }
         });
+        // Delete Account
+        document.getElementById('deleteAccountBtn').addEventListener('click', () => {
+            document.getElementById('deleteModal').style.display = 'flex';
+        });
+        document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+            document.getElementById('deleteModal').style.display = 'none';
+        });
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            const btn       = document.getElementById('confirmDeleteBtn');
+            btn.disabled    = true;
+            btn.textContent = 'Deleting...';
+            try {
+                const res = await fetch(`${API_BASE}/me/`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                } else {
+                    document.getElementById('deleteModal').style.display = 'none';
+                    updateStatus('Failed to delete account. Please try again.', 'error');
+                    btn.disabled    = false;
+                    btn.textContent = 'Yes, Delete';
+                }
+            } catch (e) {
+                document.getElementById('deleteModal').style.display = 'none';
+                updateStatus('Network error.', 'error');
+                btn.disabled    = false;
+                btn.textContent = 'Yes, Delete';
+            }
+        });
     });
-
     loadTheme();
 </script>
 </body>

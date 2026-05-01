@@ -7,6 +7,7 @@ import com.example.bookstack_backend.repository.RoleRepository;
 import com.example.bookstack_backend.repository.UserRepository;
 import com.example.bookstack_backend.security.jwt.JwtUtils;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
+import com.example.bookstack_backend.services.AdminUserService;
 import com.example.bookstack_backend.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,6 +36,9 @@ public class UserController {
 
     @Autowired
     AuthenticationManager authenticationManager;
+
+    @Autowired
+    private AdminUserService adminUserService;
 
     @Autowired
     UserRepository userRepository;
@@ -189,6 +193,18 @@ public class UserController {
         User user = userRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(user.getAddress() != null ? user.getAddress() : "");
+    }
+
+    @DeleteMapping("/")
+    public ResponseEntity<?> deleteOwnAccount() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        try {
+            adminUserService.deleteUser(userDetails.getId());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
     }
 }
 
