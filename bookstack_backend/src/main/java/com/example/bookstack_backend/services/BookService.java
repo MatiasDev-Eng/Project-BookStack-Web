@@ -188,4 +188,19 @@ public class BookService {
         bookRepository.save(book);
     }
 
+    public List<BookResponse> getCompareListings(String title) {
+        List<Book> books = bookRepository.findAllActiveByTitle(title);
+        return books.stream().map(BookResponse::new).collect(Collectors.toList());
+    }
+
+    public double getSellerAverageRating(Long ownerId) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Book> books = bookRepository.findByOwner(owner);
+        return books.stream()
+                .filter(b -> b.getReviewCount() != null && b.getReviewCount() > 0)
+                .mapToDouble(b -> b.getTotalScore() / b.getReviewCount())
+                .average()
+                .orElse(0.0);
+    }
 }

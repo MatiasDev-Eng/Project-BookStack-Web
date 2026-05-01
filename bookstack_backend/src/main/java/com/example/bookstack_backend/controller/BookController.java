@@ -209,7 +209,15 @@ public class BookController {
         }
     }
 
+    @GetMapping("/compare")
+    public ResponseEntity<List<BookResponse>> compareListings(@RequestParam String title) {
+        return ResponseEntity.ok(bookService.getCompareListings(title));
+    }
 
+    @GetMapping("/seller-rating/{ownerId}")
+    public ResponseEntity<Double> getSellerRating(@PathVariable Long ownerId) {
+        return ResponseEntity.ok(bookService.getSellerAverageRating(ownerId));
+    }
 //    @Autowired
 //    private BookRepository bookRepository;
 //
