@@ -18,12 +18,11 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findByOwner(User owner);
     List<Book> findByIsActiveFalse();
+    List<Book> findByIsFrozenTrueAndIsDeletedFalse();
     List<Book> findByIsActiveTrueAndIsDeletedFalse();
-    List<Book> findByIsFrozenTrue();
-    List<Book> findByIsActiveTrue();
     List<Book> findByIsActiveTrueAndIsFrozenFalseAndIsDeletedFalse();
     List<Book> findByGenreAndBookIdNot(String genre, Long bookId);
-    Optional<Book> findByBookIdAndIsActiveTrue(Long bookId);
+    Optional<Book> findByBookIdAndIsActiveTrueAndIsDeletedFalse(Long bookId);
 
     @Query("SELECT b FROM Book b WHERE " +
             "(LOWER(b.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +

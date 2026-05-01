@@ -46,6 +46,7 @@
         <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
         <a href="admin_viewusers.html" class="nav-item active">Active Users</a>
         <a href="admin_viewbooks.html" class="nav-item">Active Books</a>
+        <a href="admin_logs.html" class="nav-item">Audit Logs</a>
         <a href="homepage.html" class="nav-item">Back to Store</a>
     </nav>
 </aside>
@@ -58,15 +59,15 @@
         <div class="card-title">Currently Active Users</div>
         <table class="table">
             <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
+            <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
             </thead>
             <tbody id="activeUsersBody">
-                <tr><td colspan="4" class="empty-state">Loading...</td></tr>
+            <tr><td colspan="4" class="empty-state">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -76,15 +77,15 @@
         <div class="card-title">Frozen Users</div>
         <table class="table">
             <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
+            <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
             </thead>
             <tbody id="frozenUsersBody">
-                <tr><td colspan="4" class="empty-state">Loading...</td></tr>
+            <tr><td colspan="4" class="empty-state">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -103,7 +104,7 @@
         note.innerText = message;
         note.className = `notification-${type}`;
         note.style.display = "block";
-        setTimeout(() => { note.style.display = "none"; }, 3000);
+        setTimeout(() => note.style.display = "none", 3000);
     }
 
     async function fetchUsers() {
@@ -112,14 +113,9 @@
                 fetch(`${API_BASE}/users/active/`, { credentials: 'include' }),
                 fetch(`${API_BASE}/users/frozen/`, { credentials: 'include' })
             ]);
-
-            const activeUsers = activeRes.ok ? await activeRes.json() : [];
-            const frozenUsers = frozenRes.ok ? await frozenRes.json() : [];
-
-            renderActiveUsers(activeUsers);
-            renderFrozenUsers(frozenUsers);
+            renderActiveUsers(activeRes.ok ? await activeRes.json() : []);
+            renderFrozenUsers(frozenRes.ok ? await frozenRes.json() : []);
         } catch (err) {
-            console.error(err);
             showNotification("Failed to load users.", "error");
         }
     }
@@ -137,9 +133,13 @@
             ? `<span class="badge-frozen">❄️ Frozen</span>`
             : `<span class="status visible">Active</span>`;
 
-        const actionBtn = isFrozen
+        const freezeBtn = isFrozen
             ? `<button class="btn-action approve" onclick="unfreezeUser(${user.userId}, '${user.username}')">Unfreeze</button>`
             : `<button class="btn-action delete-btn" onclick="freezeUser(${user.userId}, '${user.username}')">Freeze</button>`;
+
+        const deleteBtn = `<button class="btn-action delete-btn"
+            style="background: var(--error, #dc2626); color: white; margin-left: 6px;"
+            onclick="deleteUser(${user.userId}, '${user.username}')">Delete</button>`;
 
         return `
             <tr>
@@ -151,7 +151,10 @@
                 </td>
                 <td>${user.email}</td>
                 <td>${statusBadge}</td>
-                <td>${actionBtn}</td>
+                <td style="white-space: nowrap;">
+                    ${freezeBtn}
+                    ${deleteBtn}
+                </td>
             </tr>`;
     }
 
@@ -177,29 +180,26 @@
         if (!confirm(`Freeze "${username}"? They will not be able to log in.`)) return;
         try {
             const res = await fetch(`${API_BASE}/users/${userId}/freeze/`, { method: 'PUT', credentials: 'include' });
-            if (res.ok) {
-                showNotification(`"${username}" has been frozen.`, "info");
-                fetchUsers();
-            } else {
-                showNotification("Failed to freeze user.", "error");
-            }
-        } catch (err) {
-            showNotification("Network error.", "error");
-        }
+            if (res.ok) { showNotification(`"${username}" has been frozen.`, "info"); fetchUsers(); }
+            else showNotification("Failed to freeze user.", "error");
+        } catch { showNotification("Network error.", "error"); }
     }
 
     async function unfreezeUser(userId, username) {
         try {
             const res = await fetch(`${API_BASE}/users/${userId}/unfreeze/`, { method: 'PUT', credentials: 'include' });
-            if (res.ok) {
-                showNotification(`"${username}" has been unfrozen.`, "success");
-                fetchUsers();
-            } else {
-                showNotification("Failed to unfreeze user.", "error");
-            }
-        } catch (err) {
-            showNotification("Network error.", "error");
-        }
+            if (res.ok) { showNotification(`"${username}" has been unfrozen.`, "success"); fetchUsers(); }
+            else showNotification("Failed to unfreeze user.", "error");
+        } catch { showNotification("Network error.", "error"); }
+    }
+
+    async function deleteUser(userId, username) {
+        if (!confirm(`Permanently delete "${username}"? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`${API_BASE}/users/${userId}/reject/`, { method: 'DELETE', credentials: 'include' });
+            if (res.ok) { showNotification(`"${username}" has been deleted.`, "info"); fetchUsers(); }
+            else showNotification("Failed to delete user.", "error");
+        } catch { showNotification("Network error.", "error"); }
     }
 
     document.addEventListener('DOMContentLoaded', fetchUsers);
@@ -214,17 +214,15 @@
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) { document.body.classList.remove("preload"); return; }
         try {
-            const res = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
             if (!res.ok) { document.body.classList.remove("preload"); return; }
-            const user   = await res.json();
-            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const user  = await res.json();
+            const theme = (user.themePreference || "light").toLowerCase().trim();
             const isDark = theme === "dark";
             localStorage.setItem('bookstack-theme', theme);
             document.body.classList.toggle("dark", isDark);
             document.documentElement.classList.toggle("dark", isDark);
-        } catch (err) {
-            console.error("Theme load failed", err);
-        }
+        } catch (err) { console.error("Theme load failed", err); }
         document.body.classList.remove("preload");
     }
 

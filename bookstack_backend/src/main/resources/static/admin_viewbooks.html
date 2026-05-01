@@ -35,6 +35,7 @@
         <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
         <a href="admin_viewusers.html" class="nav-item">Active Users</a>
         <a href="admin_viewbooks.html" class="nav-item active">Active Books</a>
+        <a href="admin_logs.html" class="nav-item">Audit Logs</a>
         <a href="homepage.html" class="nav-item">Back to Store</a>
     </nav>
 </aside>
@@ -47,17 +48,17 @@
         <div class="card-title">Currently Active Books</div>
         <table class="table">
             <thead>
-                <tr>
-                    <th>Book</th>
-                    <th>Author</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Seller</th>
-                    <th>Action</th>
-                </tr>
+            <tr>
+                <th>Book</th>
+                <th>Author</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Seller</th>
+                <th>Action</th>
+            </tr>
             </thead>
             <tbody id="activeBooksBody">
-                <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -67,17 +68,17 @@
         <div class="card-title">Frozen Books</div>
         <table class="table">
             <thead>
-                <tr>
-                    <th>Book</th>
-                    <th>Author</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Seller</th>
-                    <th>Action</th>
-                </tr>
+            <tr>
+                <th>Book</th>
+                <th>Author</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Seller</th>
+                <th>Action</th>
+            </tr>
             </thead>
             <tbody id="frozenBooksBody">
-                <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
             </tbody>
         </table>
     </div>
@@ -96,7 +97,7 @@
         note.innerText = message;
         note.className = `notification-${type}`;
         note.style.display = "block";
-        setTimeout(() => { note.style.display = "none"; }, 3000);
+        setTimeout(() => note.style.display = "none", 3000);
     }
 
     async function fetchBooks() {
@@ -105,14 +106,9 @@
                 fetch(`${API_BASE}/books/active/`, { credentials: 'include' }),
                 fetch(`${API_BASE}/books/frozen/`, { credentials: 'include' })
             ]);
-
-            const activeBooks = activeRes.ok ? await activeRes.json() : [];
-            const frozenBooks = frozenRes.ok ? await frozenRes.json() : [];
-
-            renderActiveBooks(activeBooks);
-            renderFrozenBooks(frozenBooks);
+            renderActiveBooks(activeRes.ok ? await activeRes.json() : []);
+            renderFrozenBooks(frozenRes.ok ? await frozenRes.json() : []);
         } catch (err) {
-            console.error(err);
             showNotification("Failed to load books.", "error");
         }
     }
@@ -125,9 +121,13 @@
                     onerror="this.style.display='none'">`
             : `<span style="font-size:1.6rem; vertical-align:middle; margin-right:10px;">📖</span>`;
 
-        const actionBtn = isFrozen
+        const freezeBtn = isFrozen
             ? `<button class="btn-action approve" onclick="unfreezeBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">Unfreeze</button>`
             : `<button class="btn-action delete-btn" onclick="freezeBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">Freeze</button>`;
+
+        const deleteBtn = `<button class="btn-action delete-btn"
+            style="background: var(--error, #dc2626); color: white; margin-left: 6px;"
+            onclick="deleteBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">Delete</button>`;
 
         return `
             <tr>
@@ -144,7 +144,10 @@
                 <td style="font-weight:600; color:var(--price);">$${parseFloat(book.price).toFixed(2)}</td>
                 <td>${book.stock ?? 0}</td>
                 <td>${book.ownerUsername}</td>
-                <td>${actionBtn}</td>
+                <td style="white-space: nowrap;">
+                    ${freezeBtn}
+                    ${deleteBtn}
+                </td>
             </tr>`;
     }
 
@@ -170,29 +173,26 @@
         if (!confirm(`Freeze "${bookTitle}"? It will be hidden from all buyers.`)) return;
         try {
             const res = await fetch(`${API_BASE}/books/${bookId}/freeze/`, { method: 'PUT', credentials: 'include' });
-            if (res.ok) {
-                showNotification(`"${bookTitle}" has been frozen.`, "info");
-                fetchBooks();
-            } else {
-                showNotification("Failed to freeze book.", "error");
-            }
-        } catch (err) {
-            showNotification("Network error.", "error");
-        }
+            if (res.ok) { showNotification(`"${bookTitle}" has been frozen.`, "info"); fetchBooks(); }
+            else showNotification("Failed to freeze book.", "error");
+        } catch { showNotification("Network error.", "error"); }
     }
 
     async function unfreezeBook(bookId, bookTitle) {
         try {
             const res = await fetch(`${API_BASE}/books/${bookId}/unfreeze/`, { method: 'PUT', credentials: 'include' });
-            if (res.ok) {
-                showNotification(`"${bookTitle}" has been unfrozen.`, "success");
-                fetchBooks();
-            } else {
-                showNotification("Failed to unfreeze book.", "error");
-            }
-        } catch (err) {
-            showNotification("Network error.", "error");
-        }
+            if (res.ok) { showNotification(`"${bookTitle}" has been unfrozen.`, "success"); fetchBooks(); }
+            else showNotification("Failed to unfreeze book.", "error");
+        } catch { showNotification("Network error.", "error"); }
+    }
+
+    async function deleteBook(bookId, bookTitle) {
+        if (!confirm(`Permanently delete "${bookTitle}"? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`${API_BASE}/books/${bookId}/reject/`, { method: 'DELETE', credentials: 'include' });
+            if (res.ok) { showNotification(`"${bookTitle}" has been deleted.`, "info"); fetchBooks(); }
+            else showNotification("Failed to delete book.", "error");
+        } catch { showNotification("Network error.", "error"); }
     }
 
     document.addEventListener('DOMContentLoaded', fetchBooks);
@@ -207,17 +207,15 @@
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) { document.body.classList.remove("preload"); return; }
         try {
-            const res = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
             if (!res.ok) { document.body.classList.remove("preload"); return; }
-            const user   = await res.json();
-            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const user  = await res.json();
+            const theme = (user.themePreference || "light").toLowerCase().trim();
             const isDark = theme === "dark";
             localStorage.setItem('bookstack-theme', theme);
             document.body.classList.toggle("dark", isDark);
             document.documentElement.classList.toggle("dark", isDark);
-        } catch (err) {
-            console.error("Theme load failed", err);
-        }
+        } catch (err) { console.error("Theme load failed", err); }
         document.body.classList.remove("preload");
     }
 
