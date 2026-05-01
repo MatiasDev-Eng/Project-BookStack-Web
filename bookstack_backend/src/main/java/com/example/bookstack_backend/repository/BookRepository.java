@@ -42,4 +42,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @Transactional
     @Query("UPDATE Book b SET b.isActive = true WHERE b.bookId = :bookId")
     void approveBook(@Param("bookId") Long bookId);
+
+    @Query("SELECT b FROM Book b WHERE LOWER(b.title) = LOWER(:title) AND b.isActive = true AND b.isFrozen = false AND b.isDeleted = false")
+    List<Book> findAllActiveByTitle(@Param("title") String title);
+
 }
