@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import com.example.bookstack_backend.repository.CartRepository;
-
+import com.example.bookstack_backend.security.services.RefreshTokenService;
 import java.util.List;
 
 @Service
@@ -21,6 +21,9 @@ public class AdminUserService {
 
     @Autowired
     private CartRepository cartRepository;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     // Get all users
     public List<User> getAllUsers() {
@@ -57,7 +60,11 @@ public class AdminUserService {
 
         // Delete the user's cart (cart items cascade automatically)
         cartRepository.findByUser(user).ifPresent(cartRepository::delete);
-
+        orderRepository.findByUserOrder(user).forEach(order -> {
+            order.setUserOrder(null);
+            orderRepository.save(order);
+        });
+        refreshTokenService.deleteByUserId(id);
         userRepository.delete(user);
     }
 }

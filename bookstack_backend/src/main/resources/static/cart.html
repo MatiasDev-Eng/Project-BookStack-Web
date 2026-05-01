@@ -69,9 +69,20 @@
     </tbody>
   </table>
 
-  <div class="cart-summary">
-    <div><strong>Grand Total:</strong> <span id="totalAmount">$0.00</span></div>
-    <button id="checkoutBtn" class="checkout-btn" onclick="showCheckoutSection()">Proceed to Checkout</button>
+  <div class="cart-summary" style="flex-direction: column; align-items: flex-end; gap: 8px;">
+      <div style="display:flex; justify-content:space-between; width:260px; font-size:0.95rem;">
+          <span>Subtotal:</span>
+          <span id="subtotalAmount">$0.00</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; width:260px; font-size:0.95rem; color:var(--muted);">
+          <span>Tax (7%):</span>
+          <span id="taxAmount">$0.00</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; width:260px; font-size:1.15rem; font-weight:800; border-top:2px solid var(--border); padding-top:8px;">
+          <span>Grand Total:</span>
+          <span id="totalAmount">$0.00</span>
+      </div>
+      <button id="checkoutBtn" class="checkout-btn" onclick="showCheckoutSection()">Proceed to Checkout</button>
   </div>
 
   <div id="addressSection" class="address-section">
@@ -87,7 +98,20 @@
     <p style="font-size: 0.8rem; color: var(--muted); margin-top: 6px;">
       <a href="my_cards.html">+ Add a new card in Account Settings</a>
     </p>
-
+    <div style="background:var(--bg-subtle); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:16px; font-size:0.85rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:var(--muted);">Subtotal</span>
+            <span id="checkoutSubtotal">$0.00</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:var(--muted);">Tax (7%)</span>
+            <span id="checkoutTax">$0.00</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-weight:800; font-size:1rem; border-top:1px solid var(--border); padding-top:8px; margin-top:4px;">
+            <span>Total Charged</span>
+            <span style="color:var(--price);" id="checkoutTotal">$0.00</span>
+        </div>
+    </div>
     <div class="address-actions">
       <button class="cancel-btn" onclick="hideCheckoutSection()">Cancel</button>
       <button id="confirmOrderBtn" class="confirm-btn" onclick="handleCheckout()">Confirm Order</button>
@@ -186,7 +210,17 @@
     }
     document.getElementById('clearCartBtn').style.display = 
         (!items || items.length === 0) ? 'none' : 'inline-flex';
-    totalSpan.innerText = `$${grandTotal.toFixed(2)}`;
+    const tax_rate = 0.07;
+    const tax = grandTotal * tax_rate;
+    const total = grandTotal + tax;
+
+    document.getElementById('subtotalAmount').innerText = `$${grandTotal.toFixed(2)}`;
+    document.getElementById('taxAmount').innerText = `$${tax.toFixed(2)}`;
+    document.getElementById('totalAmount').innerText = `$${total.toFixed(2)}`;
+  
+    document.getElementById('checkoutSubtotal').innerText = `$${grandTotal.toFixed(2)}`;
+    document.getElementById('checkoutTax').innerText = `$${tax.toFixed(2)}`;
+    document.getElementById('checkoutTotal').innerText = `$${total.toFixed(2)}`;
   }
 
   async function fetchSavedCards() {
