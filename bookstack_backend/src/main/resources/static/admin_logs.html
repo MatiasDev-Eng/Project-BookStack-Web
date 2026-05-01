@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Audit Logs | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css">
+    <script>
+        (function() {
+            const cached = localStorage.getItem('bookstack-theme');
+            if (cached === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <style>
+        .log-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .log-login       { background: #dbeafe; color: #1d4ed8; }
+        .log-purchase    { background: #dcfce7; color: #15803d; }
+        .log-book_posted { background: #fef9c3; color: #854d0e; }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-bar label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted, #64748b);
+            margin-bottom: 4px;
+        }
+
+        .filter-bar select,
+        .filter-bar input {
+            padding: 8px 12px;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            background: var(--bg, #f8fafc);
+        }
+
+        .filter-bar input { width: 130px; }
+
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--muted, #64748b);
+        }
+
+        .pagination button {
+            padding: 4px 14px;
+        }
+    </style>
+</head>
+
+<body class="preload">
+
+<div id="notification"></div>
+
+<aside class="sidebar">
+    <div class="sidebar-title">BookStack</div>
+    <nav class="nav">
+        <a href="admin_usermanagement.html" class="nav-item">User Approval</a>
+        <a href="admin_bookmanagement.html" class="nav-item">Product Approval</a>
+        <a href="admin_viewusers.html" class="nav-item">Active Users</a>
+        <a href="admin_viewbooks.html" class="nav-item">Active Books</a>
+        <a href="admin_logs.html" class="nav-item active">Audit Logs</a>
+        <a href="homepage.html" class="nav-item">Back to Store</a>
+    </nav>
+</aside>
+
+<main class="main">
+    <div class="header">Audit Logs</div>
+
+    <div class="card">
+        <div class="card-title">System Activity</div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <div>
+                <label>Filter by Action</label>
+                <select id="logActionFilter">
+                    <option value="">All Actions</option>
+                    <option value="LOGIN">LOGIN</option>
+                    <option value="PURCHASE">PURCHASE</option>
+                    <option value="BOOK_POSTED">BOOK_POSTED</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Filter by User ID</label>
+                <input type="number" id="logUserFilter" placeholder="e.g. 42">
+            </div>
+
+            <div>
+                <label>&nbsp;</label>
+                <button onclick="fetchLogs()" class="btn-action approve">Apply</button>
+            </div>
+
+            <div>
+                <label>&nbsp;</label>
+                <button onclick="clearFilters()" class="btn-action">Clear</button>
+            </div>
+        </div>
+
+        <!-- Summary counts -->
+        <div id="logSummary" style="display: flex; gap: 16px; margin-bottom: 1rem; flex-wrap: wrap;"></div>
+
+        <!-- Table -->
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>User ID</th>
+                <th>Action</th>
+                <th>Details</th>
+            </tr>
+            </thead>
+            <tbody id="logTableBody">
+            <tr><td colspan="4" class="empty-state">Loading logs...</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button id="prevBtn" class="btn-action" onclick="changePage(-1)" disabled>← Prev</button>
+            <span id="pageLabel">Page 1</span>
+            <button id="nextBtn" class="btn-action" onclick="changePage(1)">Next →</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    // ── Auth check ─────────────────────────────────────────────────────────
+    fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+        .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
+        .then(user => { if (!user || !user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
+        .catch(() => { window.location.href = "index.html"; });
+
+    const API_BASE    = "http://localhost:9091/api/admin";
+    const PER_PAGE    = 20;
+    let allLogs       = [];
+    let currentPage   = 1;
+
+    // ── Notification ───────────────────────────────────────────────────────
+    function showNotification(message, type = "info") {
+        const note = document.getElementById("notification");
+        note.innerText = message;
+        note.className = `notification-${type}`;
+        note.style.display = "block";
+        setTimeout(() => note.style.display = "none", 3000);
+    }
+
+    // ── Fetch logs ─────────────────────────────────────────────────────────
+    async function fetchLogs() {
+        const tbody  = document.getElementById('logTableBody');
+        const action = document.getElementById('logActionFilter').value;
+        const userId = document.getElementById('logUserFilter').value;
+
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Loading...</td></tr>`;
+        currentPage = 1;
+
+        let url = `${API_BASE}/logs/`;
+        const params = new URLSearchParams();
+        if (action) params.append('action', action);
+        if (userId) params.append('userId', userId);
+        if ([...params].length) url += '?' + params.toString();
+
+        try {
+            const res = await fetch(url, { credentials: 'include' });
+            if (res.status === 403) { showNotification("Access denied.", "error"); return; }
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            allLogs = await res.json();
+            renderSummary();
+            renderPage();
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color:red;">Failed to load logs: ${err.message}</td></tr>`;
+        }
+    }
+
+    // ── Summary badges ─────────────────────────────────────────────────────
+    function renderSummary() {
+        const counts = { LOGIN: 0, PURCHASE: 0, BOOK_POSTED: 0 };
+        allLogs.forEach(l => { if (counts[l.action] !== undefined) counts[l.action]++; });
+
+        document.getElementById('logSummary').innerHTML = `
+      <span class="log-badge log-login">LOGIN &nbsp;${counts.LOGIN}</span>
+      <span class="log-badge log-purchase">PURCHASE &nbsp;${counts.PURCHASE}</span>
+      <span class="log-badge log-book_posted">BOOK_POSTED &nbsp;${counts.BOOK_POSTED}</span>
+      <span style="font-size:0.82rem; color: var(--muted,#64748b); align-self:center;">
+        ${allLogs.length} total
+      </span>
+    `;
+    }
+
+    // ── Render current page ────────────────────────────────────────────────
+    function renderPage() {
+        const tbody = document.getElementById('logTableBody');
+
+        if (!allLogs || allLogs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No logs found.</td></tr>';
+            document.getElementById('pageLabel').textContent = 'Page 0 of 0';
+            document.getElementById('prevBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = true;
+            return;
+        }
+
+        const totalPages = Math.ceil(allLogs.length / PER_PAGE);
+        const start      = (currentPage - 1) * PER_PAGE;
+        const page       = allLogs.slice(start, start + PER_PAGE);
+
+        tbody.innerHTML = page.map(log => `
+      <tr>
+        <td style="white-space: nowrap; font-size: 0.82rem; color: var(--muted, #64748b);">
+          ${new Date(log.timestamp).toLocaleString()}
+        </td>
+        <td>
+          <span style="font-family: monospace; font-size: 0.85rem;">#${log.userId ?? '—'}</span>
+        </td>
+        <td>
+          <span class="log-badge log-${log.action.toLowerCase()}">${log.action}</span>
+        </td>
+        <td style="font-size: 0.85rem; color: var(--muted, #64748b);">${log.details ?? '—'}</td>
+      </tr>
+    `).join('');
+
+        document.getElementById('pageLabel').textContent  = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById('prevBtn').disabled       = currentPage === 1;
+        document.getElementById('nextBtn').disabled       = currentPage === totalPages;
+    }
+
+    function changePage(delta) {
+        const totalPages = Math.ceil(allLogs.length / PER_PAGE);
+        currentPage = Math.max(1, Math.min(currentPage + delta, totalPages));
+        renderPage();
+    }
+
+    function clearFilters() {
+        document.getElementById('logActionFilter').value = '';
+        document.getElementById('logUserFilter').value   = '';
+        fetchLogs();
+    }
+
+    // ── Theme ──────────────────────────────────────────────────────────────
+    async function applyTheme() {
+        const cached = localStorage.getItem('bookstack-theme');
+        if (cached) {
+            const isDark = cached === 'dark';
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        }
+        const hasCookie = document.cookie.includes('bookstack-jwt');
+        if (!hasCookie) { document.body.classList.remove("preload"); return; }
+        try {
+            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            if (!res.ok) { document.body.classList.remove("preload"); return; }
+            const user  = await res.json();
+            const theme = (user.themePreference || "light").toLowerCase().trim();
+            const isDark = theme === "dark";
+            localStorage.setItem('bookstack-theme', theme);
+            document.body.classList.toggle("dark", isDark);
+            document.documentElement.classList.toggle("dark", isDark);
+        } catch (err) { console.error("Theme load failed", err); }
+        document.body.classList.remove("preload");
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', fetchLogs);
+    applyTheme();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+<script src="notifications.js"></script>
+<script src="global-init.js"></script>
+</body>
+</html>

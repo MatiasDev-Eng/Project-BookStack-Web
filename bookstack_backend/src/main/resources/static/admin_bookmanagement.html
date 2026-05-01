@@ -6,10 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="style.css">
     <script>
-        // Apply theme instantly from cache to prevent white flash
         (function() {
-        const cached = localStorage.getItem('bookstack-theme');
-        if (cached === 'dark') document.documentElement.classList.add('dark');
+            const cached = localStorage.getItem('bookstack-theme');
+            if (cached === 'dark') document.documentElement.classList.add('dark');
         })();
     </script>
 </head>
@@ -25,6 +24,7 @@
         <a href="admin_bookmanagement.html" class="nav-item active">Product Approval</a>
         <a href="admin_viewusers.html" class="nav-item">Active Users</a>
         <a href="admin_viewbooks.html" class="nav-item">Active Books</a>
+        <a href="admin_logs.html" class="nav-item">Audit Logs</a>
         <a href="homepage.html" class="nav-item">Back to Store</a>
     </nav>
 </aside>
@@ -54,25 +54,10 @@
 </main>
 
 <script>
-    fetch("http://localhost:9091/api/auth/me/", {
-        credentials: "include"
-    })
-    .then(res => {
-        if (!res.ok) {
-            window.location.href = "index.html";
-            return;
-        }
-        return res.json();
-    })
-    .then(user => {
-        if (!user.roles.includes("ROLE_ADMIN")) {
-            window.location.href = "404.html";
-        }
-    })
-    .catch(() => {
-        window.location.href = "index.html";
-    });
-
+    fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+        .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
+        .then(user => { if (!user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
+        .catch(() => { window.location.href = "index.html"; });
 
     const API_BASE = "http://localhost:9091/api/admin/books";
 
@@ -81,30 +66,16 @@
         note.innerText = message;
         note.className = `notification-${type}`;
         note.style.display = "block";
-
-        setTimeout(() => {
-            note.style.display = "none";
-        }, 3000);
+        setTimeout(() => note.style.display = "none", 3000);
     }
 
     async function fetchUnapprovedBooks() {
         const tbody = document.getElementById('bookTableBody');
-
         try {
-            const response = await fetch(`${API_BASE}/`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            if (response.status === 403) {
-                showNotification("Access Denied: Admin role required.", "error");
-                return;
-            }
-
+            const response = await fetch(`${API_BASE}/`, { method: 'GET', credentials: 'include' });
+            if (response.status === 403) { showNotification("Access Denied: Admin role required.", "error"); return; }
             if (!response.ok) throw new Error("Failed to load books.");
-
-            const books = await response.json();
-            renderBooks(books);
+            renderBooks(await response.json());
         } catch (err) {
             console.error(err);
             tbody.innerHTML = `<tr><td colspan="4" class="empty-state" style="color: var(--error);">Error: ${err.message}</td></tr>`;
@@ -115,78 +86,53 @@
         const tbody = document.getElementById('bookTableBody');
 
         if (!books || books.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No products awaiting approval.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No products awaiting approval.</td></tr>';
             return;
         }
 
         tbody.innerHTML = books.map(book => `
-        <tr>
-            <td>
-                ${book.hasCover
-            ? `<img src=""http://localhost:9091/api/admin/books/${book.bookId}/cover"
-                            alt="${book.title}"
-                            style="width: 48px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; margin-right: 12px;"
-                            onerror="this.style.display='none'">`
+            <tr>
+                <td>
+                    ${book.hasCover
+            ? `<img src="http://localhost:9091/api/admin/books/${book.bookId}/cover"
+                                alt="${book.title}"
+                                style="width: 48px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; margin-right: 12px;"
+                                onerror="this.style.display='none'">`
             : `<span style="font-size: 1.8rem; vertical-align: middle; margin-right: 12px;">📖</span>`
         }
-                <span style="font-weight: 700; vertical-align: middle;">${book.title}</span>
-                <div class="book-meta">ID: #${book.bookId} &nbsp;·&nbsp; ${book.ownerUsername}</div>
-            </td>
-            <td>${book.author}</td>
-            <td style="font-weight: 600; color: var(--success);">$${book.price.toFixed(2)}</td>
-            <td>
-                <button class="btn-action approve" onclick="approveBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">
-                    Approve Book
-                </button>
-                <button class="btn-action delete-btn" onclick="rejectBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">
-                    Reject Book
-                </button>
-            </td>
-        </tr>
-    `).join('');
+                    <span style="font-weight: 700; vertical-align: middle;">${book.title}</span>
+                    <div class="book-meta">ID: #${book.bookId} &nbsp;·&nbsp; ${book.ownerUsername}</div>
+                </td>
+                <td>${book.author}</td>
+                <td style="font-weight: 600; color: var(--success);">$${book.price.toFixed(2)}</td>
+                <td>
+                    <button class="btn-action approve" onclick="approveBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">
+                        Approve Book
+                    </button>
+                    <button class="btn-action delete-btn" onclick="rejectBook(${book.bookId}, '${book.title.replace(/'/g, "\\'")}')">
+                        Reject Book
+                    </button>
+                </td>
+            </tr>
+        `).join('');
     }
 
     async function approveBook(bookId, bookTitle) {
         try {
-            const response = await fetch(`${API_BASE}/${bookId}/approve/`, {
-                method: 'PUT',
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                showNotification(`"${bookTitle}" has been approved!`, "success");
-                fetchUnapprovedBooks();
-            } else {
-                showNotification("Failed to approve book.", "error");
-            }
-        } catch (err) {
-            console.error(err);
-            showNotification("Server error during approval.", "error");
-        }
+            const response = await fetch(`${API_BASE}/${bookId}/approve/`, { method: 'PUT', credentials: 'include' });
+            if (response.ok) { showNotification(`"${bookTitle}" has been approved!`, "success"); fetchUnapprovedBooks(); }
+            else showNotification("Failed to approve book.", "error");
+        } catch (err) { showNotification("Server error during approval.", "error"); }
     }
 
     async function rejectBook(bookId, bookTitle) {
         if (!confirm(`Are you sure you want to reject "${bookTitle}"?`)) return;
- 
         try {
-            const response = await fetch(`${API_BASE}/${bookId}/reject/`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-            if (response.ok) {
-                showNotification(`"${bookTitle}" has been rejected and removed.`, "info");
-                fetchUnapprovedBooks();
-            } else {
-                showNotification("Failed to reject book.", "error");
-            }
-        } catch (err) {
-            console.error(err);
-            showNotification("Server error during rejection.", "error");
-        }
+            const response = await fetch(`${API_BASE}/${bookId}/reject/`, { method: 'DELETE', credentials: 'include' });
+            if (response.ok) { showNotification(`"${bookTitle}" has been rejected and removed.`, "info"); fetchUnapprovedBooks(); }
+            else showNotification("Failed to reject book.", "error");
+        } catch (err) { showNotification("Server error during rejection.", "error"); }
     }
-
-
-    document.addEventListener('DOMContentLoaded', fetchUnapprovedBooks);
 
     async function applyTheme() {
         const cached = localStorage.getItem('bookstack-theme');
@@ -195,30 +141,23 @@
             document.body.classList.toggle("dark", isDark);
             document.documentElement.classList.toggle("dark", isDark);
         }
-
         const hasCookie = document.cookie.includes('bookstack-jwt');
-        if (!hasCookie) {
-            document.body.classList.remove("preload");
-            return;
-        }
-
+        if (!hasCookie) { document.body.classList.remove("preload"); return; }
         try {
-            const res = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
             if (!res.ok) { document.body.classList.remove("preload"); return; }
-            const user   = await res.json();
-            const theme  = (user.themePreference || "light").toLowerCase().trim();
+            const user  = await res.json();
+            const theme = (user.themePreference || "light").toLowerCase().trim();
             const isDark = theme === "dark";
             localStorage.setItem('bookstack-theme', theme);
             document.body.classList.toggle("dark", isDark);
             document.documentElement.classList.toggle("dark", isDark);
-        } catch (err) {
-            console.error("Theme load failed", err);
-        }
+        } catch (err) { console.error("Theme load failed", err); }
         document.body.classList.remove("preload");
     }
 
+    document.addEventListener('DOMContentLoaded', fetchUnapprovedBooks);
     applyTheme();
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>

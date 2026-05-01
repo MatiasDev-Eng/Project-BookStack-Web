@@ -35,6 +35,9 @@ public class OrderService {
     private UserRepository userRepository;
 
     @Autowired
+    AuditLogService logService;
+
+    @Autowired
     private BookRepository bookRepository;
 
     private final SaleNotificationService saleNotificationService;
@@ -104,6 +107,8 @@ public class OrderService {
         });
 
         Order savedOrder = orderRepository.save(order);
+
+        logService.log(user.getId(), EActionType.PURCHASE, "Order #" + savedOrder.getId() + ", total: $" + savedOrder.getTotalPrice());
 
         savedOrder.getOrderItems().forEach(item -> {
             User seller = item.getBook().getOwner();

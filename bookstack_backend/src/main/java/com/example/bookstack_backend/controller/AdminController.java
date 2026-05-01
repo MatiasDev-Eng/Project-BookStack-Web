@@ -2,10 +2,11 @@ package com.example.bookstack_backend.controller;
 
 import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.dto.response.UserInfoResponse;
+import com.example.bookstack_backend.models.AuditLog;
 import com.example.bookstack_backend.models.Book;
+import com.example.bookstack_backend.models.EActionType;
 import com.example.bookstack_backend.models.User;
-import com.example.bookstack_backend.services.BookService;
-import com.example.bookstack_backend.services.UserService;
+import com.example.bookstack_backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
-import com.example.bookstack_backend.services.AdminUserService;
-import com.example.bookstack_backend.services.AdminBookService;
 import com.example.bookstack_backend.dto.request.AdminLoginRequest;
 import com.example.bookstack_backend.dto.response.MessageResponse;
-import com.example.bookstack_backend.services.AdminService;
 
 import java.util.List;
 
@@ -39,6 +37,9 @@ public class AdminController {
 
     @Autowired
     private BookService bookService;
+
+    @Autowired
+    AuditLogService logService;
 
     @Autowired
     private UserService userService;
@@ -155,6 +156,16 @@ public class AdminController {
     public ResponseEntity<?> unfreezeBook(@PathVariable Long bookId) {
         adminService.unfreezeBook(bookId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/logs/")
+    public ResponseEntity<List<AuditLog>> getAllLogs(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) EActionType action) {
+
+        if (userId != null) return ResponseEntity.ok(logService.getLogsByUser(userId));
+        if (action != null) return ResponseEntity.ok(logService.getLogsByAction(action));
+        return ResponseEntity.ok(logService.getAllLogs());
     }
 
 }
