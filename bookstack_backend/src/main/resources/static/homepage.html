@@ -561,6 +561,11 @@
           <div class="book-info">
             <div class="book-title">${book.title}</div>
             <div class="book-author">by ${book.author}</div>
+            <div class="book-author" style="font-size:0.78rem;">
+                Sold by <a href="#" style="color:var(--accent); font-weight:600;" onclick="event.stopPropagation()">
+                    ${book.ownerUsername || 'Unknown'}
+                </a>
+            </div>
             <div class="book-price">$${book.price.toFixed(2)}</div>
             <div class="cart-controls">
               ${stockNum > 0 ? `

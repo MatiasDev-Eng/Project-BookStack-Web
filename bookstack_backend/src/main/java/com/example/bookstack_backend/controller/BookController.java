@@ -145,7 +145,7 @@ public class BookController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
 
-        Book updatedBook = bookService.findBookById(bookId);
+        Book updatedBook = bookService.findBookByIdIgnoreActive(bookId);
         float avg = updatedBook.getTotalScore() / updatedBook.getReviewCount();
         return ResponseEntity.ok(Map.of(
                 "reviewCount", updatedBook.getReviewCount(),
