@@ -30,9 +30,14 @@ public class AdminBookControllerTest {
 
     @Test
     void testGetAllBooks() throws Exception {
+        com.example.bookstack_backend.models.User owner = new com.example.bookstack_backend.models.User();
+        owner.setId(1L);
+        owner.setUsername("owner");
+
         Book book = new Book();
         book.setBookId(1L);
         book.setTitle("Admin View Book");
+        book.setOwner(owner);
 
         when(adminBookService.getAllBooks()).thenReturn(Arrays.asList(book));
 

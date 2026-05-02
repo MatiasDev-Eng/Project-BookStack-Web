@@ -16,31 +16,35 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class OrderService {
 
-    @Autowired
-    private CartRepository cartRepository;
-
-    @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private CartItemRepository cartItemRepository;
-
-    @Autowired
-    private PaymentRepository paymentRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    AuditLogService logService;
-
-    @Autowired
-    private BookRepository bookRepository;
-
+    private final CartRepository cartRepository;
+    private final OrderRepository orderRepository;
+    private final CartItemRepository cartItemRepository;
+    private final PaymentRepository paymentRepository;
+    private final UserRepository userRepository;
+    private final AuditLogService logService;
+    private final BookRepository bookRepository;
     private final SaleNotificationService saleNotificationService;
+
+    @Autowired
+    public OrderService(CartRepository cartRepository,
+                        OrderRepository orderRepository,
+                        CartItemRepository cartItemRepository,
+                        PaymentRepository paymentRepository,
+                        UserRepository userRepository,
+                        AuditLogService logService,
+                        BookRepository bookRepository,
+                        SaleNotificationService saleNotificationService) {
+        this.cartRepository = cartRepository;
+        this.orderRepository = orderRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.paymentRepository = paymentRepository;
+        this.userRepository = userRepository;
+        this.logService = logService;
+        this.bookRepository = bookRepository;
+        this.saleNotificationService = saleNotificationService;
+    }
 
     @Transactional
     public Order checkout(User user, String address, Long cardId) {

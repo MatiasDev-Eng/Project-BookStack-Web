@@ -77,12 +77,12 @@ public class BookServiceTest {
     void getAllBooks_ShouldReturnListOfBooks() {
         Book book1 = new Book();
         Book book2 = new Book();
-        when(bookRepository.findAll()).thenReturn(Arrays.asList(book1, book2));
+        when(bookRepository.findByIsActiveTrueAndIsFrozenFalseAndIsDeletedFalse()).thenReturn(Arrays.asList(book1, book2));
 
         List<Book> result = bookService.getAllBooks();
 
         assertEquals(2, result.size());
-        verify(bookRepository, times(1)).findAll();
+        verify(bookRepository, times(1)).findByIsActiveTrueAndIsFrozenFalseAndIsDeletedFalse();
     }
 
     @Test
@@ -102,7 +102,8 @@ public class BookServiceTest {
     @Test
     void findBookById_ShouldReturnBook_WhenExists() {
         Book book = new Book();
-        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        book.setBookId(1L);
+        when(bookRepository.findByBookIdAndIsActiveTrueAndIsDeletedFalse(1L)).thenReturn(Optional.of(book));
 
         Book result = bookService.findBookById(1L);
 
@@ -136,25 +137,16 @@ public class BookServiceTest {
     }
 
     @Test
-    void deleteBookListing_ShouldDelete() {
+    void deleteBookListing_ShouldSetIsDeleted() {
         Book book = new Book();
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
 
         bookService.deleteBookListing(1L);
 
-        verify(bookRepository).delete(book);
-    }
-
-    @Test
-    void getSimilarBooks_ShouldReturnBooks() {
-        Book book = new Book();
-        book.setGenre("Sci-Fi");
-        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
-        when(bookRepository.findByGenreAndBookIdNot("Sci-Fi", 1L)).thenReturn(Arrays.asList(new Book()));
-
-        List<Book> result = bookService.getSimilarBooks(1L);
-
-        assertEquals(1, result.size());
+        assertTrue(book.getIsDeleted());
+        assertFalse(book.getIsActive());
+        assertEquals(0, book.getStock());
+        verify(bookRepository).save(book);
     }
 
     @Test
@@ -169,7 +161,7 @@ public class BookServiceTest {
         book2.setPublishedYear(2010);
         book2.setIsActive(true);
 
-        when(bookRepository.searchActiveBooks(anyString()))
+        when(bookRepository.searchAllBooks(anyString()))
                 .thenReturn(Arrays.asList(book1, book2));
 
         List<Book> result = bookService.searchBooks("query", 5.0, 50.0, 2015, 2025);

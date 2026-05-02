@@ -5,7 +5,9 @@ import com.example.bookstack_backend.dto.response.BookResponse;
 import com.example.bookstack_backend.models.Book;
 import com.example.bookstack_backend.models.ECondition;
 import com.example.bookstack_backend.models.User;
+import com.example.bookstack_backend.repository.UserRepository;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
+import com.example.bookstack_backend.services.AuditLogService;
 import com.example.bookstack_backend.services.BookService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +48,12 @@ public class BookControllerTest {
 
     @MockBean
     private BookService bookService;
+
+    @MockBean
+    private AuditLogService logService;
+
+    @MockBean
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -105,12 +113,14 @@ public class BookControllerTest {
         request.setCondition(ECondition.NEW);
         request.setOwnerId(1L);
 
-        when(bookService.createBookListing(any(CreateBookRequest.class))).thenReturn(book);
+        org.springframework.mock.web.MockMultipartFile bookPart = new org.springframework.mock.web.MockMultipartFile(
+                "book", "", "application/json", objectMapper.writeValueAsBytes(request));
 
-        mockMvc.perform(post("/api/books/")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        when(bookService.createBookWithCover(any(CreateBookRequest.class), any())).thenReturn(book);
+
+        mockMvc.perform(multipart("/api/books/")
+                        .file(bookPart)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("Test Book"));
     }
@@ -137,7 +147,7 @@ public class BookControllerTest {
 
     @Test
     void testGetSingleBook_Success() throws Exception {
-        when(bookService.findBookById(1L)).thenReturn(book);
+        when(bookService.findBookByIdIgnoreActive(1L)).thenReturn(book);
 
         mockMvc.perform(get("/api/books/1"))
                 .andExpect(status().isOk())
@@ -216,7 +226,7 @@ public class BookControllerTest {
     void testGetCover_Success() throws Exception {
         book.setCoverImage("cover data".getBytes());
         book.setCoverImageType("image/jpeg");
-        when(bookService.findBookById(1L)).thenReturn(book);
+        when(bookService.findBookByIdIgnoreActive(1L)).thenReturn(book);
 
         mockMvc.perform(get("/api/books/1/cover"))
                 .andExpect(status().isOk())

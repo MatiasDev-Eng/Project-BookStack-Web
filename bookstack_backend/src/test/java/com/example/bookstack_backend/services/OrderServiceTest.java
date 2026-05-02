@@ -3,10 +3,10 @@ package com.example.bookstack_backend.services;
 import com.example.bookstack_backend.dto.response.OrderDetailsResponse;
 import com.example.bookstack_backend.dto.response.OrderResponse;
 import com.example.bookstack_backend.models.*;
-import com.example.bookstack_backend.repository.CartItemRepository;
-import com.example.bookstack_backend.repository.CartRepository;
-import com.example.bookstack_backend.repository.OrderRepository;
-import com.example.bookstack_backend.repository.PaymentRepository;
+import com.example.bookstack_backend.repository.*;
+import com.example.bookstack_backend.services.AuditLogService;
+import com.example.bookstack_backend.services.OrderService;
+import com.example.bookstack_backend.services.SaleNotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +40,18 @@ public class OrderServiceTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private AuditLogService logService;
+
+    @Mock
+    private BookRepository bookRepository;
+
+    @Mock
+    private SaleNotificationService saleNotificationService;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -58,6 +70,8 @@ public class OrderServiceTest {
         book.setBookId(1L);
         book.setTitle("Test Book");
         book.setPrice(BigDecimal.valueOf(10.00));
+        book.setStock(10);
+        book.setOwner(user);
 
         card = new CreditCard();
         card.setCardId(1L);
@@ -77,15 +91,19 @@ public class OrderServiceTest {
             order.setId(1L);
             return order;
         });
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(bookRepository.save(any(Book.class))).thenReturn(book);
 
         Order result = orderService.checkout(user, "123 Test St", 1L);
 
         assertNotNull(result);
-        assertEquals(new BigDecimal("20.00"), result.getTotalPrice());
+        assertEquals(0, new BigDecimal("20.00").compareTo(result.getTotalPrice()));
         assertEquals(OrderStatus.ORDERED, result.getStatus());
         assertEquals(card, result.getCreditCard());
         verify(cartItemRepository, times(1)).deleteAllByCart(cart);
         verify(cartRepository, times(1)).save(cart);
+        verify(userRepository, atLeastOnce()).save(any(User.class));
+        verify(bookRepository, atLeastOnce()).save(any(Book.class));
         assertTrue(cart.getItems().isEmpty());
     }
 

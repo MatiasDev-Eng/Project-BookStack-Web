@@ -57,6 +57,7 @@ public class CartServiceTest {
         book.setBookId(1L);
         book.setTitle("Test Book");
         book.setPrice(BigDecimal.valueOf(19.99));
+        book.setStock(10);
 
         cart = new Cart(user);
         cart.setCartId(1L);
