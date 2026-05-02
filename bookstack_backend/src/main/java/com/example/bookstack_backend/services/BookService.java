@@ -176,7 +176,7 @@ public class BookService {
     }
 
     public void updateReview(Long bookId, User user, int rating) {
-        Book book = findBookById(bookId);
+        Book book = findBookByIdIgnoreActive(bookId);
 
         if (reviewRepository.existsByUserAndBook(user, book)) {
             throw new IllegalStateException("You have already reviewed this book");

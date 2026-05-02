@@ -40,7 +40,7 @@
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" placeholder="Min 6 characters" minlength="6" maxlength="40" required>
+            <input type="password" id="password" placeholder="Min 10 characters" minlength="10" maxlength="40" required>
         </div>
         <div class="form-group">
             <label for="confirmPassword">Confirm Password</label>
@@ -139,7 +139,12 @@
             messageDiv.className   = "error";
             return;
         }
-
+        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{10,}$/;
+        if (!passwordRegex.test(password)) {
+            messageDiv.textContent = "Password must be at least 10 characters and include at least one letter, number, and punctuation symbol.";
+            messageDiv.className   = "error";
+            return;
+        }
         // Reset UI
         messageDiv.className = "";
         messageDiv.textContent = "Creating account...";
