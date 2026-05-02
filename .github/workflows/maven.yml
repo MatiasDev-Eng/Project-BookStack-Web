@@ -1,40 +1,71 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Java CI with Maven
 
 on:
   push:
-    branches: [ "backend" ]
+    branches: [ "backend", "main", "master" ]
   pull_request:
-    branches: [ "backend" ]
+    branches: [ "backend", "main", "master" ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: bookstack_test
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
+
     - name: Build with Maven
       working-directory: ./bookstack_backend
-      run: mvn -B package
+      run: mvn -B package -DskipTests
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bookstack_test
+        SPRING_DATASOURCE_USERNAME: testuser
+        SPRING_DATASOURCE_PASSWORD: testpass
+
+    - name: Run Tests
+      working-directory: ./bookstack_backend
+      run: mvn -B test
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bookstack_test
+        SPRING_DATASOURCE_USERNAME: testuser
+        SPRING_DATASOURCE_PASSWORD: testpass
+        SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
+        SPRING_JPA_SHOW_SQL: false
+
+    - name: Generate Test Report
+      if: always()
+      working-directory: ./bookstack_backend
+      run: mvn surefire-report:report -DskipTests
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: bookstack_backend/target/surefire-reports/
 
     - name: Generate dependency graph
+      if: always()
       working-directory: ./bookstack_backend
       run: mvn -B com.github.ferstl:depgraph-maven-plugin:4.0.1:graph
-      
-    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
-    # - name: Update dependency graph
-    # uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
