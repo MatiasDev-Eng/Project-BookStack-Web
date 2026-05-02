@@ -85,12 +85,14 @@
 </main>
 
 <script>
-    fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+    const API_BASE   = `${window.location.origin}/api`;
+    const ADMIN_BASE = `${window.location.origin}/api/admin`;
+
+    // Auth Check
+    fetch(`${API_BASE}/auth/me/`, { credentials: "include" })
         .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
         .then(user => { if (!user || !user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
         .catch(() => { window.location.href = "index.html"; });
-
-    const API_BASE = "http://localhost:9091/api/admin";
 
     function showNotification(message, type = "info") {
         const note = document.getElementById("notification");
@@ -103,8 +105,8 @@
     async function fetchBooks() {
         try {
             const [activeRes, frozenRes] = await Promise.all([
-                fetch(`${API_BASE}/books/active/`, { credentials: 'include' }),
-                fetch(`${API_BASE}/books/frozen/`, { credentials: 'include' })
+                fetch(`${ADMIN_BASE}/books/active/`, { credentials: 'include' }),
+                fetch(`${ADMIN_BASE}/books/frozen/`, { credentials: 'include' })
             ]);
             renderActiveBooks(activeRes.ok ? await activeRes.json() : []);
             renderFrozenBooks(frozenRes.ok ? await frozenRes.json() : []);
@@ -172,7 +174,7 @@
     async function freezeBook(bookId, bookTitle) {
         if (!confirm(`Freeze "${bookTitle}"? It will be hidden from all buyers.`)) return;
         try {
-            const res = await fetch(`${API_BASE}/books/${bookId}/freeze/`, { method: 'PUT', credentials: 'include' });
+            const res = await fetch(`${ADMIN_BASE}/books/${bookId}/freeze/`, { method: 'PUT', credentials: 'include' });
             if (res.ok) { showNotification(`"${bookTitle}" has been frozen.`, "info"); fetchBooks(); }
             else showNotification("Failed to freeze book.", "error");
         } catch { showNotification("Network error.", "error"); }
@@ -180,7 +182,7 @@
 
     async function unfreezeBook(bookId, bookTitle) {
         try {
-            const res = await fetch(`${API_BASE}/books/${bookId}/unfreeze/`, { method: 'PUT', credentials: 'include' });
+            const res = await fetch(`${ADMIN_BASE}/books/${bookId}/unfreeze/`, { method: 'PUT', credentials: 'include' });
             if (res.ok) { showNotification(`"${bookTitle}" has been unfrozen.`, "success"); fetchBooks(); }
             else showNotification("Failed to unfreeze book.", "error");
         } catch { showNotification("Network error.", "error"); }
@@ -189,9 +191,9 @@
     async function deleteBook(bookId, bookTitle) {
         if (!confirm(`Permanently delete "${bookTitle}"? This cannot be undone.`)) return;
         try {
-            const res = await fetch(`${API_BASE}/books/${bookId}/reject/`, { method: 'DELETE', credentials: 'include' });
+            const res = await fetch(`${ADMIN_BASE}/books/${bookId}/reject/`, { method: 'DELETE', credentials: 'include' });
             if (res.ok) { showNotification(`"${bookTitle}" has been deleted.`, "info"); fetchBooks(); }
-            else showNotification("Failed to delete book.", "error");
+            else showNotification("Failed to delete user.", "error");
         } catch { showNotification("Network error.", "error"); }
     }
 
@@ -207,7 +209,7 @@
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) { document.body.classList.remove("preload"); return; }
         try {
-            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            const res   = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
             if (!res.ok) { document.body.classList.remove("preload"); return; }
             const user  = await res.json();
             const theme = (user.themePreference || "light").toLowerCase().trim();

@@ -54,12 +54,13 @@
 </main>
 
 <script>
-    fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+    const API_BASE   = `${window.location.origin}/api`;
+    const ADMIN_BASE = `${window.location.origin}/api/admin/books`;
+
+    fetch(`${API_BASE}/auth/me/`, { credentials: "include" })
         .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
         .then(user => { if (!user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
         .catch(() => { window.location.href = "index.html"; });
-
-    const API_BASE = "http://localhost:9091/api/admin/books";
 
     function showNotification(message, type = "info") {
         const note = document.getElementById("notification");
@@ -72,7 +73,7 @@
     async function fetchUnapprovedBooks() {
         const tbody = document.getElementById('bookTableBody');
         try {
-            const response = await fetch(`${API_BASE}/`, { method: 'GET', credentials: 'include' });
+            const response = await fetch(`${ADMIN_BASE}/`, { method: 'GET', credentials: 'include' });
             if (response.status === 403) { showNotification("Access Denied: Admin role required.", "error"); return; }
             if (!response.ok) throw new Error("Failed to load books.");
             renderBooks(await response.json());
@@ -94,7 +95,7 @@
             <tr>
                 <td>
                     ${book.hasCover
-            ? `<img src="http://localhost:9091/api/admin/books/${book.bookId}/cover"
+            ? `<img src="${window.location.origin}/api/admin/books/${book.bookId}/cover"
                                 alt="${book.title}"
                                 style="width: 48px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; margin-right: 12px;"
                                 onerror="this.style.display='none'">`
@@ -119,7 +120,7 @@
 
     async function approveBook(bookId, bookTitle) {
         try {
-            const response = await fetch(`${API_BASE}/${bookId}/approve/`, { method: 'PUT', credentials: 'include' });
+            const response = await fetch(`${ADMIN_BASE}/${bookId}/approve/`, { method: 'PUT', credentials: 'include' });
             if (response.ok) { showNotification(`"${bookTitle}" has been approved!`, "success"); fetchUnapprovedBooks(); }
             else showNotification("Failed to approve book.", "error");
         } catch (err) { showNotification("Server error during approval.", "error"); }
@@ -128,7 +129,7 @@
     async function rejectBook(bookId, bookTitle) {
         if (!confirm(`Are you sure you want to reject "${bookTitle}"?`)) return;
         try {
-            const response = await fetch(`${API_BASE}/${bookId}/reject/`, { method: 'DELETE', credentials: 'include' });
+            const response = await fetch(`${ADMIN_BASE}/${bookId}/reject/`, { method: 'DELETE', credentials: 'include' });
             if (response.ok) { showNotification(`"${bookTitle}" has been rejected and removed.`, "info"); fetchUnapprovedBooks(); }
             else showNotification("Failed to reject book.", "error");
         } catch (err) { showNotification("Server error during rejection.", "error"); }
@@ -144,7 +145,7 @@
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) { document.body.classList.remove("preload"); return; }
         try {
-            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            const res   = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
             if (!res.ok) { document.body.classList.remove("preload"); return; }
             const user  = await res.json();
             const theme = (user.themePreference || "light").toLowerCase().trim();

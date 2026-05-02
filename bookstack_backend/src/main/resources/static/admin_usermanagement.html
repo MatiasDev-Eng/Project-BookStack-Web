@@ -51,12 +51,13 @@
 </main>
 
 <script>
-  fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+  const API_BASE   = `${window.location.origin}/api`;
+  const ADMIN_BASE = `${window.location.origin}/api/admin`;
+
+  fetch(`${API_BASE}/auth/me/`, { credentials: "include" })
           .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
           .then(user => { if (!user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
           .catch(() => { window.location.href = "index.html"; });
-
-  const API_BASE = "http://localhost:9091/api/admin";
 
   function showNotification(message, type = "info") {
     const note = document.getElementById("notification");
@@ -69,7 +70,7 @@
   async function fetchUnapprovedUsers() {
     const tbody = document.getElementById('userTableBody');
     try {
-      const response = await fetch(`${API_BASE}/users/`, { method: 'GET', credentials: 'include' });
+      const response = await fetch(`${ADMIN_BASE}/users/`, { method: 'GET', credentials: 'include' });
       if (response.status === 403) { showNotification("Access Denied: Admin role required.", "error"); return; }
       if (!response.ok) throw new Error("Failed to load users.");
       renderUsers(await response.json());
@@ -109,7 +110,7 @@
 
   async function approveUser(userId, username) {
     try {
-      const response = await fetch(`${API_BASE}/users/${userId}/approve/`, { method: 'PUT', credentials: 'include' });
+      const response = await fetch(`${ADMIN_BASE}/users/${userId}/approve/`, { method: 'PUT', credentials: 'include' });
       if (response.ok) { showNotification(`User "${username}" approved!`, "success"); fetchUnapprovedUsers(); }
       else showNotification("Approval failed. Please try again.", "error");
     } catch (err) { showNotification("Server error during approval.", "error"); }
@@ -118,7 +119,7 @@
   async function rejectUser(userId, username) {
     if (!confirm(`Are you sure you want to reject "${username}"?`)) return;
     try {
-      const response = await fetch(`${API_BASE}/users/${userId}/reject/`, { method: 'DELETE', credentials: 'include' });
+      const response = await fetch(`${ADMIN_BASE}/users/${userId}/reject/`, { method: 'DELETE', credentials: 'include' });
       if (response.ok) { showNotification(`User "${username}" has been rejected and removed.`, "info"); fetchUnapprovedUsers(); }
       else showNotification("Failed to reject user.", "error");
     } catch (err) { showNotification("Server error during rejection.", "error"); }
@@ -134,7 +135,7 @@
     const hasCookie = document.cookie.includes('bookstack-jwt');
     if (!hasCookie) { document.body.classList.remove("preload"); return; }
     try {
-      const res = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+      const res   = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
       if (!res.ok) { document.body.classList.remove("preload"); return; }
       const user  = await res.json();
       const theme = (user.themePreference || "light").toLowerCase().trim();

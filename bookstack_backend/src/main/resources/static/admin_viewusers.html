@@ -92,12 +92,14 @@
 </main>
 
 <script>
-    fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+    const API_BASE   = `${window.location.origin}/api`;
+    const ADMIN_BASE = `${window.location.origin}/api/admin`;
+
+    // Auth Check
+    fetch(`${API_BASE}/auth/me/`, { credentials: "include" })
         .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
         .then(user => { if (!user || !user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
         .catch(() => { window.location.href = "index.html"; });
-
-    const API_BASE = "http://localhost:9091/api/admin";
 
     function showNotification(message, type = "info") {
         const note = document.getElementById("notification");
@@ -110,8 +112,8 @@
     async function fetchUsers() {
         try {
             const [activeRes, frozenRes] = await Promise.all([
-                fetch(`${API_BASE}/users/active/`, { credentials: 'include' }),
-                fetch(`${API_BASE}/users/frozen/`, { credentials: 'include' })
+                fetch(`${ADMIN_BASE}/users/active/`, { credentials: 'include' }),
+                fetch(`${ADMIN_BASE}/users/frozen/`, { credentials: 'include' })
             ]);
             renderActiveUsers(activeRes.ok ? await activeRes.json() : []);
             renderFrozenUsers(frozenRes.ok ? await frozenRes.json() : []);
@@ -179,7 +181,7 @@
     async function freezeUser(userId, username) {
         if (!confirm(`Freeze "${username}"? They will not be able to log in.`)) return;
         try {
-            const res = await fetch(`${API_BASE}/users/${userId}/freeze/`, { method: 'PUT', credentials: 'include' });
+            const res = await fetch(`${ADMIN_BASE}/users/${userId}/freeze/`, { method: 'PUT', credentials: 'include' });
             if (res.ok) { showNotification(`"${username}" has been frozen.`, "info"); fetchUsers(); }
             else showNotification("Failed to freeze user.", "error");
         } catch { showNotification("Network error.", "error"); }
@@ -187,7 +189,7 @@
 
     async function unfreezeUser(userId, username) {
         try {
-            const res = await fetch(`${API_BASE}/users/${userId}/unfreeze/`, { method: 'PUT', credentials: 'include' });
+            const res = await fetch(`${ADMIN_BASE}/users/${userId}/unfreeze/`, { method: 'PUT', credentials: 'include' });
             if (res.ok) { showNotification(`"${username}" has been unfrozen.`, "success"); fetchUsers(); }
             else showNotification("Failed to unfreeze user.", "error");
         } catch { showNotification("Network error.", "error"); }
@@ -196,7 +198,7 @@
     async function deleteUser(userId, username) {
         if (!confirm(`Permanently delete "${username}"? This cannot be undone.`)) return;
         try {
-            const res = await fetch(`${API_BASE}/users/${userId}/reject/`, { method: 'DELETE', credentials: 'include' });
+            const res = await fetch(`${ADMIN_BASE}/users/${userId}/reject/`, { method: 'DELETE', credentials: 'include' });
             if (res.ok) { showNotification(`"${username}" has been deleted.`, "info"); fetchUsers(); }
             else showNotification("Failed to delete user.", "error");
         } catch { showNotification("Network error.", "error"); }
@@ -214,7 +216,7 @@
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) { document.body.classList.remove("preload"); return; }
         try {
-            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            const res   = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
             if (!res.ok) { document.body.classList.remove("preload"); return; }
             const user  = await res.json();
             const theme = (user.themePreference || "light").toLowerCase().trim();

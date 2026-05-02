@@ -149,13 +149,15 @@
 </main>
 
 <script>
+    const API_BASE   = `${window.location.origin}/api`;
+    const ADMIN_BASE = `${window.location.origin}/api/admin`;
+
     // ── Auth check ─────────────────────────────────────────────────────────
-    fetch("http://localhost:9091/api/auth/me/", { credentials: "include" })
+    fetch(`${API_BASE}/auth/me/`, { credentials: "include" })
         .then(res => { if (!res.ok) { window.location.href = "index.html"; return; } return res.json(); })
         .then(user => { if (!user || !user.roles.includes("ROLE_ADMIN")) window.location.href = "404.html"; })
         .catch(() => { window.location.href = "index.html"; });
 
-    const API_BASE    = "http://localhost:9091/api/admin";
     const PER_PAGE    = 20;
     let allLogs       = [];
     let currentPage   = 1;
@@ -178,7 +180,7 @@
         tbody.innerHTML = `<tr><td colspan="4" class="empty-state">Loading...</td></tr>`;
         currentPage = 1;
 
-        let url = `${API_BASE}/logs/`;
+        let url = `${ADMIN_BASE}/logs/`;
         const params = new URLSearchParams();
         if (action) params.append('action', action);
         if (userId) params.append('userId', userId);
@@ -271,7 +273,7 @@
         const hasCookie = document.cookie.includes('bookstack-jwt');
         if (!hasCookie) { document.body.classList.remove("preload"); return; }
         try {
-            const res   = await fetch("http://localhost:9091/api/me/", { credentials: 'include' });
+            const res   = await fetch(`${API_BASE}/me/`, { credentials: 'include' });
             if (!res.ok) { document.body.classList.remove("preload"); return; }
             const user  = await res.json();
             const theme = (user.themePreference || "light").toLowerCase().trim();
