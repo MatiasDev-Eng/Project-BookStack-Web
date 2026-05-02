@@ -9,8 +9,7 @@ const client = new Client({
     onConnect: () => {
         console.log('Connected!');
 
-        // Define the topic in one place
-        const topic = '/topic/seller.8';
+        const topic = '/topic/seller.10';
 
         client.subscribe(topic, (message) => {
             console.log(`Sale received on ${topic}:`);
