@@ -17,7 +17,7 @@ public class AdminBookController {
     private AdminBookService adminBookService;
 
     // GET all books
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<List<BookResponse>> getAllBooks() {
         List<Book> bookList = adminBookService.getAllBooks();
         List<BookResponse> responseList = bookList.stream()

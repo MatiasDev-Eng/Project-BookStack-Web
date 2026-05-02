@@ -11,6 +11,7 @@ import com.example.bookstack_backend.repository.UserRepository;
 import com.example.bookstack_backend.security.jwt.JwtUtils;
 import com.example.bookstack_backend.security.services.RefreshTokenService;
 import com.example.bookstack_backend.security.services.UserDetailsImpl;
+import com.example.bookstack_backend.services.AuditLogService;
 import com.example.bookstack_backend.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +65,9 @@ public class AuthControllerTest {
 
     @MockBean
     private RoleRepository roleRepository;
+
+    @MockBean
+    private AuditLogService auditLogService;
 
     @Autowired
     private ObjectMapper objectMapper;

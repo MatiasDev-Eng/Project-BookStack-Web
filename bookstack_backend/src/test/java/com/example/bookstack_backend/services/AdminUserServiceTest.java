@@ -1,7 +1,10 @@
 package com.example.bookstack_backend.services;
 
 import com.example.bookstack_backend.models.User;
+import com.example.bookstack_backend.repository.CartRepository;
+import com.example.bookstack_backend.repository.OrderRepository;
 import com.example.bookstack_backend.repository.UserRepository;
+import com.example.bookstack_backend.security.services.RefreshTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,6 +20,15 @@ public class AdminUserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private CartRepository cartRepository;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private AdminUserService adminUserService;
